@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jlleitschuh.gradle.ktlint")
+    id("org.sonarqube") version "7.2.3.7755"
 }
 
 android {
@@ -38,6 +39,13 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "SS26-SE2-Codenames_Frontend")
+        property("sonar.organization", "ss26-se2-codenames")
     }
 }
 
