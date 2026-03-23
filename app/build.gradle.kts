@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jlleitschuh.gradle.ktlint")
-    id("org.sonarqube") version "7.2.3.7755"
+    alias(libs.plugins.sonarqube)
 }
 
 android {
