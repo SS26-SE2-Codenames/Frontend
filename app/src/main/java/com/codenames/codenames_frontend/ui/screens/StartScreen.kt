@@ -20,6 +20,7 @@ import com.codenames.codenames_frontend.ui.navigation.Screen
 
 @Composable
 fun StartScreen(navController: NavHostController) {
+    ForceLandscape()
     Column(
         modifier = Modifier
             .fillMaxSize()
