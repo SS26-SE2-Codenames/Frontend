@@ -1,6 +1,9 @@
 package com.codenames.codenames_frontend.ui.buttons
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -9,12 +12,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.codenames.codenames_frontend.ui.theme.CodenamesTheme
 
 enum class AppButtonType {
@@ -28,7 +28,9 @@ fun AppButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    type: AppButtonType = AppButtonType.PRIMARY
+    type: AppButtonType = AppButtonType.PRIMARY,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary
 ) {
     when (type) {
         AppButtonType.PRIMARY -> {
@@ -39,8 +41,8 @@ fun AppButton(
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = containerColor,
+                    contentColor = contentColor
                 )
             ) {
                 Text(
@@ -56,7 +58,10 @@ fun AppButton(
                 modifier = modifier,
                 enabled = enabled,
                 shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = contentColor
+                )
             ) {
                 Text(
                     text = text,
@@ -67,7 +72,7 @@ fun AppButton(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = false)
+@Preview(showBackground = true)
 @Composable
 fun AppButtonPreview() {
     CodenamesTheme {
