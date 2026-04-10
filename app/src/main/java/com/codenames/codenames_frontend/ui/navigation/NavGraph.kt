@@ -3,6 +3,8 @@ import com.codenames.codenames_frontend.ui.screens.StartScreen
 import com.codenames.codenames_frontend.ui.screens.LobbyScreen
 import com.codenames.codenames_frontend.ui.screens.JoinlobbyScreen
 import com.codenames.codenames_frontend.ui.screens.GameboardScreen
+import com.codenames.codenames_frontend.ui.screens.GameSettingsScreen
+import com.codenames.codenames_frontend.ui.screens.SettingsScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -27,6 +29,12 @@ fun NavGraph(){
         }
         composable(Screen.Gameboard.route){
            GameboardScreen(navController)
+        }
+        composable(Screen.GameSettings.route) {
+            GameSettingsScreen(navController)
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen(navController)
         }
     }
 }

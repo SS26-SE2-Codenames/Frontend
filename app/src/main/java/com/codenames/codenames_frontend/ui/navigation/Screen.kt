@@ -5,6 +5,8 @@ sealed class Screen(val route: String) {
     object JoinLobby : Screen ("join_lobby")
     object Lobby : Screen("lobby");
     object Gameboard : Screen("gameboard");
+    object GameSettings : Screen("game_settings");
+    object Settings : Screen("settings");
 
 }
 
