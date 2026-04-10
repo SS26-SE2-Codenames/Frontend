@@ -13,12 +13,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import com.codenames.codenames_frontend.ui.theme.CodenamesTheme
 
 enum class AppButtonType {
@@ -26,44 +27,54 @@ enum class AppButtonType {
     SECONDARY
 }
 
+data class AppButtonStyle(
+    val enabled: Boolean = true,
+    val type: AppButtonType = AppButtonType.PRIMARY,
+    val containerColor: Color = Color.Unspecified,
+    val contentColor: Color = Color.Unspecified,
+    val backgroundBrush: Brush? = null,
+    val fontSize: TextUnit = TextUnit.Unspecified,
+    val lineHeight: TextUnit = TextUnit.Unspecified,
+    val shape: Shape = RoundedCornerShape(12.dp),
+    val contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+)
+
 @Composable
 fun AppButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    type: AppButtonType = AppButtonType.PRIMARY,
-    containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
-    backgroundBrush: Brush? = null,
-    fontSize: TextUnit = TextUnit.Unspecified,
-            lineHeight: TextUnit = TextUnit.Unspecified
-
+    style: AppButtonStyle = AppButtonStyle()
 ) {
-    when (type) {
+    val resolvedContainerColor = when {
+        style.containerColor != Color.Unspecified -> style.containerColor
+        else -> MaterialTheme.colorScheme.primary
+    }
+
+    val resolvedContentColor = when {
+        style.contentColor != Color.Unspecified -> style.contentColor
+        style.type == AppButtonType.SECONDARY -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onPrimary
+    }
+
+    when (style.type) {
         AppButtonType.PRIMARY -> {
             Button(
                 onClick = onClick,
-                modifier = if (backgroundBrush != null) {
-                    modifier.background(backgroundBrush, shape = RoundedCornerShape(12.dp))
+                modifier = if (style.backgroundBrush != null) {
+                    modifier.background(style.backgroundBrush, shape = style.shape)
                 } else {
                     modifier
                 },
-                enabled = enabled,
-                shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                enabled = style.enabled,
+                shape = style.shape,
+                contentPadding = style.contentPadding,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (backgroundBrush != null) Color.Transparent else containerColor,
-                    contentColor = contentColor
+                    containerColor = if (style.backgroundBrush != null) Color.Transparent else resolvedContainerColor,
+                    contentColor = resolvedContentColor
                 )
             ) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontSize = fontSize,
-                    lineHeight = lineHeight,
-                    textAlign = TextAlign.Center
-                )
+                AppButtonText(text = text, style = style)
             }
         }
 
@@ -71,28 +82,36 @@ fun AppButton(
             OutlinedButton(
                 onClick = onClick,
                 modifier = modifier,
-                enabled = enabled,
-                shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                enabled = style.enabled,
+                shape = style.shape,
+                contentPadding = style.contentPadding,
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = contentColor
+                    contentColor = resolvedContentColor
                 )
             ) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontSize = fontSize,
-                    lineHeight = lineHeight,
-                    textAlign = TextAlign.Center
-                )
+                AppButtonText(text = text, style = style)
             }
         }
     }
 }
 
+@Composable
+private fun AppButtonText(
+    text: String,
+    style: AppButtonStyle
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        fontSize = style.fontSize,
+        lineHeight = style.lineHeight,
+        textAlign = TextAlign.Center
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
-fun AppButtonPreview() {
+private fun AppButtonPreview() {
     CodenamesTheme {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -106,7 +125,7 @@ fun AppButtonPreview() {
             AppButton(
                 text = "Beitreten",
                 onClick = {},
-                type = AppButtonType.SECONDARY
+                style = AppButtonStyle(type = AppButtonType.SECONDARY)
             )
         }
     }

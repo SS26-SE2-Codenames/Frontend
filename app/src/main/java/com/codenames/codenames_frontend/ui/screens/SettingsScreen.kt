@@ -9,10 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 
 @Composable
-fun SettingsScreen(navController: NavHostController) {
+fun SettingsScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -20,6 +19,6 @@ fun SettingsScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Insert Game Settings here") //just to test navigation
+        Text("Insert Game Settings here")
     }
 }

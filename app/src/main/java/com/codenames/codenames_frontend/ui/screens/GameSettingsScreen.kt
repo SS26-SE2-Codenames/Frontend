@@ -1,15 +1,17 @@
 package com.codenames.codenames_frontend.ui.screens
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-
 
 @Composable
-fun GameSettingsScreen(navController: NavHostController) {
+fun GameSettingsScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -17,6 +19,6 @@ fun GameSettingsScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Insert Game Settings here") //just to test navigation
+        Text("Insert Game Settings here")
     }
 }
