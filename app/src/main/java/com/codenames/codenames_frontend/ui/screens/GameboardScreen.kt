@@ -1,15 +1,17 @@
 package com.codenames.codenames_frontend.ui.screens
-import androidx.compose.runtime.Composable
-import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.Text
-import androidx.navigation.NavHostController
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 @Composable
-fun GameboardScreen(navController: NavHostController) {
+fun GameboardScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -17,6 +19,6 @@ fun GameboardScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Gameboard") //just to test navigation
+        Text("Gameboard")
     }
 }

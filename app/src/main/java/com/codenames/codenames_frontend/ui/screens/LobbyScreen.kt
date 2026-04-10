@@ -1,21 +1,28 @@
 package com.codenames.codenames_frontend.ui.screens
-import com.codenames.codenames_frontend.ui.buttons.AppButton
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.codenames.codenames_frontend.ui.buttons.AppButton
+import com.codenames.codenames_frontend.ui.buttons.AppButtonStyle
 import com.codenames.codenames_frontend.ui.navigation.Screen
-
 
 @Composable
 fun LobbyScreen(navController: NavHostController) {
-
     val blueGradient = Brush.verticalGradient(
         colors = listOf(
             Color(0xFF42A5F5),
@@ -47,22 +54,21 @@ fun LobbyScreen(navController: NavHostController) {
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp), // Das verhindert, dass der Text in die Statusleiste oben rutscht!
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Text(
                 text = "BLUE TEAM",
                 color = Color(0xFF42A5F5),
                 fontSize = 24.sp,
-                modifier = Modifier.align(Alignment.Start)
+                modifier = Modifier
+                    .align(Alignment.Start)
                     .padding(start = 6.dp)
                     .padding(bottom = 6.dp)
             )
@@ -72,15 +78,18 @@ fun LobbyScreen(navController: NavHostController) {
                 onClick = {
                     navController.navigate(Screen.Gameboard.route)
                 },
-                backgroundBrush = blueGradient,
-                fontSize = 30.sp,
-                lineHeight = 30.sp,
-                modifier = Modifier.align(Alignment.Start)
+                modifier = Modifier
+                    .align(Alignment.Start)
                     .width(200.dp)
                     .height(150.dp)
                     .fillMaxWidth(0.5f)
                     .padding(start = 6.dp)
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 12.dp),
+                style = AppButtonStyle(
+                    backgroundBrush = blueGradient,
+                    fontSize = 30.sp,
+                    lineHeight = 30.sp
+                )
             )
 
             AppButton(
@@ -88,15 +97,18 @@ fun LobbyScreen(navController: NavHostController) {
                 onClick = {
                     navController.navigate(Screen.Gameboard.route)
                 },
-                backgroundBrush = blueGradient,
-                fontSize = 30.sp,
-                lineHeight = 30.sp,
-                modifier = Modifier.align(Alignment.Start)
+                modifier = Modifier
+                    .align(Alignment.Start)
                     .width(200.dp)
                     .height(150.dp)
                     .fillMaxWidth(0.5f)
                     .padding(start = 6.dp)
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 12.dp),
+                style = AppButtonStyle(
+                    backgroundBrush = blueGradient,
+                    fontSize = 30.sp,
+                    lineHeight = 30.sp
+                )
             )
         }
 
@@ -105,19 +117,21 @@ fun LobbyScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             AppButton(
                 text = "Game Settings",
                 onClick = {
                     navController.navigate(Screen.GameSettings.route)
                 },
-                backgroundBrush = brownGradient,
-                fontSize = 28.sp,
-                lineHeight = 30.sp,
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier
+                    .align(Alignment.End)
                     .width(400.dp)
                     .height(250.dp)
-                    .fillMaxWidth(0.5f)
+                    .fillMaxWidth(0.5f),
+                style = AppButtonStyle(
+                    backgroundBrush = brownGradient,
+                    fontSize = 28.sp,
+                    lineHeight = 30.sp
+                )
             )
 
             AppButton(
@@ -125,16 +139,18 @@ fun LobbyScreen(navController: NavHostController) {
                 onClick = {
                     navController.navigate(Screen.Gameboard.route)
                 },
-                backgroundBrush = greenGradient,
-                fontSize = 28.sp,
-                lineHeight = 30.sp,
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier
+                    .align(Alignment.End)
                     .width(400.dp)
                     .height(70.dp)
                     .fillMaxWidth(0.5f)
-                    .padding(top = 12.dp)
+                    .padding(top = 12.dp),
+                style = AppButtonStyle(
+                    backgroundBrush = greenGradient,
+                    fontSize = 28.sp,
+                    lineHeight = 30.sp
+                )
             )
-
         }
 
         Column(
@@ -142,12 +158,12 @@ fun LobbyScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Text(
                 text = "RED TEAM",
                 color = Color(0xFFDE8468),
                 fontSize = 24.sp,
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier
+                    .align(Alignment.End)
                     .padding(end = 6.dp)
                     .padding(bottom = 6.dp)
             )
@@ -157,15 +173,18 @@ fun LobbyScreen(navController: NavHostController) {
                 onClick = {
                     navController.navigate(Screen.Gameboard.route)
                 },
-                backgroundBrush = redGradient,
-                fontSize = 28.sp,
-                lineHeight = 30.sp,
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier
+                    .align(Alignment.End)
                     .width(200.dp)
                     .height(150.dp)
                     .fillMaxWidth(0.5f)
                     .padding(end = 6.dp)
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 12.dp),
+                style = AppButtonStyle(
+                    backgroundBrush = redGradient,
+                    fontSize = 28.sp,
+                    lineHeight = 30.sp
+                )
             )
 
             AppButton(
@@ -173,18 +192,19 @@ fun LobbyScreen(navController: NavHostController) {
                 onClick = {
                     navController.navigate(Screen.Gameboard.route)
                 },
-                backgroundBrush = redGradient,
-                fontSize = 28.sp,
-                lineHeight = 30.sp,
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier
+                    .align(Alignment.End)
                     .width(200.dp)
                     .height(150.dp)
                     .fillMaxWidth(0.5f)
                     .padding(end = 6.dp)
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 12.dp),
+                style = AppButtonStyle(
+                    backgroundBrush = redGradient,
+                    fontSize = 28.sp,
+                    lineHeight = 30.sp
+                )
             )
         }
     }
 }
-
-
