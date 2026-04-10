@@ -1,5 +1,6 @@
 package com.codenames.codenames_frontend.ui.buttons
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.text.style.TextAlign
 import com.codenames.codenames_frontend.ui.theme.CodenamesTheme
 
 enum class AppButtonType {
@@ -30,24 +34,35 @@ fun AppButton(
     enabled: Boolean = true,
     type: AppButtonType = AppButtonType.PRIMARY,
     containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    backgroundBrush: Brush? = null,
+    fontSize: TextUnit = TextUnit.Unspecified,
+            lineHeight: TextUnit = TextUnit.Unspecified
+
 ) {
     when (type) {
         AppButtonType.PRIMARY -> {
             Button(
                 onClick = onClick,
-                modifier = modifier,
+                modifier = if (backgroundBrush != null) {
+                    modifier.background(backgroundBrush, shape = RoundedCornerShape(12.dp))
+                } else {
+                    modifier
+                },
                 enabled = enabled,
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = containerColor,
+                    containerColor = if (backgroundBrush != null) Color.Transparent else containerColor,
                     contentColor = contentColor
                 )
             ) {
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    fontSize = fontSize,
+                    lineHeight = lineHeight,
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -65,7 +80,10 @@ fun AppButton(
             ) {
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    fontSize = fontSize,
+                    lineHeight = lineHeight,
+                    textAlign = TextAlign.Center
                 )
             }
         }
