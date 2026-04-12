@@ -69,9 +69,9 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     //Network: Krossbow
-    implementation(libs.krossbow.stomp.core)
     implementation(libs.krossbow.websocket.builtin)
     implementation(libs.krossbow.stomp.kxserialization.json)
+    implementation(libs.krossbow.stomp.core)
 
 
     //Coroutines for concurrent programming
