@@ -78,5 +78,21 @@ fun StartScreen(navController: NavHostController) {
                 lineHeight = 30.sp
             )
         )
+        AppButton(
+            text = "test Mode",
+            onClick = {
+                navController.navigate("game_test")
+            },
+            modifier = Modifier
+                .width(200.dp)
+                .height(100.dp)
+                .fillMaxWidth(0.5f)
+                .padding(bottom = 12.dp),
+            style = AppButtonStyle(
+                backgroundBrush = greenGradient,
+                fontSize = 26.sp,
+                lineHeight = 30.sp
+            )
+        )
     }
 }
