@@ -63,13 +63,11 @@ dependencies {
     //Network (HTTP)
     implementation(libs.retrofit)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
-    //Network (Websocket via krossbow)
-    implementation(libs.krossbow.stomp.core)
-    implementation(libs.krossbow.websocket.okhttp)
 
     //Coroutines for concurrent programming
     implementation(libs.kotlinx.coroutines.android)
