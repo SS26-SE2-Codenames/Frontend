@@ -68,6 +68,11 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
+    //Network: Krossbow
+    implementation(libs.krossbow.stomp.core)
+    implementation(libs.krossbow.websocket.builtin)
+    implementation(libs.krossbow.stomp.kxserialization.json)
+
 
     //Coroutines for concurrent programming
     implementation(libs.kotlinx.coroutines.android)
