@@ -17,12 +17,11 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 const val BASE_URL = "ws://localhost:8080"
 
 class GameWebSocketClient(private val client: StompClient) {
-    private lateinit var session : StompSessionWithKxSerialization
+    lateinit var session : StompSessionWithKxSerialization
 
     //called by GameViewModel
     suspend fun connectStomp(){
         session = client.connect(BASE_URL).withJsonConversions()
-        //example lobby code, fetch from lobby viewmodel or so
     }
 
     suspend fun sendGuess(msg: GuessMessage) {
