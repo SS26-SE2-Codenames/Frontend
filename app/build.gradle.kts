@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jlleitschuh.gradle.ktlint")
+    id("com.google.devtools.ksp") version "2.3.6"
 }
 
 kotlin {
@@ -76,6 +77,10 @@ dependencies {
     implementation(libs.krossbow.websocket.builtin)
     implementation(libs.krossbow.stomp.kxserialization.json)
     implementation(libs.krossbow.stomp.core)
+
+    //DI: Hilt
+    implementation("com.google.dagger:hilt-android:2.57.1")
+    ksp("com.google.dagger:hilt-android-compiler:2.57.1")
 
 
     //Coroutines for concurrent programming

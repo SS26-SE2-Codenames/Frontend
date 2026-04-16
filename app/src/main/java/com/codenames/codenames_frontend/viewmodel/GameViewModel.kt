@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-
 class GameViewModel(private val client: GameWebSocketClient) : ViewModel() {
     private val _uiState = MutableStateFlow(GameMessage())
     val uiState: StateFlow<GameMessage> = _uiState
