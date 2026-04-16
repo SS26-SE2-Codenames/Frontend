@@ -4,7 +4,6 @@ import com.codenames.codenames_frontend.network.dto.GameMessage
 import com.codenames.codenames_frontend.network.dto.GuessMessage
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
@@ -16,7 +15,7 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConver
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import org.junit.Test
 
-class GameWebSocketClientTest {
+class GameWebSocketHandlerTest {
 
     @Test
     fun testConnectStomp() = runTest {
@@ -30,7 +29,7 @@ class GameWebSocketClientTest {
             sessionWithJson.subscribe<GameMessage>(any(), any())
         } returns emptyFlow()
 
-        val wsClient = GameWebSocketClient(client)
+        val wsClient = GameWebSocketHandler(client)
 
         wsClient.connectStomp()
 
@@ -45,7 +44,7 @@ class GameWebSocketClientTest {
         val session = mockk<StompSessionWithKxSerialization>(relaxed = true)
         val client = mockk<StompClient>()
 
-        val wsClient = GameWebSocketClient(client)
+        val wsClient = GameWebSocketHandler(client)
         wsClient.session = session // ggf. sichtbar machen
 
         val msg = GuessMessage("name", "word", 1)
@@ -66,7 +65,7 @@ class GameWebSocketClientTest {
             session.subscribe<GameMessage>("/game/ABCDE")
         } returns emptyFlow()
 
-        val wsClient = GameWebSocketClient(client)
+        val wsClient = GameWebSocketHandler(client)
         wsClient.session = session
 
         wsClient.subscribeToLobby("ABCDE") //warnings can be ignored, only subscribe is tested here, not the return value

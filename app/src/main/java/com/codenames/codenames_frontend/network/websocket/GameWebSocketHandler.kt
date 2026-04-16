@@ -4,19 +4,17 @@ import com.codenames.codenames_frontend.network.dto.GameMessage
 import com.codenames.codenames_frontend.network.dto.GuessMessage
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
-import org.hildan.krossbow.stomp.use
-import org.hildan.krossbow.websocket.WebSocketClient
 
 
 import kotlinx.coroutines.flow.Flow
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
 import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
-import org.hildan.krossbow.websocket.builtin.builtIn
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
+import javax.inject.Inject
 
 const val BASE_URL = "ws://localhost:8080"
 
-class GameWebSocketClient(private val client: StompClient) {
+class GameWebSocketHandler @Inject constructor(private val client: StompClient) {
     lateinit var session : StompSessionWithKxSerialization
 
     //called by GameViewModel
