@@ -25,12 +25,11 @@ class GameViewModel @Inject constructor(private val client: GameWebSocketHandler
 
         job?.cancel()
 
-        viewModelScope.launch {
+        job = viewModelScope.launch {
             client.connectStomp()
 
-            job = client.subscribeToLobby(lobbyCode)
-                .onEach { handleMessage(it) }
-                .launchIn(this)
+            client.subscribeToLobby(lobbyCode)
+                .collect { handleMessage(it) }
         }
     }
 
