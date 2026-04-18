@@ -6,10 +6,12 @@ import com.codenames.codenames_frontend.data.repository.LobbyRepository
 import com.codenames.codenames_frontend.network.dto.LobbyResponse
 import com.codenames.codenames_frontend.network.dto.PlayerDto
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -45,12 +47,15 @@ class LobbyViewModelTest {
         )
 
         coEvery { repository.createLobby("User") } returns response
+        coEvery { repository.getLobbyInfo(any()) } returns response
 
         val viewModel = LobbyViewModel(repository)
 
         viewModel.createLobby("User")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
 
         val state = viewModel.state.value
 
@@ -69,7 +74,9 @@ class LobbyViewModelTest {
 
         viewModel.createLobby("Max")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
 
         val state = viewModel.state.value
 
@@ -87,12 +94,18 @@ class LobbyViewModelTest {
         )
 
         coEvery { repository.joinLobby("User", "1234") } returns response
+        coEvery { repository.getLobbyInfo(any()) } returns LobbyResponse(
+            lobbyCode = "1234",
+            playerList = listOf(PlayerDto("User", null, Team.RED, true))
+        )
 
         val viewModel = LobbyViewModel(repository)
 
         viewModel.joinLobby("User", "1234")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
 
         val state = viewModel.state.value
 
@@ -111,7 +124,9 @@ class LobbyViewModelTest {
 
         viewModel.joinLobby("Max", "1234")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
 
         val state = viewModel.state.value
 
@@ -134,15 +149,18 @@ class LobbyViewModelTest {
         )
 
         coEvery { repository.joinLobby("User", "1234") } returns response
+        coEvery { repository.getLobbyInfo(any()) } returns response
         coEvery { repository.leaveLobby("User", "1234") } returns response2
 
         val viewModel = LobbyViewModel(repository)
 
         viewModel.joinLobby("User", "1234")
-        advanceUntilIdle()
+        advanceTimeBy(2000)
         viewModel.leaveLobby("User")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
 
         val state = viewModel.state.value
 
@@ -167,11 +185,13 @@ class LobbyViewModelTest {
 
         viewModel.joinLobby("User", "1234")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
 
         viewModel.leaveLobby("User")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
 
         val state = viewModel.state.value
 
@@ -197,17 +217,21 @@ class LobbyViewModelTest {
         )
 
         coEvery { repository.joinLobby("User", "1234") } returns response
+        coEvery { repository.getLobbyInfo(any()) } returns response
         coEvery { repository.changeRole("User", "1234", newRole, newTeam) } returns response2
 
         val viewModel = LobbyViewModel(repository)
 
         viewModel.joinLobby("User", "1234")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
 
         viewModel.changeRole("User", newRole, newTeam)
+        viewModel.stopPollingForTest()
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
+
+
 
         val state = viewModel.state.value
 
@@ -234,16 +258,130 @@ class LobbyViewModelTest {
 
         viewModel.joinLobby("User", "1234")
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
 
         viewModel.changeRole("User", Role.OPERATIVE, Team.RED)
 
-        advanceUntilIdle()
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
 
         val state = viewModel.state.value
 
         assertEquals("Network error", state.error)
         assertFalse(state.isLoading)
+    }
+
+    @Test
+    fun testSetError_WithEmptyValue() = runTest {
+        val repository = mockk<LobbyRepository>()
+
+        coEvery { repository.createLobby(any()) } throws RuntimeException("")
+
+        val viewModel = LobbyViewModel(repository)
+
+        viewModel.createLobby("Max")
+
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
+
+        val state = viewModel.state.value
+
+        assertEquals("Unknown error", state.error)
+        assertFalse(state.isLoading)
+    }
+
+    @Test
+    fun testSetError_WithNullValue() = runTest {
+        val repository = mockk<LobbyRepository>()
+
+        coEvery { repository.createLobby(any()) } throws RuntimeException()
+
+        val viewModel = LobbyViewModel(repository)
+
+        viewModel.createLobby("Max")
+
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
+
+        val state = viewModel.state.value
+
+        assertEquals("Unknown error", state.error)
+        assertFalse(state.isLoading)
+    }
+
+    //Polling Tests
+    @Test
+    fun testPolling_callsRepositoryRepeatedly() = runTest {
+        val repository = mockk<LobbyRepository>()
+
+        coEvery { repository.getLobbyInfo(any()) } returns LobbyResponse(
+            lobbyCode = "1234",
+            playerList = listOf(PlayerDto("User", null, Team.RED, true))
+        )
+
+        val viewModel = LobbyViewModel(repository)
+
+        viewModel.startPollingForTest("1234")
+
+        advanceTimeBy(2000)
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
+
+        coVerify(atLeast = 2) {
+            repository.getLobbyInfo("1234")
+        }
+    }
+
+    @Test
+    fun testPolling_stateIsUpdated() = runTest {
+        val repository = mockk<LobbyRepository>()
+
+        coEvery { repository.getLobbyInfo(any()) } returnsMany listOf(
+            LobbyResponse("1", emptyList()),
+            LobbyResponse("2", emptyList())
+        )
+
+        val viewModel = LobbyViewModel(repository)
+
+        viewModel.startPollingForTest("1234")
+
+        advanceTimeBy(2000)
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
+
+        assertEquals("2", viewModel.state.value.lobbyCode)
+    }
+
+    @Test
+    fun testPolling_doesNotStartTwice() = runTest {
+        val repository = mockk<LobbyRepository>()
+
+        coEvery { repository.getLobbyInfo("1234") } returns LobbyResponse(
+            lobbyCode = "1234",
+            playerList = listOf(PlayerDto("User", null, Team.RED, true))
+        )
+
+        val viewModel = LobbyViewModel(repository)
+
+        viewModel.startPollingForTest("1234")
+
+        advanceTimeBy(2000)
+        advanceTimeBy(2000)
+
+        viewModel.startPollingForTest("2345")
+
+        advanceTimeBy(2000)
+
+        viewModel.stopPollingForTest()
+
+        coVerify(atLeast = 2) {
+            repository.getLobbyInfo("1234")
+        }
     }
 
 
@@ -337,8 +475,5 @@ class LobbyViewModelTest {
         assertFalse(state.isLoading)
         assertEquals("Not in a Lobby", state.error)
     }
-    
-
-
 
 }

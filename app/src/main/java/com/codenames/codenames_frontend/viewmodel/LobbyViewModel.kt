@@ -1,6 +1,5 @@
 package com.codenames.codenames_frontend.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.codenames_frontend.data.model.LobbyUiState
@@ -9,9 +8,11 @@ import com.codenames.codenames_frontend.data.model.enums.Team
 import com.codenames.codenames_frontend.data.model.toLobbyState
 import com.codenames.codenames_frontend.data.repository.LobbyRepository
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
@@ -20,6 +21,7 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
     val state: StateFlow<LobbyUiState> = _state
 
     private var pollingJob: Job? = null
+    private val pollingTime : Long = 2000
 
 
     fun createLobby(username: String) {
@@ -38,6 +40,7 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
                 _state.update {
                     response.toLobbyState()
                 }
+                startPolling(response.lobbyCode)
             }catch (e: Exception) {
                 setError(e.message)
             }finally {
@@ -64,6 +67,7 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
                 _state.update {
                     response.toLobbyState()
                 }
+                startPolling(response.lobbyCode)
             }catch (e: Exception) {
                 setError(e.message)
             }finally {
@@ -73,10 +77,9 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
     }
 
     fun leaveLobby(username: String) {
-        val inLobby = !_state.value.lobbyCode.isNullOrBlank()
         val lobbyCode = _state.value.lobbyCode
 
-        if(!inLobby || lobbyCode.isNullOrBlank()) {
+        if(lobbyCode.isNullOrBlank()) {
             setError("Not in a lobby, leaving not possible")
             return
         }
@@ -91,6 +94,8 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
                     response.toLobbyState()
                 }
 
+                stopPolling()
+
             } catch (e: Exception) {
                 setError(e.message)
             }finally {
@@ -101,8 +106,7 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
 
     fun changeRole(username: String, role: Role, team: Team) {
         val lobbyCode = _state.value.lobbyCode
-        val inLobby = !_state.value.lobbyCode.isNullOrBlank()
-        if(!inLobby || lobbyCode.isNullOrBlank()){
+        if(lobbyCode.isNullOrBlank()){
             setError("Not in a Lobby")
             return
         }
@@ -127,9 +131,41 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
 
     }
 
+    private fun startPolling(lobbyCode: String) {
+        if(pollingJob != null) return
+
+        pollingJob = viewModelScope.launch {
+            while(isActive) {
+                try{
+                    val response = repository.getLobbyInfo(lobbyCode)
+
+                    _state.update {
+                        response.toLobbyState()
+                    }
+                }catch (e: Exception) {
+                    setError(e.message)
+                    return@launch
+                }
+
+                delay(pollingTime)
+            }
+        }
+    }
+
+    private fun stopPolling() {
+        pollingJob?.cancel()
+        pollingJob = null
+    }
+
     private fun setError(msg: String?) {
+        val errorMessage = if (msg.isNullOrBlank()) {
+            "Unknown error"
+        } else {
+            msg
+        }
+
         _state.update {
-            it.copy(error = msg ?: "Unknown Error")
+            it.copy(error = errorMessage)
         }
     }
 
@@ -137,5 +173,14 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
         _state.update {
             it.copy(isLoading = loading)
         }
+    }
+
+    //for testing polling
+    internal fun startPollingForTest(lobbyCode: String){
+        startPolling(lobbyCode)
+    }
+
+    internal fun stopPollingForTest() {
+        stopPolling()
     }
 }
