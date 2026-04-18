@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-const val LOG_NAME = "LobbyViewModel"
 
 class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
 
@@ -39,11 +38,8 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
                 _state.update {
                     response.toLobbyState()
                 }
-
-                Log.d(LOG_NAME, "Lobby Code: ${response.lobbyCode}")
             }catch (e: Exception) {
                 setError(e.message)
-                Log.e(LOG_NAME, "Error creating Lobby", e)
             }finally {
                 setLoading(false)
             }
@@ -68,10 +64,8 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
                 _state.update {
                     response.toLobbyState()
                 }
-                Log.d(LOG_NAME, "Joined Lobby: ${response.lobbyCode}")
             }catch (e: Exception) {
                 setError(e.message)
-                Log.e(LOG_NAME, "Error while joining Lobby", e)
             }finally {
                 setLoading(false)
             }
@@ -96,11 +90,9 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
                 _state.update {
                     response.toLobbyState()
                 }
-                Log.d(LOG_NAME, "Left lobby: ${response.lobbyCode}")
 
             } catch (e: Exception) {
                 setError(e.message)
-                Log.e(LOG_NAME, "Error while leaving lobby", e)
             }finally {
                 setLoading(false)
             }
@@ -126,10 +118,8 @@ class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
                     response.toLobbyState()
                 }
 
-                Log.d(LOG_NAME, "Changed role successfully.")
             } catch (e: Exception) {
                 setError(e.message)
-                Log.e(LOG_NAME, "Error at role change", e)
             }finally {
                 setLoading(false)
             }

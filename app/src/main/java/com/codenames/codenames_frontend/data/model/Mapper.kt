@@ -6,8 +6,7 @@ import com.codenames.codenames_frontend.network.dto.PlayerDto
 fun LobbyResponse.toLobbyState(): LobbyUiState {
     return LobbyUiState(
         lobbyCode = lobbyCode,
-        players = playerList.map { it.toUi() },
-        isInLobby = true
+        players = playerList.map { it.toUi() }
     )
 }
 
