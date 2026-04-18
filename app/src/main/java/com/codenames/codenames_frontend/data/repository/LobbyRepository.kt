@@ -1,7 +1,10 @@
 package com.codenames.codenames_frontend.data.repository
 
+import com.codenames.codenames_frontend.data.model.enums.Role
+import com.codenames.codenames_frontend.data.model.enums.Team
 import com.codenames.codenames_frontend.network.RetrofitClient
 import com.codenames.codenames_frontend.network.dto.LobbyResponse
+import com.codenames.codenames_frontend.network.dto.PlayerDto
 
 class LobbyRepository {
 
@@ -21,5 +24,10 @@ class LobbyRepository {
 
     suspend fun getLobbyInfo(lobbyCode: String): LobbyResponse {
         return api.getLobbyInfo(lobbyCode)
+    }
+
+    suspend fun changeRole(username: String, lobbyCode: String, role: Role, team: Team) : LobbyResponse{
+        val player = PlayerDto(username, role, team, false)
+        return api.changeRole(lobbyCode, player)
     }
 }

@@ -3,7 +3,6 @@ package com.codenames.codenames_frontend.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.codenames_frontend.network.dto.GameMessage
-import com.codenames.codenames_frontend.network.provider.WebSocketProvider
 import com.codenames.codenames_frontend.network.websocket.GameWebSocketHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job

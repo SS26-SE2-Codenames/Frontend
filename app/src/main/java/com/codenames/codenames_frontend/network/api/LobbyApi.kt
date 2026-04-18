@@ -1,6 +1,8 @@
 package com.codenames.codenames_frontend.network.api
 
 import com.codenames.codenames_frontend.network.dto.LobbyResponse
+import com.codenames.codenames_frontend.network.dto.PlayerDto
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -28,4 +30,9 @@ interface LobbyApi {
     suspend fun leaveLobby(
          @Path("username") username: String, @Path("lobbyCode") lobbyCode: String
     ): LobbyResponse
+
+    @POST("lobby/{lobbyCode}/roleChange")
+    suspend fun changeRole(
+        @Path("lobbyCode") lobbyCode: String, @Body playerDto: PlayerDto
+    ) : LobbyResponse
 }
