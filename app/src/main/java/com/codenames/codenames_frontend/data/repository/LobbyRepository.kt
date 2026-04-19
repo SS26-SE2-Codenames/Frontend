@@ -7,7 +7,7 @@ import com.codenames.codenames_frontend.network.dto.LobbyResponse
 import com.codenames.codenames_frontend.network.dto.PlayerDto
 import javax.inject.Inject
 
-class LobbyRepository@Inject constructor(private val api: LobbyApi) {
+class LobbyRepository @Inject constructor(private val api: LobbyApi) {
 
     suspend fun createLobby(username: String): LobbyResponse {
         return api.createLobby(username)
@@ -25,7 +25,12 @@ class LobbyRepository@Inject constructor(private val api: LobbyApi) {
         return api.getLobbyInfo(lobbyCode)
     }
 
-    suspend fun changeRole(username: String, lobbyCode: String, role: Role, team: Team) : LobbyResponse{
+    suspend fun changeRole(
+        username: String,
+        lobbyCode: String,
+        role: Role,
+        team: Team
+    ): LobbyResponse {
         val player = PlayerDto(username, role, team, false)
         return api.changeRole(lobbyCode, player)
     }

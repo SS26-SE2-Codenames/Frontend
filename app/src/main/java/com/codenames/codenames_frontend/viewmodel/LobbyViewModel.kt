@@ -18,18 +18,17 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LobbyViewModel @Inject constructor(private val repository: LobbyRepository) : ViewModel(){
+class LobbyViewModel @Inject constructor(private val repository: LobbyRepository) : ViewModel() {
 
     private val _state = MutableStateFlow(LobbyUiState())
     val state: StateFlow<LobbyUiState> = _state
 
     private var pollingJob: Job? = null
-    private val pollingTime : Long = 2000
-
+    private val pollingTime: Long = 2000
 
     fun createLobby(username: String) {
         val inLobby = !_state.value.lobbyCode.isNullOrBlank()
-        if(inLobby) {
+        if (inLobby) {
             setError("Already in a lobby, creating a new lobby not possible")
             return
         }
@@ -44,9 +43,9 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
                     response.toLobbyState()
                 }
                 startPolling(response.lobbyCode)
-            }catch (e: Exception) {
+            } catch (e: Exception) {
                 setError(e.message)
-            }finally {
+            } finally {
                 setLoading(false)
             }
         }
@@ -54,7 +53,7 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
 
     fun joinLobby(username: String, lobbyCode: String) {
         val inLobby = !_state.value.lobbyCode.isNullOrBlank()
-        if(inLobby){
+        if (inLobby) {
             setError("Already in a lobby, joining not possible")
             return
         }
@@ -71,9 +70,9 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
                     response.toLobbyState()
                 }
                 startPolling(response.lobbyCode)
-            }catch (e: Exception) {
+            } catch (e: Exception) {
                 setError(e.message)
-            }finally {
+            } finally {
                 setLoading(false)
             }
         }
@@ -82,7 +81,7 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
     fun leaveLobby(username: String) {
         val lobbyCode = _state.value.lobbyCode
 
-        if(lobbyCode.isNullOrBlank()) {
+        if (lobbyCode.isNullOrBlank()) {
             setError("Not in a lobby, leaving not possible")
             return
         }
@@ -101,7 +100,7 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
 
             } catch (e: Exception) {
                 setError(e.message)
-            }finally {
+            } finally {
                 setLoading(false)
             }
         }
@@ -109,7 +108,7 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
 
     fun changeRole(username: String, role: Role, team: Team) {
         val lobbyCode = _state.value.lobbyCode
-        if(lobbyCode.isNullOrBlank()){
+        if (lobbyCode.isNullOrBlank()) {
             setError("Not in a Lobby")
             return
         }
@@ -127,7 +126,7 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
 
             } catch (e: Exception) {
                 setError(e.message)
-            }finally {
+            } finally {
                 setLoading(false)
             }
         }
@@ -135,17 +134,17 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
     }
 
     private fun startPolling(lobbyCode: String) {
-        if(pollingJob != null) return
+        if (pollingJob != null) return
 
         pollingJob = viewModelScope.launch {
-            while(isActive) {
-                try{
+            while (isActive) {
+                try {
                     val response = repository.getLobbyInfo(lobbyCode)
 
                     _state.update {
                         response.toLobbyState()
                     }
-                }catch (e: Exception) {
+                } catch (e: Exception) {
                     setError(e.message)
                     return@launch
                 }
@@ -179,7 +178,7 @@ class LobbyViewModel @Inject constructor(private val repository: LobbyRepository
     }
 
     //for testing polling
-    internal fun startPollingForTest(lobbyCode: String){
+    internal fun startPollingForTest(lobbyCode: String) {
         startPolling(lobbyCode)
     }
 

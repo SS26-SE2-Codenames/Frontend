@@ -231,8 +231,6 @@ class LobbyViewModelTest {
 
         advanceTimeBy(2000)
 
-
-
         val state = viewModel.state.value
 
         assertEquals("1234", state.lobbyCode)
@@ -252,7 +250,14 @@ class LobbyViewModelTest {
         )
 
         coEvery { repository.joinLobby("User", "1234") } returns response
-        coEvery { repository.changeRole(any(), any(), any(), any()) } throws RuntimeException("Network error")
+        coEvery {
+            repository.changeRole(
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } throws RuntimeException("Network error")
 
         val viewModel = LobbyViewModel(repository)
 
@@ -383,7 +388,6 @@ class LobbyViewModelTest {
             repository.getLobbyInfo("1234")
         }
     }
-
 
     //Tests with wrong lobby state
     @Test

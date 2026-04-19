@@ -10,4 +10,5 @@ data class GameMessage(
     val currentBlueFound: Int = 0,
     val currentClue: String = "",
     val remainingGuesses: Int = 0,
-    val cardList: List<CardDto> = emptyList())
+    val cardList: List<CardDto> = emptyList()
+)

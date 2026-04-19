@@ -14,7 +14,7 @@ const val BASE_URL = "http://localhost:8080/lobby"
 
 @Module
 @InstallIn(SingletonComponent::class)
-object RetrofitProvider{
+object RetrofitProvider {
 
     @Provides
     fun provideJson(): Json {
@@ -24,7 +24,7 @@ object RetrofitProvider{
     }
 
     @Provides
-    fun provideRetrofit(json: Json) : Retrofit {
+    fun provideRetrofit(json: Json): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(

@@ -86,5 +86,4 @@ class GameViewModelTest {
         assertEquals(testMessage, viewModel.uiState.value)
     }
 
-
 }

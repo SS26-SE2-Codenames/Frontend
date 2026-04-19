@@ -1,6 +1,5 @@
 package com.codenames.codenames_frontend.network.websocket
 
-
 import com.codenames.codenames_frontend.network.dto.GameMessage
 import com.codenames.codenames_frontend.network.dto.GuessMessage
 import kotlinx.coroutines.flow.Flow
@@ -14,10 +13,10 @@ import javax.inject.Inject
 const val BASE_URL = "ws://localhost:8080"
 
 class GameWebSocketHandler @Inject constructor(private val client: StompClient) {
-    lateinit var session : StompSessionWithKxSerialization
+    lateinit var session: StompSessionWithKxSerialization
 
     //called by GameViewModel
-    suspend fun connectStomp(){
+    suspend fun connectStomp() {
         session = client.connect(BASE_URL).withJsonConversions()
     }
 

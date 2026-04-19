@@ -74,7 +74,8 @@ class GameWebSocketHandlerTest {
         coVerify {
             session.subscribe(
                 match { it.destination == "/game/ABCDE" },
-                GameMessage.serializer(),)
+                GameMessage.serializer(),
+            )
         }
     }
 }

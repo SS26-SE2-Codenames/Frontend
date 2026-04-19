@@ -28,11 +28,11 @@ interface LobbyApi {
 
     @POST("lobby/{lobbyCode}/{username}/leave")
     suspend fun leaveLobby(
-         @Path("username") username: String, @Path("lobbyCode") lobbyCode: String
+        @Path("username") username: String, @Path("lobbyCode") lobbyCode: String
     ): LobbyResponse
 
     @POST("lobby/{lobbyCode}/roleChange")
     suspend fun changeRole(
         @Path("lobbyCode") lobbyCode: String, @Body playerDto: PlayerDto
-    ) : LobbyResponse
+    ): LobbyResponse
 }
