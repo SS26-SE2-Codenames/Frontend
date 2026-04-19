@@ -1,7 +1,5 @@
 package com.codenames.codenames_frontend.data.model
 
-import com.codenames.codenames_frontend.data.model.Player
-
 data class LobbyUiState(
     val isLoading: Boolean = false,
     val lobbyCode: String? = null,
