@@ -26,6 +26,8 @@ class GameWebSocketHandler @Inject constructor(private val client: StompClient) 
         session.convertAndSend("/game/guess", msg, GuessMessage.serializer())
     }
 
+    //suspend is necessary here, because api calls are suspending functions
+    @Suppress("kotlin:S6309")
     suspend fun subscribeToLobby(lobbyCode: String): Flow<GameMessage> {
         return session.subscribe("/game/$lobbyCode", GameMessage.serializer())
     }
