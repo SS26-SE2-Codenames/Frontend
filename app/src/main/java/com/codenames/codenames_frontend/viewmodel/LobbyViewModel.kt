@@ -7,6 +7,7 @@ import com.codenames.codenames_frontend.data.model.enums.Role
 import com.codenames.codenames_frontend.data.model.enums.Team
 import com.codenames.codenames_frontend.data.model.toLobbyState
 import com.codenames.codenames_frontend.data.repository.LobbyRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,8 +15,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LobbyViewModel(private val repository: LobbyRepository) : ViewModel(){
+@HiltViewModel
+class LobbyViewModel @Inject constructor(private val repository: LobbyRepository) : ViewModel(){
 
     private val _state = MutableStateFlow(LobbyUiState())
     val state: StateFlow<LobbyUiState> = _state

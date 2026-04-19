@@ -2,12 +2,12 @@ package com.codenames.codenames_frontend.data.repository
 
 import com.codenames.codenames_frontend.data.model.enums.Role
 import com.codenames.codenames_frontend.data.model.enums.Team
-import com.codenames.codenames_frontend.network.RetrofitClient
 import com.codenames.codenames_frontend.network.api.LobbyApi
 import com.codenames.codenames_frontend.network.dto.LobbyResponse
 import com.codenames.codenames_frontend.network.dto.PlayerDto
+import javax.inject.Inject
 
-class LobbyRepository(private val api: LobbyApi) {
+class LobbyRepository@Inject constructor(private val api: LobbyApi) {
 
     suspend fun createLobby(username: String): LobbyResponse {
         return api.createLobby(username)
