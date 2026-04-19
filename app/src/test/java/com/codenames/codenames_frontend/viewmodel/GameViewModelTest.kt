@@ -5,10 +5,8 @@ import com.codenames.codenames_frontend.network.websocket.GameWebSocketHandler
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -44,7 +42,9 @@ class GameViewModelTest {
     fun connect_shouldCallClientAndUpdateState() = runTest {
         val lobbyCode = "1234"
 
-        val testMessage = GameMessage(/* fill with test data */)
+        val testMessage = GameMessage(
+            "", "red", 0, 0, "", 0, emptyList()
+        )
 
         val flow = flowOf(testMessage)
 
@@ -65,7 +65,9 @@ class GameViewModelTest {
     fun connect_shouldCallClientAndUpdateState_isAlreadyConnected() = runTest {
         val lobbyCode = "1234"
 
-        val testMessage = GameMessage(/* fill with test data */)
+        val testMessage = GameMessage(
+            "", "red", 0, 0, "", 0, emptyList()
+        )
 
         val flow = flowOf(testMessage)
 
