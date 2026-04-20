@@ -1,9 +1,10 @@
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.application")
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jlleitschuh.gradle.ktlint")
     id("com.google.devtools.ksp") version "2.3.6"
+    id("com.google.dagger.hilt.android")
 }
 
 kotlin {
@@ -79,8 +80,8 @@ dependencies {
     implementation(libs.krossbow.stomp.core)
 
     //DI: Hilt
-    implementation("com.google.dagger:hilt-android:2.57.1")
-    ksp("com.google.dagger:hilt-android-compiler:2.57.1")
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
 
 
     //Coroutines for concurrent programming
@@ -97,4 +98,8 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)
     testImplementation(kotlin("test"))
+
+    //Hilt for tests
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.compiler)
 }
