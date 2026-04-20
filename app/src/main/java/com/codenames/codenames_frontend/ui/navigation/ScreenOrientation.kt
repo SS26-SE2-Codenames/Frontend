@@ -5,7 +5,6 @@ import android.content.pm.ActivityInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-
 @Composable
 fun ForceLandscape() {
     val context = LocalContext.current
