@@ -25,7 +25,6 @@ import com.codenames.codenames_frontend.ui.buttons.AppButtonStyle
 import com.codenames.codenames_frontend.ui.inputs.*
 import com.codenames.codenames_frontend.ui.roles.PlayerRole
 
-
 enum class CardType {
     BLUE, RED, NEUTRAL, ASSASSIN
 }
@@ -128,7 +127,12 @@ fun GameboardScreen(
                     .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("BLUE TEAM", fontWeight = FontWeight.Bold, color = Color(0xFF1565C0), fontSize = 12.sp)
+                Text(
+                    "BLUE TEAM",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1565C0),
+                    fontSize = 12.sp
+                )
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TeamRoleBox(
@@ -213,7 +217,12 @@ fun GameboardScreen(
                     .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("RED TEAM", fontWeight = FontWeight.Bold, color = Color(0xFFCF5530), fontSize = 12.sp)
+                Text(
+                    "RED TEAM",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFCF5530),
+                    fontSize = 12.sp
+                )
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TeamRoleBox(
