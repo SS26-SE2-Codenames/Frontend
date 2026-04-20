@@ -66,6 +66,7 @@ fun LobbyScreen(navController: NavHostController) {
             .fillMaxSize()
             .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
+
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
