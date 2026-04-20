@@ -2,6 +2,7 @@ package com.codenames.codenames_frontend.network.websocket
 
 import com.codenames.codenames_frontend.network.dto.GameMessage
 import com.codenames.codenames_frontend.network.dto.GuessMessage
+import com.codenames.codenames_frontend.network.dto.WebSocketJoinMessage
 import kotlinx.coroutines.flow.Flow
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
@@ -28,5 +29,10 @@ class GameWebSocketHandler @Inject constructor(private val client: StompClient) 
     @Suppress("kotlin:S6309")
     suspend fun subscribeToLobby(lobbyCode: String): Flow<GameMessage> {
         return session.subscribe("/game/$lobbyCode", GameMessage.serializer())
+    }
+
+    suspend fun sendLobbyJoinMessage(msg: WebSocketJoinMessage) {
+        val lobbyCode = msg.lobbyCode
+        session.convertAndSend("app/$lobbyCode/join", msg, WebSocketJoinMessage.serializer() )
     }
 }
