@@ -1,9 +1,9 @@
 package com.codenames.codenames_frontend.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -14,6 +14,12 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
 import com.codenames.codenames_frontend.ui.buttons.AppButton
 import com.codenames.codenames_frontend.ui.buttons.AppButtonStyle
 import com.codenames.codenames_frontend.ui.inputs.*
@@ -87,14 +93,22 @@ fun GameboardScreen(
     onReveal: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     var hintInput by rememberSaveable { mutableStateOf("") }
-    val isSpymaster =
-        userRole == PlayerRole.BLUE_SPYMASTER || userRole == PlayerRole.RED_SPYMASTER
+    val isSpymaster = userRole == PlayerRole.BLUE_SPYMASTER || userRole == PlayerRole.RED_SPYMASTER
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val blueLeft = cards.count { it.type == CardType.BLUE && !it.revealed }
     val redLeft = cards.count { it.type == CardType.RED && !it.revealed }
+
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    val blueGradient = Brush.verticalGradient(
+        colors = listOf(Color(0xFF42A5F5), Color(0xFF1565C0))
+    )
+    val redGradient = Brush.verticalGradient(
+        colors = listOf(Color(0xFFCF5530), Color(0xFFDE8468))
+    )
 
     Column(
         modifier = modifier
@@ -103,44 +117,123 @@ fun GameboardScreen(
     ) {
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
         ) {
-            Text(
-                text = "BLUE: $blueLeft",
-                color = Color(0xFF1565C0),
-                fontWeight = FontWeight.Bold
-            )
 
-            Text(
-                text = "Role: ${userRole.name}",
-                fontWeight = FontWeight.Bold
-            )
+            Column(
+                modifier = Modifier
+                    .width(90.dp)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("BLUE TEAM", fontWeight = FontWeight.Bold, color = Color(0xFF1565C0), fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "RED: $redLeft",
-                color = Color(0xFFCF5530),
-                fontWeight = FontWeight.Bold
-            )
-        }
+                TeamRoleBox(
+                    title = "OPERATIVES",
+                    gradient = blueGradient,
+                    isCurrentUser = userRole == PlayerRole.BLUE_OPERATIVE
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TeamRoleBox(
+                    title = "SPYMASTERS",
+                    gradient = blueGradient,
+                    isCurrentUser = userRole == PlayerRole.BLUE_SPYMASTER
+                )
 
-        Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "$blueLeft LEFT",
+                    color = Color(0xFF1565C0),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
+            }
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(5),
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            itemsIndexed(cards) { index, card ->
-                CodenamesCard(
-                    card = card,
-                    isSpymaster = isSpymaster,
-                    onClick = {
-                        if (!isSpymaster && !card.revealed) {
-                            onReveal(index)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(horizontal = 8.dp)
+                    .clipToBounds()
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            scale = (scale * zoom).coerceIn(0.5f, 3f)
+                            offset += pan
                         }
                     }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(unbounded = true)
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            translationX = offset.x,
+                            translationY = offset.y
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val columns = 5
+                    for (i in cards.indices step columns) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            for (j in 0 until columns) {
+                                val index = i + j
+                                if (index < cards.size) {
+                                    val card = cards[index]
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        CodenamesCard(
+                                            card = card,
+                                            isSpymaster = isSpymaster,
+                                            onClick = {
+                                                if (!isSpymaster && !card.revealed) {
+                                                    onReveal(index)
+                                                }
+                                            }
+                                        )
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .width(90.dp)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("RED TEAM", fontWeight = FontWeight.Bold, color = Color(0xFFCF5530), fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                TeamRoleBox(
+                    title = "OPERATIVES",
+                    gradient = redGradient,
+                    isCurrentUser = userRole == PlayerRole.RED_OPERATIVE
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TeamRoleBox(
+                    title = "SPYMASTERS",
+                    gradient = redGradient,
+                    isCurrentUser = userRole == PlayerRole.RED_SPYMASTER
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "$redLeft LEFT",
+                    color = Color(0xFFCF5530),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
                 )
             }
         }
@@ -182,9 +275,45 @@ fun GameboardScreen(
                 )
             }
         } else {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Hint: $currentHint",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TeamRoleBox(
+    title: String,
+    gradient: Brush,
+    isCurrentUser: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(gradient, RoundedCornerShape(8.dp))
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = title,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp
+        )
+
+        if (isCurrentUser) {
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Hint: $currentHint",
-                fontSize = 20.sp,
+                text = "👤 You",
+                color = Color.White,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }
