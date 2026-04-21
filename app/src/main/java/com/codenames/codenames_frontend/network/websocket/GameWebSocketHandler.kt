@@ -4,6 +4,8 @@ import com.codenames.codenames_frontend.network.dto.GameMessage
 import com.codenames.codenames_frontend.network.dto.GuessMessage
 import com.codenames.codenames_frontend.network.dto.WebSocketJoinMessage
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
 import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
@@ -11,7 +13,7 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConver
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import javax.inject.Inject
 
-const val BASE_URL = "ws://localhost:8080/ws"
+const val BASE_URL = "ws://10.0.2.2:8080/ws"
 
 class GameWebSocketHandler @Inject constructor(private val client: StompClient) {
     lateinit var session: StompSessionWithKxSerialization
@@ -26,13 +28,18 @@ class GameWebSocketHandler @Inject constructor(private val client: StompClient) 
     }
 
     //suspend is necessary here, because api calls are suspending functions
-    @Suppress("kotlin:S6309")
-    suspend fun subscribeToLobby(lobbyCode: String): Flow<GameMessage> {
-        return session.subscribe("/game/$lobbyCode", GameMessage.serializer())
+    suspend fun subscribeToLobby(lobbyCode: String): Flow<List<String>> {
+        return session.subscribe(
+            "/topic/lobby/$lobbyCode",
+            ListSerializer(String.serializer())
+        )
     }
 
     suspend fun sendLobbyJoinMessage(msg: WebSocketJoinMessage) {
-        val lobbyCode = msg.lobbyCode
-        session.convertAndSend("app/$lobbyCode/join", msg, WebSocketJoinMessage.serializer() )
+        session.convertAndSend(
+            "/app/join",
+            msg,
+            WebSocketJoinMessage.serializer()
+        )
     }
 }
