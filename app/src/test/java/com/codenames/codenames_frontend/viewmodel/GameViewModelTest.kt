@@ -1,6 +1,7 @@
 package com.codenames.codenames_frontend.viewmodel
 
 import com.codenames.codenames_frontend.network.dto.GameMessage
+import com.codenames.codenames_frontend.network.dto.WebSocketJoinMessage
 import com.codenames.codenames_frontend.network.websocket.GameWebSocketHandler
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -41,6 +42,7 @@ class GameViewModelTest {
     @Test
     fun connect_shouldCallClientAndUpdateState() = runTest {
         val lobbyCode = "1234"
+        val username = "user"
 
         val testMessage = GameMessage(
             "", "red", 0, 0, "", 0, emptyList()
@@ -51,7 +53,7 @@ class GameViewModelTest {
         coEvery { client.connectStomp() } just Runs
         coEvery { client.subscribeToLobby(lobbyCode) } returns flow
 
-        viewModel.connect(lobbyCode)
+        viewModel.connect(username, lobbyCode)
 
         advanceUntilIdle()
 
@@ -64,6 +66,7 @@ class GameViewModelTest {
     @Test
     fun connect_shouldCallClientAndUpdateState_isAlreadyConnected() = runTest {
         val lobbyCode = "1234"
+        val username = "user"
 
         val testMessage = GameMessage(
             "", "red", 0, 0, "", 0, emptyList()
@@ -74,11 +77,11 @@ class GameViewModelTest {
         coEvery { client.connectStomp() } just Runs
         coEvery { client.subscribeToLobby(lobbyCode) } returns flow
 
-        viewModel.connect(lobbyCode)
+        viewModel.connect(username, lobbyCode)
 
         advanceUntilIdle()
 
-        viewModel.connect(lobbyCode)
+        viewModel.connect(username, lobbyCode)
 
         coVerify { client.connectStomp() }
         coVerify { client.subscribeToLobby(lobbyCode) }
@@ -86,5 +89,26 @@ class GameViewModelTest {
         assertEquals(testMessage, viewModel.uiState.value)
     }
 
+    @Test
+    fun connect_shouldSendJoinMessage() = runTest {
+        val lobbyCode = "1234"
+        val username = "user"
+
+        val testMessage = GameMessage(
+            "", "red", 0, 0, "", 0, emptyList()
+        )
+
+        val flow = flowOf(testMessage)
+
+        coEvery { client.connectStomp() } just Runs
+        coEvery { client.subscribeToLobby(lobbyCode) } returns flow
+        coEvery { client.sendLobbyJoinMessage(any()) } just Runs
+
+        viewModel.connect(username, lobbyCode)
+
+        advanceUntilIdle()
+
+        coVerify { client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode)) }
+    }
 
 }

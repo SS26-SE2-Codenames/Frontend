@@ -1,7 +1,9 @@
 package com.codenames.codenames_frontend.network.websocket
 
+import androidx.compose.foundation.layout.Box
 import com.codenames.codenames_frontend.network.dto.GameMessage
 import com.codenames.codenames_frontend.network.dto.GuessMessage
+import com.codenames.codenames_frontend.network.dto.WebSocketJoinMessage
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -45,7 +47,7 @@ class GameWebSocketHandlerTest {
         val client = mockk<StompClient>()
 
         val wsClient = GameWebSocketHandler(client)
-        wsClient.session = session // ggf. sichtbar machen
+        wsClient.session = session
 
         val msg = GuessMessage("name", "word", 1)
 
@@ -74,7 +76,25 @@ class GameWebSocketHandlerTest {
         coVerify {
             session.subscribe(
                 match { it.destination == "/game/ABCDE" },
-                GameMessage.serializer(),)
+                GameMessage.serializer(),
+            )
+        }
+    }
+
+    @Test
+    fun testSendJoinMessage_sendsMessage(): Unit = runTest {
+        val session = mockk<StompSessionWithKxSerialization>(relaxed = true)
+        val client = mockk<StompClient>()
+
+        val wsClient = GameWebSocketHandler(client)
+        wsClient.session = session
+
+        val msg = WebSocketJoinMessage("name", "1234")
+
+        wsClient.sendLobbyJoinMessage(msg)
+
+        coVerify {
+            session.convertAndSend("app/1234/join", msg, WebSocketJoinMessage.serializer())
         }
     }
 }

@@ -3,6 +3,7 @@ package com.codenames.codenames_frontend.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.codenames_frontend.network.dto.GameMessage
+import com.codenames.codenames_frontend.network.dto.WebSocketJoinMessage
 import com.codenames.codenames_frontend.network.websocket.GameWebSocketHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -19,7 +20,7 @@ class GameViewModel @Inject constructor(private val client: GameWebSocketHandler
     private val _uiState = MutableStateFlow(GameMessage())
     val uiState: StateFlow<GameMessage> = _uiState
 
-    fun connect(lobbyCode: String) {
+    fun connect(username: String, lobbyCode: String) {
 
         job?.cancel()
 
@@ -28,6 +29,7 @@ class GameViewModel @Inject constructor(private val client: GameWebSocketHandler
 
             client.subscribeToLobby(lobbyCode)
                 .collect { handleMessage(it) }
+            client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode))
         }
     }
 
