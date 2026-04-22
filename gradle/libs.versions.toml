@@ -12,6 +12,7 @@ kotlinxSerializationJson = "1.11.0"
 krossbowStompCore = "9.3.0"
 krossbowStompKxserializationJson = "9.3.0"
 krossbowWebsocketBuiltin = "9.3.0"
+krossbowWebsocketOkhttp = "9.3.0"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 kotlin = "2.3.20"
@@ -54,6 +55,7 @@ krossbow-stomp-core = { module = "org.hildan.krossbow:krossbow-stomp-core", vers
 krossbow-stomp-json = { module = "org.hildan.krossbow:krossbow-stomp-json" }
 krossbow-stomp-kxserialization-json = { module = "org.hildan.krossbow:krossbow-stomp-kxserialization-json", version.ref = "krossbowStompKxserializationJson" }
 krossbow-websocket-builtin = { module = "org.hildan.krossbow:krossbow-websocket-builtin", version.ref = "krossbowWebsocketBuiltin" }
+krossbow-websocket-okhttp = { module = "org.hildan.krossbow:krossbow-websocket-okhttp", version.ref = "krossbowWebsocketOkhttp" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }

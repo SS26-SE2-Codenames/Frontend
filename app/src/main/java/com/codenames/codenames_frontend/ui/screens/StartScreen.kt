@@ -1,5 +1,6 @@
 package com.codenames.codenames_frontend.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -93,7 +94,6 @@ fun StartScreen(navController: NavHostController, viewModel: GameViewModel = hil
             modifier = Modifier
                 .width(200.dp)
                 .height(100.dp)
-                .fillMaxWidth(0.5f)
                 .padding(bottom = 12.dp),
             style = AppButtonStyle(
                 backgroundBrush = greenGradient,
