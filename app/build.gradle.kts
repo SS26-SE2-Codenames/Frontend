@@ -21,6 +21,26 @@ tasks.withType<Test> {
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
+    val jacocoExcludes =
+        listOf(
+            "**/hilt_aggregated_deps/**",
+            "**/dagger/hilt/android/internal/**",
+            "**/com/codenames/frontend/network/provider/**",
+            "**/R.class",
+            "**/R$*.class",
+            "**/BuildConfig.*",
+            "**/Manifest*.*",
+            "**/ui/**",
+            "**/*_Hilt*.*",
+            "**/Hilt_*.*",
+            "**/*_Factory*.*",
+            "**/*_MembersInjector*.*",
+            "**/*_GeneratedInjector*.*",
+            "**/*_ComponentTreeDeps*.*",
+            "**/Dagger*.*",
+            "**/*_Provide*.*",
+            "**/*_BindsInstance*.*",
+        )
 
     dependsOn("testDebugUnitTest")
     group = "Reporting"
@@ -40,33 +60,28 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         ),
     )
 
-    // Klassenverzeichnis – compiled Bytecode (NICHT Hilt-generierte Dateien)
+    // Klassenverzeichnisse je nach AGP/Kotlin-Ausgabeordner
     classDirectories.setFrom(
         files(
-            fileTree("$buildDir/intermediates/classes/debug") {
-                exclude(
-                    "**/R.class",
-                    "**/R\$*.class",
-                    "**/BuildConfig.*",
-                    "**/Manifest*.*",
-                    // UI-Komponenten sind schwer zu testen, optional ausschließen:
-                    "**/ui/**",
-                    // Hilt-generierte Dateien ausschließen:
-                    "**/*_Hilt*",
-                    "**/*_Factory*",
-                    "**/*_MembersInjector*",
-                    "**/*_Provide*",
-                    "**/*_BindsInstance*",
-                )
+            fileTree("$buildDir/intermediates/classes/debug/transformDebugClassesWithAsm/dirs") {
+                exclude(jacocoExcludes)
+            },
+            fileTree("$buildDir/intermediates/javac/debug/compileDebugJavaWithJavac/classes") {
+                exclude(jacocoExcludes)
+            },
+            fileTree("$buildDir/tmp/kotlin-classes/debug") {
+                exclude(jacocoExcludes)
             },
         ),
     )
 
-    // Execution-Daten – wo Jacoco die Laufdaten speichert
+    // Execution-Daten – je nach AGP-Version/Setup variieren die Pfade
     executionData.setFrom(
-        files(
-            "$buildDir/jacoco/testDebugUnitTest.exec",
-        ),
+        fileTree(buildDir) {
+            include("jacoco/testDebugUnitTest.exec")
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec.ec")
+        },
     )
 }
 
