@@ -33,6 +33,7 @@ private val LightColorScheme =
      */
     )
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun CodenamesTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

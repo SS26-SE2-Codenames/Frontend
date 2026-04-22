@@ -2,11 +2,30 @@ package com.codenames.frontend.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -22,8 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
-import com.codenames.frontend.ui.inputs.*
-import com.codenames.frontend.ui.roles.PlayerRole
+import com.codenames.frontend.ui.inputs.AppTextField
+import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
+import com.codenames.frontend.ui.inputs.AppTextFieldState
+import com.codenames.frontend.ui.roles.PlayerRoles
 
 enum class CardType {
     BLUE,
@@ -38,6 +59,7 @@ data class GameCard(
     val revealed: Boolean = false,
 )
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameTestScreen() {
     var currentHint by remember { mutableStateOf("Waiting for hint...") }
@@ -67,7 +89,7 @@ fun GameTestScreen() {
 
     Row(modifier = Modifier.fillMaxSize()) {
         GameboardScreen(
-            userRole = PlayerRole.BLUE_SPYMASTER,
+            userRole = PlayerRoles.BLUE_SPYMASTER,
             currentHint = currentHint,
             onHintChange = { currentHint = it },
             cards = cards,
@@ -76,7 +98,7 @@ fun GameTestScreen() {
         )
 
         GameboardScreen(
-            userRole = PlayerRole.BLUE_OPERATIVE,
+            userRole = PlayerRoles.BLUE_OPERATIVE,
             currentHint = currentHint,
             onHintChange = {},
             cards = cards,
@@ -86,9 +108,10 @@ fun GameTestScreen() {
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameboardScreen(
-    userRole: PlayerRole,
+    userRole: PlayerRoles,
     currentHint: String,
     onHintChange: (String) -> Unit,
     cards: List<GameCard>,
@@ -96,7 +119,7 @@ fun GameboardScreen(
     modifier: Modifier = Modifier,
 ) {
     var hintInput by rememberSaveable { mutableStateOf("") }
-    val isSpymaster = userRole == PlayerRole.BLUE_SPYMASTER || userRole == PlayerRole.RED_SPYMASTER
+    val isSpymaster = userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val blueLeft = cards.count { it.type == CardType.BLUE && !it.revealed }
@@ -144,13 +167,13 @@ fun GameboardScreen(
                 TeamRoleBox(
                     title = "OPERATIVES",
                     gradient = blueGradient,
-                    isCurrentUser = userRole == PlayerRole.BLUE_OPERATIVE,
+                    isCurrentUser = userRole == PlayerRoles.BLUE_OPERATIVE,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 TeamRoleBox(
                     title = "SPYMASTERS",
                     gradient = blueGradient,
-                    isCurrentUser = userRole == PlayerRole.BLUE_SPYMASTER,
+                    isCurrentUser = userRole == PlayerRoles.BLUE_SPYMASTER,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -237,13 +260,13 @@ fun GameboardScreen(
                 TeamRoleBox(
                     title = "OPERATIVES",
                     gradient = redGradient,
-                    isCurrentUser = userRole == PlayerRole.RED_OPERATIVE,
+                    isCurrentUser = userRole == PlayerRoles.RED_OPERATIVE,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 TeamRoleBox(
                     title = "SPYMASTERS",
                     gradient = redGradient,
-                    isCurrentUser = userRole == PlayerRole.RED_SPYMASTER,
+                    isCurrentUser = userRole == PlayerRoles.RED_SPYMASTER,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -272,7 +295,7 @@ fun GameboardScreen(
                     keyboard =
                         AppTextFieldKeyboard(
                             actions =
-                                androidx.compose.foundation.text.KeyboardActions(
+                                KeyboardActions(
                                     onSend = {
                                         if (hintInput.isNotBlank()) {
                                             onHintChange(hintInput.uppercase())
@@ -308,6 +331,7 @@ fun GameboardScreen(
 }
 
 @Composable
+@Suppress("ktlint:standard:function-naming")
 fun TeamRoleBox(
     title: String,
     gradient: Brush,
@@ -342,6 +366,7 @@ fun TeamRoleBox(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun CodenamesCard(
     card: GameCard,

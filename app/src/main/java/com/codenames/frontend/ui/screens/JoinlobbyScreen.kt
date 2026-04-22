@@ -47,6 +47,7 @@ internal fun sanitizeLobbyIdInput(input: String): String =
 
 internal fun isLobbyIdValid(lobbyId: String): Boolean = lobbyId.isNotBlank()
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun JoinlobbyScreen() {
     ForceLandscape()

@@ -27,8 +27,9 @@ import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.navigation.Screen
-import com.codenames.frontend.ui.roles.PlayerRole
+import com.codenames.frontend.ui.roles.PlayerRoles
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun LobbyScreen(navController: NavHostController) {
     val blueGradient =
@@ -67,7 +68,7 @@ fun LobbyScreen(navController: NavHostController) {
                 ),
         )
 
-    var currentRole by remember { mutableStateOf(PlayerRole.NONE) }
+    var currentRole by remember { mutableStateOf(PlayerRoles.NONE) }
 
     Row(
         modifier =
@@ -109,7 +110,7 @@ fun LobbyScreen(navController: NavHostController) {
             ) {
                 Text("OPERATIVES", color = Color.White, fontWeight = FontWeight.Bold)
 
-                if (currentRole == PlayerRole.BLUE_OPERATIVE) {
+                if (currentRole == PlayerRoles.BLUE_OPERATIVE) {
                     Text(
                         text = "👤 1 joined",
                         color = Color.White,
@@ -119,7 +120,7 @@ fun LobbyScreen(navController: NavHostController) {
 
                 AppButton(
                     text = "JOIN TEAM",
-                    onClick = { currentRole = PlayerRole.BLUE_OPERATIVE },
+                    onClick = { currentRole = PlayerRoles.BLUE_OPERATIVE },
                     style =
                         AppButtonStyle(
                             backgroundBrush = greenGradient,
@@ -143,7 +144,7 @@ fun LobbyScreen(navController: NavHostController) {
             ) {
                 Text("SPYMASTERS", color = Color.White, fontWeight = FontWeight.Bold)
 
-                if (currentRole == PlayerRole.BLUE_SPYMASTER) {
+                if (currentRole == PlayerRoles.BLUE_SPYMASTER) {
                     Text(
                         text = "👤 1 joined",
                         color = Color.White,
@@ -153,7 +154,7 @@ fun LobbyScreen(navController: NavHostController) {
 
                 AppButton(
                     text = "JOIN TEAM",
-                    onClick = { currentRole = PlayerRole.BLUE_SPYMASTER },
+                    onClick = { currentRole = PlayerRoles.BLUE_SPYMASTER },
                     style =
                         AppButtonStyle(
                             backgroundBrush = greenGradient,
@@ -256,7 +257,7 @@ fun LobbyScreen(navController: NavHostController) {
             ) {
                 Text("OPERATIVES", color = Color.White, fontWeight = FontWeight.Bold)
 
-                if (currentRole == PlayerRole.RED_OPERATIVE) {
+                if (currentRole == PlayerRoles.RED_OPERATIVE) {
                     Text(
                         text = "👤 1 joined",
                         color = Color.White,
@@ -266,7 +267,7 @@ fun LobbyScreen(navController: NavHostController) {
 
                 AppButton(
                     text = "JOIN TEAM",
-                    onClick = { currentRole = PlayerRole.RED_OPERATIVE },
+                    onClick = { currentRole = PlayerRoles.RED_OPERATIVE },
                     style =
                         AppButtonStyle(
                             backgroundBrush = greenGradient,
@@ -290,7 +291,7 @@ fun LobbyScreen(navController: NavHostController) {
             ) {
                 Text("SPYMASTERS", color = Color.White, fontWeight = FontWeight.Bold)
 
-                if (currentRole == PlayerRole.RED_SPYMASTER) {
+                if (currentRole == PlayerRoles.RED_SPYMASTER) {
                     Text(
                         text = "👤 1 joined",
                         color = Color.White,
@@ -300,7 +301,7 @@ fun LobbyScreen(navController: NavHostController) {
 
                 AppButton(
                     text = "JOIN TEAM",
-                    onClick = { currentRole = PlayerRole.RED_SPYMASTER },
+                    onClick = { currentRole = PlayerRoles.RED_SPYMASTER },
                     style =
                         AppButtonStyle(
                             backgroundBrush = greenGradient,

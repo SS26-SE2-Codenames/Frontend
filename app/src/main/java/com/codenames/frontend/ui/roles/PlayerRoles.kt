@@ -1,6 +1,6 @@
 package com.codenames.frontend.ui.roles
 
-enum class PlayerRole {
+enum class PlayerRoles {
     NONE,
     BLUE_OPERATIVE,
     BLUE_SPYMASTER,

@@ -11,7 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.codenames.frontend.ui.roles.PlayerRole
+import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.screens.CardType
 import com.codenames.frontend.ui.screens.GameCard
 import com.codenames.frontend.ui.screens.GameSettingsScreen
@@ -50,13 +50,13 @@ fun NavGraph() {
         ) { backStackEntry ->
 
             val roleString =
-                backStackEntry.arguments?.getString("role") ?: PlayerRole.NONE.name
+                backStackEntry.arguments?.getString("role") ?: PlayerRoles.NONE.name
 
             val passedRole =
                 try {
-                    PlayerRole.valueOf(roleString)
+                    PlayerRoles.valueOf(roleString)
                 } catch (e: IllegalArgumentException) {
-                    PlayerRole.NONE
+                    PlayerRoles.NONE
                 }
 
             GameScreenWrapper(userRole = passedRole)
@@ -78,7 +78,7 @@ fun NavGraph() {
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
-fun GameScreenWrapper(userRole: PlayerRole) {
+fun GameScreenWrapper(userRole: PlayerRoles) {
     var currentHint by remember { mutableStateOf("Waiting for hint...") }
 
     val cards =

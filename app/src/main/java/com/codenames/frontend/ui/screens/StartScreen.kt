@@ -27,6 +27,7 @@ import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.viewmodel.GameViewModel
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun StartScreen(
     navController: NavHostController,

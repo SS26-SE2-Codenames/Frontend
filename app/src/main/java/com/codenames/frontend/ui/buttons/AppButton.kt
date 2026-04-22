@@ -39,6 +39,7 @@ data class AppButtonStyle(
     val contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
 )
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun AppButton(
     text: String,
@@ -100,6 +101,7 @@ fun AppButton(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 private fun AppButtonText(
     text: String,
@@ -114,6 +116,7 @@ private fun AppButtonText(
     )
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Preview(showBackground = true)
 @Composable
 private fun AppButtonPreview() {

@@ -53,6 +53,7 @@ data class AppTextFieldKeyboard(
     val actions: KeyboardActions = KeyboardActions.Default,
 )
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun AppTextField(
     value: String,
@@ -101,6 +102,7 @@ fun AppTextField(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 private fun PrimaryAppTextField(
     value: String,
@@ -154,6 +156,7 @@ private fun PrimaryAppTextField(
     )
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 private fun SecondaryAppTextField(
     value: String,
@@ -205,6 +208,7 @@ private fun SecondaryAppTextField(
     )
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 private fun FieldDecorationText(
     text: String,
@@ -256,6 +260,7 @@ private fun applyOptionalBackground(
         modifier
     }
 
+@Suppress("ktlint:standard:function-naming")
 @Preview(showBackground = true)
 @Composable
 private fun AppTextFieldPreview() {
