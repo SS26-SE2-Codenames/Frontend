@@ -2,6 +2,7 @@ package com.codenames.codenames_frontend.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.codenames.codenames_frontend.data.model.enums.ConnectionState
 import com.codenames.codenames_frontend.network.dto.GameMessage
 import com.codenames.codenames_frontend.network.dto.WebSocketJoinMessage
 import com.codenames.codenames_frontend.network.websocket.GameWebSocketHandler
@@ -20,16 +21,29 @@ class GameViewModel @Inject constructor(private val client: GameWebSocketHandler
     private val _uiState = MutableStateFlow(GameMessage())
     val uiState: StateFlow<GameMessage> = _uiState
 
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.IDLE)
+    val connectionState: StateFlow<ConnectionState> = _connectionState
+
     fun connect(username: String, lobbyCode: String) {
 
         job?.cancel()
 
         job = viewModelScope.launch {
-            client.connectStomp()
+            _connectionState.value = ConnectionState.CONNECTING
 
-            client.subscribeToLobby(lobbyCode)
-                .collect { handleMessage(it) }
-            client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode))
+            try {
+                client.connectStomp()
+
+                _connectionState.value = ConnectionState.CONNECTED
+
+                launch {
+                    client.subscribeToLobby(lobbyCode)
+                        .collect { handleMessage(it) }
+                }
+                client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode))
+            } catch(e: Exception) {
+                _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+            }
         }
     }
 

@@ -8,20 +8,27 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.codenames.codenames_frontend.data.model.enums.ConnectionState
 import com.codenames.codenames_frontend.ui.buttons.AppButton
 import com.codenames.codenames_frontend.ui.buttons.AppButtonStyle
 import com.codenames.codenames_frontend.ui.navigation.Screen
+import com.codenames.codenames_frontend.viewmodel.GameViewModel
 
 @Composable
-fun StartScreen(navController: NavHostController) {
+fun StartScreen(navController: NavHostController, viewModel: GameViewModel = hiltViewModel()) {
+    val state by viewModel.connectionState.collectAsState()
     ForceLandscape()
 
     val greenGradient = Brush.verticalGradient(
@@ -94,5 +101,22 @@ fun StartScreen(navController: NavHostController) {
                 lineHeight = 30.sp
             )
         )
+
+        AppButton(
+            text = "Connect to Server",
+            onClick = {
+                viewModel.connect("TestUser", "12345")
+            }
+        )
+
+        when(state) {
+            is ConnectionState.CONNECTING -> Text("Connecting...")
+            is ConnectionState.CONNECTED -> Text("Verbunden")
+            is ConnectionState.Error -> {
+                Text("Fehler beim Verbinden: ")
+                Text((state as ConnectionState.Error).message)
+            }
+            else -> {}
+        }
     }
 }
