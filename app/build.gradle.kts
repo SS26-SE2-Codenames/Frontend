@@ -12,11 +12,12 @@ kotlin {
 }
 
 android {
-    namespace = "com.codenames.codenames_frontend"
+    namespace = "com.codenames.frontend"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
     }
 
     defaultConfig {
@@ -34,7 +35,7 @@ android {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -49,13 +50,13 @@ android {
 
 dependencies {
 
-    //Android Lifecycle
+    // Android Lifecycle
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
 
-    //Jetpack Compose
+    // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -66,7 +67,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    //Network (HTTP)
+    // Network (HTTP)
     implementation(libs.retrofit)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.kotlinx.serialization.json)
@@ -74,22 +75,21 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
-    //Network: Krossbow
+    // Network: Krossbow
     implementation(libs.krossbow.websocket.builtin)
     implementation(libs.krossbow.stomp.kxserialization.json)
     implementation(libs.krossbow.stomp.core)
     implementation(libs.krossbow.websocket.okhttp)
 
-    //DI: Hilt
+    // DI: Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     ksp(libs.hilt.android.compiler)
 
-
-    //Coroutines for concurrent programming
+    // Coroutines for concurrent programming
     implementation(libs.kotlinx.coroutines.android)
 
-    //Tests
+    // Tests
     testImplementation(libs.junit)
 
     androidTestImplementation(libs.androidx.junit)
@@ -101,7 +101,7 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(kotlin("test"))
 
-    //Hilt for tests
+    // Hilt for tests
     testImplementation(libs.hilt.android.testing)
     kspTest(libs.hilt.compiler)
 }
