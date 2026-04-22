@@ -1,16 +1,97 @@
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.application")
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jlleitschuh.gradle.ktlint")
+    id("com.google.devtools.ksp") version "2.3.6"
+    id("com.google.dagger.hilt.android")
+    id("jacoco")
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+tasks.withType<Test> {
+    finalizedBy("jacocoTestReport")
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    val jacocoExcludes =
+        listOf(
+            "**/hilt_aggregated_deps/**",
+            "**/dagger/hilt/android/internal/**",
+            "**/com/codenames/frontend/network/provider/**",
+            "**/R.class",
+            "**/R$*.class",
+            "**/BuildConfig.*",
+            "**/Manifest*.*",
+            "**/ui/**",
+            "**/*_Hilt*.*",
+            "**/Hilt_*.*",
+            "**/*_Factory*.*",
+            "**/*_MembersInjector*.*",
+            "**/*_GeneratedInjector*.*",
+            "**/*_ComponentTreeDeps*.*",
+            "**/Dagger*.*",
+            "**/*_Provide*.*",
+            "**/*_BindsInstance*.*",
+        )
+
+    dependsOn("testDebugUnitTest")
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports after running tests."
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    // Quellcode-Verzeichnisse – alle zu testenden Pakete
+    sourceDirectories.setFrom(
+        files(
+            "${project.projectDir}/src/main/java",
+            "${project.projectDir}/src/main/kotlin",
+        ),
+    )
+
+    // Klassenverzeichnisse je nach AGP/Kotlin-Ausgabeordner
+    classDirectories.setFrom(
+        files(
+            fileTree("$buildDir/intermediates/classes/debug/transformDebugClassesWithAsm/dirs") {
+                exclude(jacocoExcludes)
+            },
+            fileTree("$buildDir/intermediates/javac/debug/compileDebugJavaWithJavac/classes") {
+                exclude(jacocoExcludes)
+            },
+            fileTree("$buildDir/tmp/kotlin-classes/debug") {
+                exclude(jacocoExcludes)
+            },
+        ),
+    )
+
+    // Execution-Daten – je nach AGP-Version/Setup variieren die Pfade
+    executionData.setFrom(
+        fileTree(buildDir) {
+            include("jacoco/testDebugUnitTest.exec")
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec.ec")
+        },
+    )
 }
 
 android {
-    namespace = "com.codenames.codenames_frontend"
+    namespace = "com.codenames.frontend"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
     }
 
     defaultConfig {
@@ -25,16 +106,16 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
@@ -42,20 +123,59 @@ android {
 }
 
 dependencies {
+
+    // Android Lifecycle
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
+
+    // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.navigation.compose)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Network (HTTP)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    // Network: Krossbow
+    implementation(libs.krossbow.websocket.builtin)
+    implementation(libs.krossbow.stomp.kxserialization.json)
+    implementation(libs.krossbow.stomp.core)
+    implementation(libs.krossbow.websocket.okhttp)
+
+    // DI: Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    ksp(libs.hilt.android.compiler)
+
+    // Coroutines for concurrent programming
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Tests
     testImplementation(libs.junit)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation(libs.androidx.navigation.compose)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(kotlin("test"))
+
+    // Hilt for tests
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.compiler)
 }
