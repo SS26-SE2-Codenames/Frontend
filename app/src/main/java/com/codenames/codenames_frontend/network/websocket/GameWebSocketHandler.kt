@@ -11,7 +11,7 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConver
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import javax.inject.Inject
 
-const val BASE_URL = "ws://localhost:8080"
+const val BASE_URL = "ws://localhost:8080/ws"
 
 class GameWebSocketHandler @Inject constructor(private val client: StompClient) {
     lateinit var session: StompSessionWithKxSerialization

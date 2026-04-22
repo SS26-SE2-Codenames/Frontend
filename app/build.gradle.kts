@@ -78,9 +78,11 @@ dependencies {
     implementation(libs.krossbow.websocket.builtin)
     implementation(libs.krossbow.stomp.kxserialization.json)
     implementation(libs.krossbow.stomp.core)
+    implementation(libs.krossbow.websocket.okhttp)
 
     //DI: Hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
     ksp(libs.hilt.android.compiler)
 
 

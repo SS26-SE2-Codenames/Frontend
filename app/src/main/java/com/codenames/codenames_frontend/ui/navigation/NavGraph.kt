@@ -1,5 +1,6 @@
 package com.codenames.codenames_frontend.ui.navigation
 
+import android.util.Log
 import androidx.compose.runtime.*
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
