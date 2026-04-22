@@ -1,9 +1,9 @@
 package com.codenames.codenames_frontend.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,39 +53,46 @@ fun StartScreen(navController: NavHostController, viewModel: GameViewModel = hil
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AppButton(
-            text = "Create Lobby",
-            onClick = {
-                navController.navigate(Screen.Lobby.route)
-            },
-            modifier = Modifier
-                .width(200.dp)
-                .height(100.dp)
-                .fillMaxWidth(0.5f)
-                .padding(bottom = 12.dp),
-            style = AppButtonStyle(
-                backgroundBrush = greenGradient,
-                fontSize = 26.sp,
-                lineHeight = 30.sp
-            )
-        )
+        Row(modifier = Modifier
+            .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
 
-        AppButton(
-            text = "Join Lobby",
-            onClick = {
-                navController.navigate(Screen.JoinLobby.route)
-            },
-            modifier = Modifier
-                .width(200.dp)
-                .height(100.dp)
-                .fillMaxWidth(0.5f)
-                .padding(bottom = 12.dp),
-            style = AppButtonStyle(
-                backgroundBrush = blueGradient,
-                fontSize = 26.sp,
-                lineHeight = 30.sp
+            AppButton(
+                text = "Create Lobby",
+                onClick = {
+                    navController.navigate(Screen.Lobby.route)
+                },
+                modifier = Modifier
+                    .width(200.dp)
+                    .height(100.dp)
+                    .fillMaxWidth(0.5f)
+                    .padding(bottom = 12.dp, end = 12.dp),
+                style = AppButtonStyle(
+                    backgroundBrush = greenGradient,
+                    fontSize = 26.sp,
+                    lineHeight = 30.sp
+                )
             )
-        )
+
+            AppButton(
+                text = "Join Lobby",
+                onClick = {
+                    navController.navigate(Screen.JoinLobby.route)
+                },
+                modifier = Modifier
+                    .width(200.dp)
+                    .height(100.dp)
+                    .fillMaxWidth(0.5f)
+                    .padding(bottom = 12.dp, start = 12.dp),
+                style = AppButtonStyle(
+                    backgroundBrush = blueGradient,
+                    fontSize = 26.sp,
+                    lineHeight = 30.sp
+                )
+            )
+        }
+
         AppButton(
             text = "test Mode",
             onClick = {
@@ -106,14 +113,23 @@ fun StartScreen(navController: NavHostController, viewModel: GameViewModel = hil
             text = "Connect to Server",
             onClick = {
                 viewModel.connect("TestUser", "12345")
-            }
+            },
+            modifier = Modifier
+                .width(200.dp)
+                .height(100.dp)
+                .padding(bottom = 12.dp),
+            style = AppButtonStyle(
+                backgroundBrush = blueGradient,
+                fontSize = 26.sp,
+                lineHeight = 30.sp
+            )
         )
 
         when(state) {
-            is ConnectionState.CONNECTING -> Text("Connecting...")
-            is ConnectionState.CONNECTED -> Text("Verbunden")
+            is ConnectionState.CONNECTING -> Text(text = "Connecting...", color = Color.Yellow, fontSize = 25.sp)
+            is ConnectionState.CONNECTED -> Text("Connected", color = Color.Green, fontSize = 25.sp)
             is ConnectionState.Error -> {
-                Text("Fehler beim Verbinden: ")
+                Text("Error while connecting: ")
                 Text((state as ConnectionState.Error).message)
             }
             else -> {}
