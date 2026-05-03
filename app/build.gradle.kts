@@ -5,18 +5,93 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
     id("com.google.devtools.ksp") version "2.3.6"
     id("com.google.dagger.hilt.android")
+    id("jacoco")
 }
 
 kotlin {
     jvmToolchain(17)
 }
 
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+tasks.withType<Test> {
+    finalizedBy("jacocoTestReport")
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    val jacocoExcludes =
+        listOf(
+            "**/hilt_aggregated_deps/**",
+            "**/dagger/hilt/android/internal/**",
+            "**/com/codenames/frontend/network/provider/**",
+            "**/R.class",
+            "**/R$*.class",
+            "**/BuildConfig.*",
+            "**/Manifest*.*",
+            "**/ui/**",
+            "**/*_Hilt*.*",
+            "**/Hilt_*.*",
+            "**/*_Factory*.*",
+            "**/*_MembersInjector*.*",
+            "**/*_GeneratedInjector*.*",
+            "**/*_ComponentTreeDeps*.*",
+            "**/Dagger*.*",
+            "**/*_Provide*.*",
+            "**/*_BindsInstance*.*",
+        )
+
+    dependsOn("testDebugUnitTest")
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports after running tests."
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    // Quellcode-Verzeichnisse – alle zu testenden Pakete
+    sourceDirectories.setFrom(
+        files(
+            "${project.projectDir}/src/main/java",
+            "${project.projectDir}/src/main/kotlin",
+        ),
+    )
+
+    // Klassenverzeichnisse je nach AGP/Kotlin-Ausgabeordner
+    classDirectories.setFrom(
+        files(
+            fileTree("$buildDir/intermediates/classes/debug/transformDebugClassesWithAsm/dirs") {
+                exclude(jacocoExcludes)
+            },
+            fileTree("$buildDir/intermediates/javac/debug/compileDebugJavaWithJavac/classes") {
+                exclude(jacocoExcludes)
+            },
+            fileTree("$buildDir/tmp/kotlin-classes/debug") {
+                exclude(jacocoExcludes)
+            },
+        ),
+    )
+
+    // Execution-Daten – je nach AGP-Version/Setup variieren die Pfade
+    executionData.setFrom(
+        fileTree(buildDir) {
+            include("jacoco/testDebugUnitTest.exec")
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec.ec")
+        },
+    )
+}
+
 android {
-    namespace = "com.codenames.codenames_frontend"
+    namespace = "com.codenames.frontend"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
     }
 
     defaultConfig {
@@ -34,7 +109,7 @@ android {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -49,13 +124,13 @@ android {
 
 dependencies {
 
-    //Android Lifecycle
+    // Android Lifecycle
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
 
-    //Jetpack Compose
+    // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -66,7 +141,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    //Network (HTTP)
+    // Network (HTTP)
     implementation(libs.retrofit)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.kotlinx.serialization.json)
@@ -74,22 +149,21 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
-    //Network: Krossbow
+    // Network: Krossbow
     implementation(libs.krossbow.websocket.builtin)
     implementation(libs.krossbow.stomp.kxserialization.json)
     implementation(libs.krossbow.stomp.core)
     implementation(libs.krossbow.websocket.okhttp)
 
-    //DI: Hilt
+    // DI: Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     ksp(libs.hilt.android.compiler)
 
-
-    //Coroutines for concurrent programming
+    // Coroutines for concurrent programming
     implementation(libs.kotlinx.coroutines.android)
 
-    //Tests
+    // Tests
     testImplementation(libs.junit)
 
     androidTestImplementation(libs.androidx.junit)
@@ -101,7 +175,7 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(kotlin("test"))
 
-    //Hilt for tests
+    // Hilt for tests
     testImplementation(libs.hilt.android.testing)
     kspTest(libs.hilt.compiler)
 }
