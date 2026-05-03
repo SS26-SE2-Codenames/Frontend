@@ -131,6 +131,8 @@ fun GameboardScreen(
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
+    val onInputChange: (String) -> Unit = { hintInput = it }
+
     Column(
         modifier =
             modifier
@@ -187,6 +189,7 @@ fun GameboardScreen(
             currentHint,
             hintInput,
             onHintChange,
+            onInputChange,
             keyboardController,
             focusManager,
         )
@@ -250,6 +253,7 @@ fun HintSection(
     currentHint: String,
     hintInput: String,
     onHintChange: (String) -> Unit,
+    onInputChange: (String) -> Unit,
     keyboardController: SoftwareKeyboardController?,
     focusManager: FocusManager,
 ) {
@@ -257,7 +261,7 @@ fun HintSection(
         Row {
             AppTextField(
                 value = hintInput,
-                onValueChange = onHintChange,
+                onValueChange = onInputChange,
                 modifier = Modifier.weight(1f),
                 state =
                     AppTextFieldState(
@@ -271,7 +275,7 @@ fun HintSection(
                                 onSend = {
                                     if (hintInput.isNotBlank()) {
                                         onHintChange(hintInput.uppercase())
-                                        onHintChange("")
+                                        onInputChange("")
                                         focusManager.clearFocus()
                                         keyboardController?.hide()
                                     }
@@ -285,7 +289,7 @@ fun HintSection(
                 onClick = {
                     if (hintInput.isNotBlank()) {
                         onHintChange(hintInput.uppercase())
-                        onHintChange("")
+                        onInputChange("")
                     }
                 },
             )
