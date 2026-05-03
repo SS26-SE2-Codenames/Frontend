@@ -24,49 +24,55 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.codenames.frontend.data.model.enums.Role
+import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 
+val blueGradient =
+    Brush.verticalGradient(
+        colors =
+            listOf(
+                Color(0xFF42A5F5),
+                Color(0xFF1565C0),
+            ),
+    )
+
+val redGradient =
+    Brush.verticalGradient(
+        colors =
+            listOf(
+                Color(0xFFCF5530),
+                Color(0xFFDE8468),
+            ),
+    )
+
+val brownGradient =
+    Brush.verticalGradient(
+        colors =
+            listOf(
+                Color(0xFF383330),
+                Color(0xFF1A1513),
+            ),
+    )
+
+val greenGradient =
+    Brush.verticalGradient(
+        colors =
+            listOf(
+                Color(0xFF4CAF50),
+                Color(0xFF2E7D32),
+            ),
+    )
+
+const val join_team : String = "JOIN TEAM"
+const val team_joined : String = "👤 1 joined"
+
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun LobbyScreen(navController: NavHostController) {
-    val blueGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF42A5F5),
-                    Color(0xFF1565C0),
-                ),
-        )
-
-    val redGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFFCF5530),
-                    Color(0xFFDE8468),
-                ),
-        )
-
-    val brownGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF383330),
-                    Color(0xFF1A1513),
-                ),
-        )
-
-    val greenGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF4CAF50),
-                    Color(0xFF2E7D32),
-                ),
-        )
 
     var currentRole by remember { mutableStateOf(PlayerRoles.NONE) }
 
@@ -112,14 +118,14 @@ fun LobbyScreen(navController: NavHostController) {
 
                 if (currentRole == PlayerRoles.BLUE_OPERATIVE) {
                     Text(
-                        text = "👤 1 joined",
+                        text = team_joined,
                         color = Color.White,
                         modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
 
                 AppButton(
-                    text = "JOIN TEAM",
+                    text = join_team,
                     onClick = { currentRole = PlayerRoles.BLUE_OPERATIVE },
                     style =
                         AppButtonStyle(
@@ -146,14 +152,14 @@ fun LobbyScreen(navController: NavHostController) {
 
                 if (currentRole == PlayerRoles.BLUE_SPYMASTER) {
                     Text(
-                        text = "👤 1 joined",
+                        text = team_joined,
                         color = Color.White,
                         modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
 
                 AppButton(
-                    text = "JOIN TEAM",
+                    text = join_team,
                     onClick = { currentRole = PlayerRoles.BLUE_SPYMASTER },
                     style =
                         AppButtonStyle(
@@ -259,14 +265,14 @@ fun LobbyScreen(navController: NavHostController) {
 
                 if (currentRole == PlayerRoles.RED_OPERATIVE) {
                     Text(
-                        text = "👤 1 joined",
+                        text = team_joined,
                         color = Color.White,
                         modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
 
                 AppButton(
-                    text = "JOIN TEAM",
+                    text = join_team,
                     onClick = { currentRole = PlayerRoles.RED_OPERATIVE },
                     style =
                         AppButtonStyle(
@@ -293,14 +299,14 @@ fun LobbyScreen(navController: NavHostController) {
 
                 if (currentRole == PlayerRoles.RED_SPYMASTER) {
                     Text(
-                        text = "👤 1 joined",
+                        text = team_joined,
                         color = Color.White,
                         modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
 
                 AppButton(
-                    text = "JOIN TEAM",
+                    text = join_team,
                     onClick = { currentRole = PlayerRoles.RED_SPYMASTER },
                     style =
                         AppButtonStyle(
