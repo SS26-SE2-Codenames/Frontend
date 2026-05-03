@@ -66,7 +66,7 @@ data class GameCard(
 fun GameTestScreen() {
     var currentHint by remember { mutableStateOf("Waiting for hint...") }
 
-    //will be replaced by backend call
+    // will be replaced by backend call
     val cards =
         remember {
             mutableStateListOf(
@@ -148,7 +148,7 @@ fun GameboardScreen(
                 color = Team.BLUE,
                 teamLeft = blueLeft,
                 textColor = Color(0xFF1565C0),
-                gradient = blueGradient
+                gradient = blueGradient,
             )
 
             GameBoardGrid(
@@ -157,17 +157,18 @@ fun GameboardScreen(
                 offset,
                 isSpymaster,
                 onReveal,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(horizontal = 8.dp)
-                    .clipToBounds()
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            scale = (scale * zoom).coerceIn(0.5f, 3f)
-                            offset += pan
-                        }
-                    },
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(horizontal = 8.dp)
+                        .clipToBounds()
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                scale = (scale * zoom).coerceIn(0.5f, 3f)
+                                offset += pan
+                            }
+                        },
             )
 
             TeamSidebar(
@@ -175,7 +176,7 @@ fun GameboardScreen(
                 color = Team.RED,
                 teamLeft = redLeft,
                 textColor = Color(0xFFCF5530),
-                gradient = redGradient
+                gradient = redGradient,
             )
         }
 
@@ -187,19 +188,20 @@ fun GameboardScreen(
             hintInput,
             onHintChange,
             keyboardController,
-            focusManager
+            focusManager,
         )
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun TeamSidebar(
     userRole: PlayerRoles,
     color: Team,
     teamLeft: Int,
     textColor: Color,
-    gradient: Brush
-){
+    gradient: Brush,
+) {
     val isRed = color == Team.RED
     val operative = if (isRed) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_OPERATIVE
     val spymaster = if (isRed) PlayerRoles.RED_SPYMASTER else PlayerRoles.BLUE_SPYMASTER
@@ -241,6 +243,7 @@ fun TeamSidebar(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun HintSection(
     isSpymaster: Boolean,
@@ -248,8 +251,8 @@ fun HintSection(
     hintInput: String,
     onHintChange: (String) -> Unit,
     keyboardController: SoftwareKeyboardController?,
-    focusManager: FocusManager
-){
+    focusManager: FocusManager,
+) {
     if (isSpymaster) {
         Row {
             AppTextField(

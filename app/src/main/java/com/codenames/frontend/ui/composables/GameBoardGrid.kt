@@ -15,17 +15,18 @@ import androidx.compose.ui.unit.dp
 import com.codenames.frontend.ui.screens.CodenamesCard
 import com.codenames.frontend.ui.screens.GameCard
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameBoardGrid(
     cards: List<GameCard>,
     scale: Float,
     offset: Offset,
     isSpymaster: Boolean,
-    onReveal: (Int)->Unit,
-    modifier: Modifier
-){
+    onReveal: (Int) -> Unit,
+    modifier: Modifier,
+) {
     Box(
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column(
             modifier =

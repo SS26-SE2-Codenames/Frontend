@@ -67,13 +67,12 @@ val greenGradient =
             ),
     )
 
-private const val JOIN_TEAM : String = "JOIN TEAM"
-private const val TEAM_JOINED : String = "👤 1 joined"
+private const val JOIN_TEAM: String = "JOIN TEAM"
+private const val TEAM_JOINED: String = "👤 1 joined"
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun LobbyScreen(navController: NavHostController) {
-
     var currentRole by remember { mutableStateOf(PlayerRoles.NONE) }
 
     Row(
@@ -84,7 +83,6 @@ fun LobbyScreen(navController: NavHostController) {
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-
         TeamColumn(
             modifier = Modifier.weight(1f),
             color = Team.BLUE,
@@ -92,12 +90,12 @@ fun LobbyScreen(navController: NavHostController) {
             textColor = Color(0xFF42A5F5),
             title = "BLUE TEAM",
             currentRole = currentRole,
-            onRoleSelect = { currentRole = it }
+            onRoleSelect = { currentRole = it },
         )
 
         GameSettingsColumn(
             currentRole = currentRole,
-            navController = navController
+            navController = navController,
         )
 
         TeamColumn(
@@ -107,11 +105,12 @@ fun LobbyScreen(navController: NavHostController) {
             textColor = Color(0xFFDE8468),
             title = "RED TEAM",
             currentRole = currentRole,
-            onRoleSelect = { currentRole = it }
+            onRoleSelect = { currentRole = it },
         )
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun TeamColumn(
     modifier: Modifier,
@@ -120,22 +119,23 @@ fun TeamColumn(
     textColor: Color,
     title: String,
     currentRole: PlayerRoles,
-    onRoleSelect: (PlayerRoles) -> Unit
-){
+    onRoleSelect: (PlayerRoles) -> Unit,
+) {
     val align = if (color == Team.RED) Alignment.End else Alignment.Start
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val cardModifier = Modifier
-            .align(align)
-            .width(200.dp)
-            .height(150.dp)
-            .fillMaxWidth(0.5f)
-            .padding(start = 6.dp, bottom = 12.dp)
-            .background(gradient, RoundedCornerShape(12.dp))
-            .padding(12.dp)
+        val cardModifier =
+            Modifier
+                .align(align)
+                .width(200.dp)
+                .height(150.dp)
+                .fillMaxWidth(0.5f)
+                .padding(start = 6.dp, bottom = 12.dp)
+                .background(gradient, RoundedCornerShape(12.dp))
+                .padding(12.dp)
 
         Text(
             text = title,
@@ -151,31 +151,32 @@ fun TeamColumn(
         )
 
         RoleCard(
-            role = if(color == Team.RED) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_OPERATIVE,
+            role = if (color == Team.RED) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_OPERATIVE,
             currentRole = currentRole,
             onRoleSelect = onRoleSelect,
             modifier = cardModifier,
-            title = "OPERATIVES"
+            title = "OPERATIVES",
         )
 
         RoleCard(
-            role = if(color == Team.RED) PlayerRoles.RED_SPYMASTER else PlayerRoles.BLUE_SPYMASTER,
+            role = if (color == Team.RED) PlayerRoles.RED_SPYMASTER else PlayerRoles.BLUE_SPYMASTER,
             currentRole = currentRole,
             onRoleSelect = onRoleSelect,
             modifier = cardModifier,
-            title = "SPYMASTERS"
+            title = "SPYMASTERS",
         )
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun RoleCard(
     role: PlayerRoles,
     currentRole: PlayerRoles,
     onRoleSelect: (PlayerRoles) -> Unit,
     modifier: Modifier,
-    title: String
-){
+    title: String,
+) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -203,11 +204,12 @@ fun RoleCard(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameSettingsColumn(
     currentRole: PlayerRoles,
-    navController: NavController
-){
+    navController: NavController,
+) {
     Column(
         modifier = Modifier.padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.Center,
