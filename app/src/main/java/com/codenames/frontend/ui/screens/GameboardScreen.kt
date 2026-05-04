@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Text
@@ -29,18 +28,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
+import com.codenames.frontend.ui.composables.GameBoardGrid
 import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
@@ -64,6 +66,7 @@ data class GameCard(
 fun GameTestScreen() {
     var currentHint by remember { mutableStateOf("Waiting for hint...") }
 
+    // will be replaced by backend call
     val cards =
         remember {
             mutableStateListOf(
@@ -128,14 +131,7 @@ fun GameboardScreen(
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
-    val blueGradient =
-        Brush.verticalGradient(
-            colors = listOf(Color(0xFF42A5F5), Color(0xFF1565C0)),
-        )
-    val redGradient =
-        Brush.verticalGradient(
-            colors = listOf(Color(0xFFCF5530), Color(0xFFDE8468)),
-        )
+    val onInputChange: (String) -> Unit = { hintInput = it }
 
     Column(
         modifier =
@@ -149,43 +145,20 @@ fun GameboardScreen(
                     .weight(1f)
                     .fillMaxWidth(),
         ) {
-            Column(
-                modifier =
-                    Modifier
-                        .width(90.dp)
-                        .fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    "BLUE TEAM",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1565C0),
-                    fontSize = 12.sp,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+            TeamSidebar(
+                userRole,
+                color = Team.BLUE,
+                teamLeft = blueLeft,
+                textColor = Color(0xFF1565C0),
+                gradient = blueGradient,
+            )
 
-                TeamRoleBox(
-                    title = "OPERATIVES",
-                    gradient = blueGradient,
-                    isCurrentUser = userRole == PlayerRoles.BLUE_OPERATIVE,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                TeamRoleBox(
-                    title = "SPYMASTERS",
-                    gradient = blueGradient,
-                    isCurrentUser = userRole == PlayerRoles.BLUE_SPYMASTER,
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "$blueLeft LEFT",
-                    color = Color(0xFF1565C0),
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp,
-                )
-            }
-
-            Box(
+            GameBoardGrid(
+                cards,
+                scale,
+                offset,
+                isSpymaster,
+                onReveal,
                 modifier =
                     Modifier
                         .weight(1f)
@@ -198,134 +171,136 @@ fun GameboardScreen(
                                 offset += pan
                             }
                         },
-            ) {
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(unbounded = true)
-                            .graphicsLayer(
-                                scaleX = scale,
-                                scaleY = scale,
-                                translationX = offset.x,
-                                translationY = offset.y,
-                            ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    val columns = 5
-                    for (i in cards.indices step columns) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            for (j in 0 until columns) {
-                                val index = i + j
-                                if (index < cards.size) {
-                                    val card = cards[index]
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        CodenamesCard(
-                                            card = card,
-                                            isSpymaster = isSpymaster,
-                                            onClick = {
-                                                if (!isSpymaster && !card.revealed) {
-                                                    onReveal(index)
-                                                }
-                                            },
-                                        )
-                                    }
-                                } else {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            )
 
-            Column(
-                modifier =
-                    Modifier
-                        .width(90.dp)
-                        .fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    "RED TEAM",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFCF5530),
-                    fontSize = 12.sp,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TeamRoleBox(
-                    title = "OPERATIVES",
-                    gradient = redGradient,
-                    isCurrentUser = userRole == PlayerRoles.RED_OPERATIVE,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                TeamRoleBox(
-                    title = "SPYMASTERS",
-                    gradient = redGradient,
-                    isCurrentUser = userRole == PlayerRoles.RED_SPYMASTER,
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "$redLeft LEFT",
-                    color = Color(0xFFCF5530),
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp,
-                )
-            }
+            TeamSidebar(
+                userRole,
+                color = Team.RED,
+                teamLeft = redLeft,
+                textColor = Color(0xFFCF5530),
+                gradient = redGradient,
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (isSpymaster) {
-            Row {
-                AppTextField(
-                    value = hintInput,
-                    onValueChange = { hintInput = it },
-                    modifier = Modifier.weight(1f),
-                    state =
-                        AppTextFieldState(
-                            label = "HINT",
-                            placeholder = "Enter word...",
-                        ),
-                    keyboard =
-                        AppTextFieldKeyboard(
-                            actions =
-                                KeyboardActions(
-                                    onSend = {
-                                        if (hintInput.isNotBlank()) {
-                                            onHintChange(hintInput.uppercase())
-                                            hintInput = ""
-                                            focusManager.clearFocus()
-                                            keyboardController?.hide()
-                                        }
-                                    },
-                                ),
-                        ),
-                )
+        HintSection(
+            isSpymaster,
+            currentHint,
+            hintInput,
+            onHintChange,
+            onInputChange,
+            keyboardController,
+            focusManager,
+        )
+    }
+}
 
-                AppButton(
-                    text = "SEND",
-                    onClick = {
-                        if (hintInput.isNotBlank()) {
-                            onHintChange(hintInput.uppercase())
-                            hintInput = ""
-                        }
-                    },
-                )
-            }
-        } else {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Hint: $currentHint",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun TeamSidebar(
+    userRole: PlayerRoles,
+    color: Team,
+    teamLeft: Int,
+    textColor: Color,
+    gradient: Brush,
+) {
+    val isRed = color == Team.RED
+    val operative = if (isRed) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_OPERATIVE
+    val spymaster = if (isRed) PlayerRoles.RED_SPYMASTER else PlayerRoles.BLUE_SPYMASTER
+    val title = if (isRed) "RED TEAM" else "BLUE TEAM"
+    Column(
+        modifier =
+            Modifier
+                .width(90.dp)
+                .fillMaxHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            title,
+            fontWeight = FontWeight.Bold,
+            color = textColor,
+            fontSize = 12.sp,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TeamRoleBox(
+            title = "OPERATIVES",
+            gradient = gradient,
+            isCurrentUser = userRole == operative,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TeamRoleBox(
+            title = "SPYMASTERS",
+            gradient = gradient,
+            isCurrentUser = userRole == spymaster,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "$teamLeft LEFT",
+            color = textColor,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 18.sp,
+        )
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun HintSection(
+    isSpymaster: Boolean,
+    currentHint: String,
+    hintInput: String,
+    onHintChange: (String) -> Unit,
+    onInputChange: (String) -> Unit,
+    keyboardController: SoftwareKeyboardController?,
+    focusManager: FocusManager,
+) {
+    if (isSpymaster) {
+        Row {
+            AppTextField(
+                value = hintInput,
+                onValueChange = onInputChange,
+                modifier = Modifier.weight(1f),
+                state =
+                    AppTextFieldState(
+                        label = "HINT",
+                        placeholder = "Enter word...",
+                    ),
+                keyboard =
+                    AppTextFieldKeyboard(
+                        actions =
+                            KeyboardActions(
+                                onSend = {
+                                    if (hintInput.isNotBlank()) {
+                                        onHintChange(hintInput.uppercase())
+                                        onInputChange("")
+                                        focusManager.clearFocus()
+                                        keyboardController?.hide()
+                                    }
+                                },
+                            ),
+                    ),
+            )
+
+            AppButton(
+                text = "SEND",
+                onClick = {
+                    if (hintInput.isNotBlank()) {
+                        onHintChange(hintInput.uppercase())
+                        onInputChange("")
+                    }
+                },
+            )
+        }
+    } else {
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Text(
+                text = "Hint: $currentHint",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }
