@@ -95,6 +95,24 @@ class GameViewModel
                 }
         }
 
+        fun sendLobbyMessage(lobbyCode: String, username: String, content: String) {
+            viewModelScope.launch {
+                chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
+            }
+        }
+
+        fun sendTeamMessage(lobbyCode: String, team: String, username: String, content: String) {
+            viewModelScope.launch {
+                chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
+            }
+        }
+
+        fun sendOperativeMessage(lobbyCode: String, team: String, username: String, content: String) {
+            viewModelScope.launch {
+                chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
+            }
+        }
+    
         fun handleMessage(message: GameMessage) {
             _uiState.value = message
             // Add logic to handle incoming messages
