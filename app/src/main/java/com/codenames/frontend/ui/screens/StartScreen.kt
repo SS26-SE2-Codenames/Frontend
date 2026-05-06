@@ -144,11 +144,12 @@ fun StartScreen(
         )
 
         when (state) {
-            is ConnectionState.CONNECTING -> Text(
-                text = "Connecting...",
-                color = Color.Yellow,
-                fontSize = 25.sp
-            )
+            is ConnectionState.CONNECTING ->
+                Text(
+                    text = "Connecting...",
+                    color = Color.Yellow,
+                    fontSize = 25.sp,
+                )
 
             is ConnectionState.CONNECTED -> Text("Connected", color = Color.Green, fontSize = 25.sp)
             is ConnectionState.Error -> {

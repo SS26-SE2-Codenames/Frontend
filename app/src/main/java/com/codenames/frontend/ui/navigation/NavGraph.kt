@@ -37,7 +37,7 @@ fun NavGraph() {
         }
         composable(
             route = "${Screen.Start.route}/{username}",
-            arguments = listOf(navArgument("username") { type = NavType.StringType })
+            arguments = listOf(navArgument("username") { type = NavType.StringType }),
         ) { backStackEntry ->
 
             val username = backStackEntry.arguments?.getString("username") ?: "Gast"
@@ -60,11 +60,12 @@ fun NavGraph() {
 
             val roleString = backStackEntry.arguments?.getString("role") ?: PlayerRoles.NONE.name
 
-            val passedRole = try {
-                PlayerRoles.valueOf(roleString)
-            } catch (e: IllegalArgumentException) {
-                PlayerRoles.NONE
-            }
+            val passedRole =
+                try {
+                    PlayerRoles.valueOf(roleString)
+                } catch (e: IllegalArgumentException) {
+                    PlayerRoles.NONE
+                }
 
             GameScreenWrapper(userRole = passedRole)
         }
@@ -88,21 +89,23 @@ fun NavGraph() {
 fun GameScreenWrapper(userRole: PlayerRoles) {
     var currentHint by remember { mutableStateOf("Waiting for hint...") }
 
-    val cards = remember {
-        mutableStateListOf(
-            *List(25) {
-                GameCard(
-                    word = "Word ${it + 1}",
-                    type = when (it) {
-                        0 -> CardType.ASSASSIN
-                        in 1..8 -> CardType.BLUE
-                        in 9..15 -> CardType.RED
-                        else -> CardType.NEUTRAL
-                    },
-                )
-            }.toTypedArray(),
-        )
-    }
+    val cards =
+        remember {
+            mutableStateListOf(
+                *List(25) {
+                    GameCard(
+                        word = "Word ${it + 1}",
+                        type =
+                            when (it) {
+                                0 -> CardType.ASSASSIN
+                                in 1..8 -> CardType.BLUE
+                                in 9..15 -> CardType.RED
+                                else -> CardType.NEUTRAL
+                            },
+                    )
+                }.toTypedArray(),
+            )
+        }
 
     fun revealCard(index: Int) {
         val card = cards[index]
