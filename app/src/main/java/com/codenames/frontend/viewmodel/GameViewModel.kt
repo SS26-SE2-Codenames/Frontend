@@ -15,14 +15,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class GameViewModel
     @Inject
     constructor(
         private val client: GameWebSocketHandler,
-        private val chatRepository: ChatRepository
+        private val chatRepository: ChatRepository,
     ) : ViewModel() {
         private var job: Job? = null
 
@@ -39,7 +38,7 @@ class GameViewModel
             username: String,
             lobbyCode: String,
             team: String,
-            role: String
+            role: String,
         ) {
             job?.cancel()
 
@@ -95,24 +94,38 @@ class GameViewModel
                 }
         }
 
-        fun sendLobbyMessage(lobbyCode: String, username: String, content: String) {
+        fun sendLobbyMessage(
+            lobbyCode: String,
+            username: String,
+            content: String,
+        ) {
             viewModelScope.launch {
                 chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
             }
         }
 
-        fun sendTeamMessage(lobbyCode: String, team: String, username: String, content: String) {
+        fun sendTeamMessage(
+            lobbyCode: String,
+            team: String,
+            username: String,
+            content: String,
+        ) {
             viewModelScope.launch {
                 chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
             }
         }
 
-        fun sendOperativeMessage(lobbyCode: String, team: String, username: String, content: String) {
+        fun sendOperativeMessage(
+            lobbyCode: String,
+            team: String,
+            username: String,
+            content: String,
+        ) {
             viewModelScope.launch {
                 chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
             }
         }
-    
+
         fun handleMessage(message: GameMessage) {
             _uiState.value = message
             // Add logic to handle incoming messages

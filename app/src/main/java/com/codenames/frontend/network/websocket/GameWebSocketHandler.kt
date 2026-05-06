@@ -39,11 +39,12 @@ class GameWebSocketHandler
             session.convertAndSend("app/$lobbyCode/join", msg, WebSocketJoinMessage.serializer())
         }
 
-        suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> {
-            return session.subscribe(topicPath, ChatMessageDto.serializer())
-        }
+        suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> = session.subscribe(topicPath, ChatMessageDto.serializer())
 
-        suspend fun sendChatMessage(destination: String, msg: ChatMessageDto) {
+        suspend fun sendChatMessage(
+            destination: String,
+            msg: ChatMessageDto,
+        ) {
             session.convertAndSend(destination, msg, ChatMessageDto.serializer())
         }
     }
