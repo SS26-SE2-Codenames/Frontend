@@ -58,7 +58,7 @@ fun StartScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFF4A403D)),
+                .background(Color(0xFFf0d8ce)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

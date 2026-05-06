@@ -21,6 +21,8 @@ import com.codenames.frontend.ui.screens.JoinlobbyScreen
 import com.codenames.frontend.ui.screens.LobbyScreen
 import com.codenames.frontend.ui.screens.SettingsScreen
 import com.codenames.frontend.ui.screens.StartScreen
+import com.codenames.frontend.ui.screens.UserNameScreen
+
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
@@ -29,9 +31,17 @@ fun NavGraph() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Start.route,
+        startDestination = Screen.Username.route,
     ) {
-        composable(Screen.Start.route) {
+        composable(Screen.Username.route) {
+            UserNameScreen(navController)
+        }
+        composable(
+            route = "${Screen.Start.route}/{username}",
+            arguments = listOf(navArgument("username") { type = NavType.StringType })
+        ) { backStackEntry ->
+
+            val username = backStackEntry.arguments?.getString("username") ?: "Gast"
             StartScreen(navController)
         }
 

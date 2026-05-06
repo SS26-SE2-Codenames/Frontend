@@ -81,7 +81,7 @@ fun JoinlobbyScreen() {
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFF4A403D))
+                .background(Color(0xFFf0d8ce))
                 .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
