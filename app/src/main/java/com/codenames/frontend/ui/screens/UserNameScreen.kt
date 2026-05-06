@@ -30,9 +30,7 @@ fun UserNameScreen(navController: NavController) {
 
     {
         Text(
-            text = "Codenames",
-            fontSize = 48.sp,
-            modifier = Modifier.padding(bottom = 100.dp)
+            text = "Codenames", fontSize = 48.sp, modifier = Modifier.padding(bottom = 100.dp)
         )
 
         TextField(
@@ -48,18 +46,16 @@ fun UserNameScreen(navController: NavController) {
         AppButton(
             text = "Continue",
             onClick = { navController.navigate("${Screen.Start.route}/$username") },
-            modifier =
-                Modifier
-                    .width(220.dp)
-                    .height(80.dp)
-                    .testTag(JOIN_LOBBY_BUTTON_TAG),
-            style =
-                AppButtonStyle(
-                    enabled = username.isNotBlank(),
-                    backgroundBrush = blueGradient,
-                    fontSize = 26.sp,
-                    lineHeight = 30.sp,
-                ),
+            modifier = Modifier
+                .width(220.dp)
+                .height(80.dp)
+                .testTag(JOIN_LOBBY_BUTTON_TAG),
+            style = AppButtonStyle(
+                enabled = username.isNotBlank(),
+                backgroundBrush = blueGradient,
+                fontSize = 26.sp,
+                lineHeight = 30.sp,
+            ),
         )
     }
 }

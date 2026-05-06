@@ -122,7 +122,8 @@ fun GameboardScreen(
     modifier: Modifier = Modifier,
 ) {
     var hintInput by rememberSaveable { mutableStateOf("") }
-    val isSpymaster = userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
+    val isSpymaster =
+        userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val blueLeft = cards.count { it.type == CardType.BLUE && !it.revealed }

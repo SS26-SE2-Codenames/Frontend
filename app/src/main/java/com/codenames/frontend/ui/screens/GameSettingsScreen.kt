@@ -16,11 +16,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun GameSettingsScreen() {
     Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .background(Color(0xFFf0d8ce)),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .background(Color(0xFFf0d8ce)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

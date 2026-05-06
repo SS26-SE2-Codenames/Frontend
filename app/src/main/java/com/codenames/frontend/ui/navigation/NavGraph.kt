@@ -23,7 +23,6 @@ import com.codenames.frontend.ui.screens.SettingsScreen
 import com.codenames.frontend.ui.screens.StartScreen
 import com.codenames.frontend.ui.screens.UserNameScreen
 
-
 @Composable
 @Suppress("ktlint:standard:function-naming")
 fun NavGraph() {
@@ -59,15 +58,13 @@ fun NavGraph() {
             arguments = listOf(navArgument("role") { type = NavType.StringType }),
         ) { backStackEntry ->
 
-            val roleString =
-                backStackEntry.arguments?.getString("role") ?: PlayerRoles.NONE.name
+            val roleString = backStackEntry.arguments?.getString("role") ?: PlayerRoles.NONE.name
 
-            val passedRole =
-                try {
-                    PlayerRoles.valueOf(roleString)
-                } catch (e: IllegalArgumentException) {
-                    PlayerRoles.NONE
-                }
+            val passedRole = try {
+                PlayerRoles.valueOf(roleString)
+            } catch (e: IllegalArgumentException) {
+                PlayerRoles.NONE
+            }
 
             GameScreenWrapper(userRole = passedRole)
         }
@@ -91,23 +88,21 @@ fun NavGraph() {
 fun GameScreenWrapper(userRole: PlayerRoles) {
     var currentHint by remember { mutableStateOf("Waiting for hint...") }
 
-    val cards =
-        remember {
-            mutableStateListOf(
-                *List(25) {
-                    GameCard(
-                        word = "Word ${it + 1}",
-                        type =
-                            when (it) {
-                                0 -> CardType.ASSASSIN
-                                in 1..8 -> CardType.BLUE
-                                in 9..15 -> CardType.RED
-                                else -> CardType.NEUTRAL
-                            },
-                    )
-                }.toTypedArray(),
-            )
-        }
+    val cards = remember {
+        mutableStateListOf(
+            *List(25) {
+                GameCard(
+                    word = "Word ${it + 1}",
+                    type = when (it) {
+                        0 -> CardType.ASSASSIN
+                        in 1..8 -> CardType.BLUE
+                        in 9..15 -> CardType.RED
+                        else -> CardType.NEUTRAL
+                    },
+                )
+            }.toTypedArray(),
+        )
+    }
 
     fun revealCard(index: Int) {
         val card = cards[index]

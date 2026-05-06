@@ -40,10 +40,7 @@ internal const val JOIN_LOBBY_BUTTON_TAG = "join_lobby_button"
 private const val LOBBY_ID_MAX_LENGTH = 12
 
 internal fun sanitizeLobbyIdInput(input: String): String =
-    input
-        .uppercase()
-        .filter { it.isLetterOrDigit() }
-        .take(LOBBY_ID_MAX_LENGTH)
+    input.uppercase().filter { it.isLetterOrDigit() }.take(LOBBY_ID_MAX_LENGTH)
 
 internal fun isLobbyIdValid(lobbyId: String): Boolean = lobbyId.isNotBlank()
 
@@ -57,14 +54,12 @@ fun JoinlobbyScreen() {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-    val blueGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF42A5F5),
-                    Color(0xFF1565C0),
-                ),
-        )
+    val blueGradient = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFF42A5F5),
+            Color(0xFF1565C0),
+        ),
+    )
 
     val joinEnabled = isLobbyIdValid(lobbyId)
 
@@ -78,11 +73,10 @@ fun JoinlobbyScreen() {
     }
 
     Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(Color(0xFFf0d8ce))
-                .padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFf0d8ce))
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -91,53 +85,45 @@ fun JoinlobbyScreen() {
             onValueChange = { newValue ->
                 lobbyId = sanitizeLobbyIdInput(newValue)
             },
-            modifier =
-                Modifier
-                    .fillMaxWidth(0.5f)
-                    .padding(bottom = 16.dp)
-                    .testTag(JOIN_LOBBY_INPUT_TAG),
-            state =
-                AppTextFieldState(
-                    label = "Lobby ID",
-                    placeholder = "Enter Lobby ID",
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .padding(bottom = 16.dp)
+                .testTag(JOIN_LOBBY_INPUT_TAG),
+            state = AppTextFieldState(
+                label = "Lobby ID",
+                placeholder = "Enter Lobby ID",
+            ),
+            style = AppTextFieldStyle(
+                type = AppTextFieldType.SECONDARY,
+                contentColor = Color.White,
+                fontSize = 20.sp,
+                lineHeight = 24.sp,
+            ),
+            keyboard = AppTextFieldKeyboard(
+                options = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Characters,
+                    keyboardType = KeyboardType.Ascii,
+                    imeAction = ImeAction.Done,
                 ),
-            style =
-                AppTextFieldStyle(
-                    type = AppTextFieldType.SECONDARY,
-                    contentColor = Color.White,
-                    fontSize = 20.sp,
-                    lineHeight = 24.sp,
+                actions = KeyboardActions(
+                    onDone = { submitJoin() },
                 ),
-            keyboard =
-                AppTextFieldKeyboard(
-                    options =
-                        KeyboardOptions(
-                            capitalization = KeyboardCapitalization.Characters,
-                            keyboardType = KeyboardType.Ascii,
-                            imeAction = ImeAction.Done,
-                        ),
-                    actions =
-                        KeyboardActions(
-                            onDone = { submitJoin() },
-                        ),
-                ),
+            ),
         )
 
         AppButton(
             text = "Join Lobby",
             onClick = { submitJoin() },
-            modifier =
-                Modifier
-                    .width(220.dp)
-                    .height(80.dp)
-                    .testTag(JOIN_LOBBY_BUTTON_TAG),
-            style =
-                AppButtonStyle(
-                    enabled = joinEnabled,
-                    backgroundBrush = blueGradient,
-                    fontSize = 26.sp,
-                    lineHeight = 30.sp,
-                ),
+            modifier = Modifier
+                .width(220.dp)
+                .height(80.dp)
+                .testTag(JOIN_LOBBY_BUTTON_TAG),
+            style = AppButtonStyle(
+                enabled = joinEnabled,
+                backgroundBrush = blueGradient,
+                fontSize = 26.sp,
+                lineHeight = 30.sp,
+            ),
         )
     }
 }
