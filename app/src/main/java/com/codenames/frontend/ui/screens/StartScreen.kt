@@ -2,6 +2,7 @@ package com.codenames.frontend.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
+import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.viewmodel.GameViewModel
 
@@ -54,31 +56,72 @@ fun StartScreen(
                 ),
         )
 
-    Column(
+    Box(
         modifier =
             Modifier
                 .fillMaxSize()
                 .background(Color(0xFFf0d8ce)),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                AppButton(
+                    text = "Create Lobby",
+                    onClick = {
+                        navController.navigate(Screen.Lobby.route)
+                    },
+                    modifier =
+                        Modifier
+                            .width(200.dp)
+                            .height(100.dp)
+                            .fillMaxWidth(0.5f)
+                            .padding(bottom = 12.dp, end = 12.dp),
+                    style =
+                        AppButtonStyle(
+                            backgroundBrush = greenGradient,
+                            fontSize = 26.sp,
+                            lineHeight = 30.sp,
+                        ),
+                )
+
+                AppButton(
+                    text = "Join Lobby",
+                    onClick = {
+                        navController.navigate(Screen.JoinLobby.route)
+                    },
+                    modifier =
+                        Modifier
+                            .width(200.dp)
+                            .height(100.dp)
+                            .fillMaxWidth(0.5f)
+                            .padding(bottom = 12.dp, start = 12.dp),
+                    style =
+                        AppButtonStyle(
+                            backgroundBrush = blueGradient,
+                            fontSize = 26.sp,
+                            lineHeight = 30.sp,
+                        ),
+                )
+            }
+
             AppButton(
-                text = "Create Lobby",
+                text = "test Mode",
                 onClick = {
-                    navController.navigate(Screen.Lobby.route)
+                    navController.navigate("game_test")
                 },
                 modifier =
                     Modifier
                         .width(200.dp)
                         .height(100.dp)
-                        .fillMaxWidth(0.5f)
-                        .padding(bottom = 12.dp, end = 12.dp),
+                        .padding(bottom = 12.dp),
                 style =
                     AppButtonStyle(
                         backgroundBrush = greenGradient,
@@ -88,16 +131,15 @@ fun StartScreen(
             )
 
             AppButton(
-                text = "Join Lobby",
+                text = "Connect to Server",
                 onClick = {
-                    navController.navigate(Screen.JoinLobby.route)
+                    viewModel.connect("TestUser", "12345")
                 },
                 modifier =
                     Modifier
                         .width(200.dp)
                         .height(100.dp)
-                        .fillMaxWidth(0.5f)
-                        .padding(bottom = 12.dp, start = 12.dp),
+                        .padding(bottom = 12.dp),
                 style =
                     AppButtonStyle(
                         backgroundBrush = blueGradient,
@@ -105,59 +147,33 @@ fun StartScreen(
                         lineHeight = 30.sp,
                     ),
             )
-        }
 
-        AppButton(
-            text = "test Mode",
-            onClick = {
-                navController.navigate("game_test")
-            },
-            modifier =
-                Modifier
-                    .width(200.dp)
-                    .height(100.dp)
-                    .padding(bottom = 12.dp),
-            style =
-                AppButtonStyle(
-                    backgroundBrush = greenGradient,
-                    fontSize = 26.sp,
-                    lineHeight = 30.sp,
-                ),
-        )
+            when (state) {
+                is ConnectionState.CONNECTING ->
+                    Text(
+                        text = "Connecting...",
+                        color = Color.Yellow,
+                        fontSize = 25.sp,
+                    )
 
-        AppButton(
-            text = "Connect to Server",
-            onClick = {
-                viewModel.connect("TestUser", "12345")
-            },
-            modifier =
-                Modifier
-                    .width(200.dp)
-                    .height(100.dp)
-                    .padding(bottom = 12.dp),
-            style =
-                AppButtonStyle(
-                    backgroundBrush = blueGradient,
-                    fontSize = 26.sp,
-                    lineHeight = 30.sp,
-                ),
-        )
+                is ConnectionState.CONNECTED ->
+                    Text(
+                        text = "Connected",
+                        color = Color.Green,
+                        fontSize = 25.sp,
+                    )
 
-        when (state) {
-            is ConnectionState.CONNECTING ->
-                Text(
-                    text = "Connecting...",
-                    color = Color.Yellow,
-                    fontSize = 25.sp,
-                )
+                is ConnectionState.Error -> {
+                    Text("Error while connecting: ")
+                    Text((state as ConnectionState.Error).message)
+                }
 
-            is ConnectionState.CONNECTED -> Text("Connected", color = Color.Green, fontSize = 25.sp)
-            is ConnectionState.Error -> {
-                Text("Error while connecting: ")
-                Text((state as ConnectionState.Error).message)
+                else -> {}
             }
-
-            else -> {}
         }
+
+        SettingsCornerButton(
+            onClick = { navController.navigate(Screen.Settings.route) },
+        )
     }
 }

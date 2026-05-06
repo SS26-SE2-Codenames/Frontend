@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,12 +36,14 @@ fun NavGraph() {
         composable(Screen.Username.route) {
             UserNameScreen(navController)
         }
+
         composable(
             route = "${Screen.Start.route}/{username}",
-            arguments = listOf(navArgument("username") { type = NavType.StringType }),
-        ) { backStackEntry ->
-
-            val username = backStackEntry.arguments?.getString("username") ?: "Gast"
+            arguments =
+                listOf(
+                    navArgument("username") { type = NavType.StringType },
+                ),
+        ) {
             StartScreen(navController)
         }
 
@@ -49,16 +52,18 @@ fun NavGraph() {
         }
 
         composable(Screen.JoinLobby.route) {
-            JoinlobbyScreen()
+            JoinlobbyScreen(navController)
         }
 
-        // ---------------- GAME SCREEN ----------------
         composable(
             route = "${Screen.Gameboard.route}/{role}",
-            arguments = listOf(navArgument("role") { type = NavType.StringType }),
+            arguments =
+                listOf(
+                    navArgument("role") { type = NavType.StringType },
+                ),
         ) { backStackEntry ->
-
-            val roleString = backStackEntry.arguments?.getString("role") ?: PlayerRoles.NONE.name
+            val roleString =
+                backStackEntry.arguments?.getString("role") ?: PlayerRoles.NONE.name
 
             val passedRole =
                 try {
@@ -67,7 +72,10 @@ fun NavGraph() {
                     PlayerRoles.NONE
                 }
 
-            GameScreenWrapper(userRole = passedRole)
+            GameScreenWrapper(
+                navController = navController,
+                userRole = passedRole,
+            )
         }
 
         composable(Screen.GameSettings.route) {
@@ -75,7 +83,7 @@ fun NavGraph() {
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen()
+            SettingsScreen(navController)
         }
 
         composable("game_test") {
@@ -86,7 +94,10 @@ fun NavGraph() {
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
-fun GameScreenWrapper(userRole: PlayerRoles) {
+fun GameScreenWrapper(
+    navController: NavHostController,
+    userRole: PlayerRoles,
+) {
     var currentHint by remember { mutableStateOf("Waiting for hint...") }
 
     val cards =
@@ -119,6 +130,9 @@ fun GameScreenWrapper(userRole: PlayerRoles) {
         cards = cards,
         onReveal = { index ->
             revealCard(index)
+        },
+        onSettingsClick = {
+            navController.navigate(Screen.Settings.route)
         },
     )
 }
