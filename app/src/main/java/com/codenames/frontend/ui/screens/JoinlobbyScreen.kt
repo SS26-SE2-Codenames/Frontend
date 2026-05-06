@@ -39,11 +39,7 @@ internal const val JOIN_LOBBY_INPUT_TAG = "join_lobby_input"
 internal const val JOIN_LOBBY_BUTTON_TAG = "join_lobby_button"
 private const val LOBBY_ID_MAX_LENGTH = 12
 
-internal fun sanitizeLobbyIdInput(input: String): String =
-    input
-        .uppercase()
-        .filter { it.isLetterOrDigit() }
-        .take(LOBBY_ID_MAX_LENGTH)
+internal fun sanitizeLobbyIdInput(input: String): String = input.uppercase().filter { it.isLetterOrDigit() }.take(LOBBY_ID_MAX_LENGTH)
 
 internal fun isLobbyIdValid(lobbyId: String): Boolean = lobbyId.isNotBlank()
 
@@ -81,7 +77,7 @@ fun JoinlobbyScreen() {
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFF4A403D))
+                .background(Color(0xFFf0d8ce))
                 .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -58,7 +58,7 @@ fun StartScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFF4A403D)),
+                .background(Color(0xFFf0d8ce)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -144,12 +144,19 @@ fun StartScreen(
         )
 
         when (state) {
-            is ConnectionState.CONNECTING -> Text(text = "Connecting...", color = Color.Yellow, fontSize = 25.sp)
+            is ConnectionState.CONNECTING ->
+                Text(
+                    text = "Connecting...",
+                    color = Color.Yellow,
+                    fontSize = 25.sp,
+                )
+
             is ConnectionState.CONNECTED -> Text("Connected", color = Color.Green, fontSize = 25.sp)
             is ConnectionState.Error -> {
                 Text("Error while connecting: ")
                 Text((state as ConnectionState.Error).message)
             }
+
             else -> {}
         }
     }
