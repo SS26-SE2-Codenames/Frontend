@@ -47,6 +47,7 @@ import com.codenames.frontend.ui.composables.GameBoardGrid
 import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
+import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
 
 enum class CardType {
@@ -124,6 +125,9 @@ fun GameboardScreen(
     onSettingsClick: (() -> Unit)? = null,
 ) {
     var hintInput by rememberSaveable { mutableStateOf("") }
+    var chatInput by rememberSaveable { mutableStateOf("") }
+    var isChatOpen by rememberSaveable { mutableStateOf(false) }
+
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -199,11 +203,166 @@ fun GameboardScreen(
             )
         }
 
+        if (!isSpymaster && isChatOpen) {
+            ChatWindow(
+                chatInput = chatInput,
+                onChatInputChange = { chatInput = it },
+                onSendClick = {
+                    chatInput = ""
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                },
+                modifier =
+                    Modifier
+                        .align(Alignment.Center)
+                        .padding(end = 24.dp, bottom = 96.dp)
+                        .width(420.dp)
+                        .fillMaxHeight(0.78f),
+            )
+        }
+
+        if (!isSpymaster) {
+            ChatToggleButton(
+                isChatOpen = isChatOpen,
+                onClick = { isChatOpen = !isChatOpen },
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 24.dp, bottom = 24.dp),
+            )
+        }
+
         onSettingsClick?.let { openSettings ->
             SettingsCornerButton(
                 onClick = openSettings,
             )
         }
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun ChatToggleButton(
+    isChatOpen: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AppButton(
+        text = "Chat",
+        onClick = onClick,
+        modifier =
+            modifier
+                .width(140.dp)
+                .height(56.dp),
+        style =
+            AppButtonStyle(
+                containerColor = if (isChatOpen) Color(0xFF555555) else Color(0xFF383330),
+                contentColor = Color.White,
+                fontSize = 18.sp,
+                lineHeight = 20.sp,
+            ),
+    )
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun ChatWindow(
+    chatInput: String,
+    onChatInputChange: (String) -> Unit,
+    onSendClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .background(
+                    color = Color(0xE6383330),
+                    shape = RoundedCornerShape(12.dp),
+                ).padding(12.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        ChatMessagesArea(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AppTextField(
+                value = chatInput,
+                onValueChange = onChatInputChange,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                state =
+                    AppTextFieldState(
+                        label = "Message",
+                        placeholder = "Type message...",
+                    ),
+                style =
+                    AppTextFieldStyle(
+                        containerColor = Color(0xFFE0D8C8),
+                        contentColor = Color(0xFF383330),
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp,
+                    ),
+            )
+
+            AppButton(
+                text = "Send",
+                onClick = onSendClick,
+                modifier =
+                    Modifier
+                        .width(92.dp)
+                        .fillMaxHeight(),
+                style =
+                    AppButtonStyle(
+                        backgroundBrush = greenGradient,
+                        fontSize = 16.sp,
+                        lineHeight = 18.sp,
+                    ),
+            )
+        }
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun ChatMessagesArea(modifier: Modifier = Modifier) {
+    Column(
+        modifier =
+            modifier
+                .background(
+                    color = Color(0xB3E0D8C8),
+                    shape = RoundedCornerShape(8.dp),
+                ).padding(12.dp),
+        verticalArrangement = Arrangement.Top,
+    ) {
+        Text(
+            text = "Team Chat",
+            color = Color(0xFF383330),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Messages will appear here.",
+            color = Color(0xFF383330),
+            fontSize = 14.sp,
+        )
     }
 }
 
