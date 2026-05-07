@@ -2,6 +2,7 @@ package com.codenames.frontend.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,7 @@ import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
+import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 
@@ -75,37 +77,48 @@ private const val TEAM_JOINED: String = "👤 1 joined"
 fun LobbyScreen(navController: NavHostController) {
     var currentRole by remember { mutableStateOf(PlayerRoles.NONE) }
 
-    Row(
+    Box(
         modifier =
             Modifier
                 .fillMaxSize()
-                .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
+                .background(Color(0xFFf0d8ce)),
     ) {
-        TeamColumn(
-            modifier = Modifier.weight(1f),
-            color = Team.BLUE,
-            gradient = blueGradient,
-            textColor = Color(0xFF42A5F5),
-            title = "BLUE TEAM",
-            currentRole = currentRole,
-            onRoleSelect = { currentRole = it },
-        )
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TeamColumn(
+                modifier = Modifier.weight(1f),
+                color = Team.BLUE,
+                gradient = blueGradient,
+                textColor = Color(0xFF42A5F5),
+                title = "BLUE TEAM",
+                currentRole = currentRole,
+                onRoleSelect = { currentRole = it },
+            )
 
-        GameSettingsColumn(
-            currentRole = currentRole,
-            navController = navController,
-        )
+            GameSettingsColumn(
+                currentRole = currentRole,
+                navController = navController,
+            )
 
-        TeamColumn(
-            modifier = Modifier.weight(1f),
-            color = Team.RED,
-            gradient = redGradient,
-            textColor = Color(0xFFDE8468),
-            title = "RED TEAM",
-            currentRole = currentRole,
-            onRoleSelect = { currentRole = it },
+            TeamColumn(
+                modifier = Modifier.weight(1f),
+                color = Team.RED,
+                gradient = redGradient,
+                textColor = Color(0xFFDE8468),
+                title = "RED TEAM",
+                currentRole = currentRole,
+                onRoleSelect = { currentRole = it },
+            )
+        }
+
+        SettingsCornerButton(
+            onClick = { navController.navigate(Screen.Settings.route) },
         )
     }
 }

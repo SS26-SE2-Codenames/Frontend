@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
+import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.composables.GameBoardGrid
 import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
@@ -120,9 +121,11 @@ fun GameboardScreen(
     cards: List<GameCard>,
     onReveal: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onSettingsClick: (() -> Unit)? = null,
 ) {
     var hintInput by rememberSaveable { mutableStateOf("") }
-    val isSpymaster = userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
+    val isSpymaster =
+        userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val blueLeft = cards.count { it.type == CardType.BLUE && !it.revealed }
@@ -133,66 +136,74 @@ fun GameboardScreen(
 
     val onInputChange: (String) -> Unit = { hintInput = it }
 
-    Column(
-        modifier =
-            modifier
-                .fillMaxHeight()
-                .padding(16.dp),
-    ) {
-        Row(
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
             modifier =
                 Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxSize()
+                    .padding(top = 72.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
         ) {
-            TeamSidebar(
-                userRole,
-                color = Team.BLUE,
-                teamLeft = blueLeft,
-                textColor = Color(0xFF1565C0),
-                gradient = blueGradient,
-            )
-
-            GameBoardGrid(
-                cards,
-                scale,
-                offset,
-                isSpymaster,
-                onReveal,
+            Row(
                 modifier =
                     Modifier
                         .weight(1f)
-                        .fillMaxHeight()
-                        .padding(horizontal = 8.dp)
-                        .clipToBounds()
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                scale = (scale * zoom).coerceIn(0.5f, 3f)
-                                offset += pan
-                            }
-                        },
-            )
+                        .fillMaxWidth(),
+            ) {
+                TeamSidebar(
+                    userRole,
+                    color = Team.BLUE,
+                    teamLeft = blueLeft,
+                    textColor = Color(0xFF1565C0),
+                    gradient = blueGradient,
+                )
 
-            TeamSidebar(
-                userRole,
-                color = Team.RED,
-                teamLeft = redLeft,
-                textColor = Color(0xFFCF5530),
-                gradient = redGradient,
+                GameBoardGrid(
+                    cards,
+                    scale,
+                    offset,
+                    isSpymaster,
+                    onReveal,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(horizontal = 8.dp)
+                            .clipToBounds()
+                            .pointerInput(Unit) {
+                                detectTransformGestures { _, pan, zoom, _ ->
+                                    scale = (scale * zoom).coerceIn(0.5f, 3f)
+                                    offset += pan
+                                }
+                            },
+                )
+
+                TeamSidebar(
+                    userRole,
+                    color = Team.RED,
+                    teamLeft = redLeft,
+                    textColor = Color(0xFFCF5530),
+                    gradient = redGradient,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            HintSection(
+                isSpymaster,
+                currentHint,
+                hintInput,
+                onHintChange,
+                onInputChange,
+                keyboardController,
+                focusManager,
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        HintSection(
-            isSpymaster,
-            currentHint,
-            hintInput,
-            onHintChange,
-            onInputChange,
-            keyboardController,
-            focusManager,
-        )
+        onSettingsClick?.let { openSettings ->
+            SettingsCornerButton(
+                onClick = openSettings,
+            )
+        }
     }
 }
 

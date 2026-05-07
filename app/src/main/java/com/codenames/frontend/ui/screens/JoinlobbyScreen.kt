@@ -2,6 +2,7 @@ package com.codenames.frontend.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,13 +28,16 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
+import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.inputs.AppTextFieldType
+import com.codenames.frontend.ui.navigation.Screen
 
 internal const val JOIN_LOBBY_INPUT_TAG = "join_lobby_input"
 internal const val JOIN_LOBBY_BUTTON_TAG = "join_lobby_button"
@@ -49,7 +53,7 @@ internal fun isLobbyIdValid(lobbyId: String): Boolean = lobbyId.isNotBlank()
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun JoinlobbyScreen() {
+fun JoinlobbyScreen(navController: NavHostController) {
     ForceLandscape()
 
     var lobbyId by rememberSaveable { mutableStateOf("") }
@@ -77,67 +81,77 @@ fun JoinlobbyScreen() {
         // Hier später den echten Frontend-Join-Flow anschließen.
     }
 
-    Column(
+    Box(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFF4A403D))
-                .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+                .background(Color(0xFFf0d8ce)),
     ) {
-        AppTextField(
-            value = lobbyId,
-            onValueChange = { newValue ->
-                lobbyId = sanitizeLobbyIdInput(newValue)
-            },
+        Column(
             modifier =
                 Modifier
-                    .fillMaxWidth(0.5f)
-                    .padding(bottom = 16.dp)
-                    .testTag(JOIN_LOBBY_INPUT_TAG),
-            state =
-                AppTextFieldState(
-                    label = "Lobby ID",
-                    placeholder = "Enter Lobby ID",
-                ),
-            style =
-                AppTextFieldStyle(
-                    type = AppTextFieldType.SECONDARY,
-                    contentColor = Color.White,
-                    fontSize = 20.sp,
-                    lineHeight = 24.sp,
-                ),
-            keyboard =
-                AppTextFieldKeyboard(
-                    options =
-                        KeyboardOptions(
-                            capitalization = KeyboardCapitalization.Characters,
-                            keyboardType = KeyboardType.Ascii,
-                            imeAction = ImeAction.Done,
-                        ),
-                    actions =
-                        KeyboardActions(
-                            onDone = { submitJoin() },
-                        ),
-                ),
-        )
+                    .fillMaxSize()
+                    .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            AppTextField(
+                value = lobbyId,
+                onValueChange = { newValue ->
+                    lobbyId = sanitizeLobbyIdInput(newValue)
+                },
+                modifier =
+                    Modifier
+                        .fillMaxWidth(0.5f)
+                        .padding(bottom = 16.dp)
+                        .testTag(JOIN_LOBBY_INPUT_TAG),
+                state =
+                    AppTextFieldState(
+                        label = "Lobby ID",
+                        placeholder = "Enter Lobby ID",
+                    ),
+                style =
+                    AppTextFieldStyle(
+                        type = AppTextFieldType.SECONDARY,
+                        contentColor = Color.White,
+                        fontSize = 20.sp,
+                        lineHeight = 24.sp,
+                    ),
+                keyboard =
+                    AppTextFieldKeyboard(
+                        options =
+                            KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Characters,
+                                keyboardType = KeyboardType.Ascii,
+                                imeAction = ImeAction.Done,
+                            ),
+                        actions =
+                            KeyboardActions(
+                                onDone = { submitJoin() },
+                            ),
+                    ),
+            )
 
-        AppButton(
-            text = "Join Lobby",
-            onClick = { submitJoin() },
-            modifier =
-                Modifier
-                    .width(220.dp)
-                    .height(80.dp)
-                    .testTag(JOIN_LOBBY_BUTTON_TAG),
-            style =
-                AppButtonStyle(
-                    enabled = joinEnabled,
-                    backgroundBrush = blueGradient,
-                    fontSize = 26.sp,
-                    lineHeight = 30.sp,
-                ),
+            AppButton(
+                text = "Join Lobby",
+                onClick = { submitJoin() },
+                modifier =
+                    Modifier
+                        .width(220.dp)
+                        .height(80.dp)
+                        .testTag(JOIN_LOBBY_BUTTON_TAG),
+                style =
+                    AppButtonStyle(
+                        enabled = joinEnabled,
+                        backgroundBrush = blueGradient,
+                        fontSize = 26.sp,
+                        lineHeight = 30.sp,
+                    ),
+            )
+        }
+
+        SettingsCornerButton(
+            onClick = { navController.navigate(Screen.Settings.route) },
         )
     }
 }
