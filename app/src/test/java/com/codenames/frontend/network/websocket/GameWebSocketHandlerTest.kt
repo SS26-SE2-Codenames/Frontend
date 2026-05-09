@@ -1,5 +1,6 @@
 package com.codenames.frontend.network.websocket
 
+import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
@@ -112,4 +113,23 @@ class GameWebSocketHandlerTest {
                 session.convertAndSend("app/1234/join", msg, WebSocketJoinMessage.serializer())
             }
         }
+
+    @Test
+    fun testSubscribeToChat() = runTest{
+        val topic = "/topic/chat/123"
+
+        wsClient.subscribeToChat(topic)
+
+        coVerify { session.subscribe(topic, ChatMessageDto.serializer()) }
+    }
+
+    @Test
+    fun testSendMessage() = runTest{
+        val destination = "app/chat/123"
+        val msg = ChatMessageDto("TestUser", "TestMsg")
+
+        wsClient.sendChatMessage(destination, msg)
+
+        coVerify { session.convertAndSend(destination, msg, ChatMessageDto.serializer()) }
+    }
 }
