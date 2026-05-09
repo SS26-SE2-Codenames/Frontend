@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,7 +29,9 @@ class GameViewModel
         private val _uiState = MutableStateFlow(GameMessage())
         val uiState: StateFlow<GameMessage> = _uiState
 
+        // _chatState is mutable and should only be used by view model
         private val _chatState = MutableStateFlow(ChatLists())
+        // chatState is not mutable and is meant for the UI
         val chatState: StateFlow<ChatLists> = _chatState
 
         private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.IDLE)
@@ -59,30 +62,25 @@ class GameViewModel
 
                         launch {
                             chatRepository.observeChat("/topic/chat/$lobbyCode", username).collect { msg ->
-                                val currentChatLists = _chatState.value
-                                val updatedLobbyList = currentChatLists.lobbyMessages + msg
-                                // we copy the entire ChatList object and update the entire list of where we are listening to then return the entire object
-                                val newState = currentChatLists.copy(lobbyMessages = updatedLobbyList)
-                                _chatState.value = newState
+                                _chatState.update { currentState ->
+                                    currentState.copy(lobbyMessages = currentState.lobbyMessages + msg)
+                                }
                             }
                         }
 
                         launch {
                             chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username).collect { msg ->
-                                val currentChatLists = _chatState.value
-                                val updatedTeamList = currentChatLists.teamMessages + msg
-                                val newState = currentChatLists.copy(teamMessages = updatedTeamList)
-                                _chatState.value = newState
-                            }
+                                _chatState.update { currentState ->
+                                    currentState.copy(teamMessages = currentState.teamMessages + msg)
+                                }                            }
                         }
 
                         if (role == Role.OPERATIVE.name) {
                             launch {
                                 chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username).collect { msg ->
-                                    val currentChatLists = _chatState.value
-                                    val updatedOperativeList = currentChatLists.operativeMessages + msg
-                                    val newState = currentChatLists.copy(operativeMessages = updatedOperativeList)
-                                    _chatState.value = newState
+                                    _chatState.update { currentState ->
+                                        currentState.copy(operativeMessages = currentState.operativeMessages + msg)
+                                    }
                                 }
                             }
                         }
