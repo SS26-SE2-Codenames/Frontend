@@ -120,7 +120,12 @@ class GameWebSocketHandlerTest {
 
         wsClient.subscribeToChat(topic)
 
-        coVerify { session.subscribe(topic, ChatMessageDto.serializer()) }
+        coVerify {
+            session.subscribe(
+                match { it.destination == topic },
+                ChatMessageDto.serializer()
+            )
+        }
     }
 
     @Test
