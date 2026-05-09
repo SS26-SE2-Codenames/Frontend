@@ -1,5 +1,6 @@
 package com.codenames.frontend.viewmodel
 
+import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
@@ -25,13 +26,32 @@ import org.junit.Test
 class GameViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
+    private val lobbyCode = "1234"
+    private val username = "user"
+    private val team = "RED"
+    private val role = "OPERATIVE"
+
+    private val testMessage =
+        GameMessage(
+            "",
+            "red",
+            0,
+            0,
+            "",
+            0,
+            emptyList(),
+        )
+
     private lateinit var viewModel: GameViewModel
-    private val client: GameWebSocketHandler = mockk(relaxed = true)
+    private lateinit var client: GameWebSocketHandler
+    private lateinit var chatRepository: ChatRepository
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = GameViewModel(client)
+        client = mockk(relaxed = true)
+        chatRepository = mockk(relaxed = true)
+        viewModel = GameViewModel(client, chatRepository)
     }
 
     @After
@@ -42,26 +62,13 @@ class GameViewModelTest {
     @Test
     fun connect_shouldCallClientAndUpdateState() =
         runTest {
-            val lobbyCode = "1234"
-            val username = "user"
-
-            val testMessage =
-                GameMessage(
-                    "",
-                    "red",
-                    0,
-                    0,
-                    "",
-                    0,
-                    emptyList(),
-                )
 
             val flow = flowOf(testMessage)
 
             coEvery { client.connectStomp() } just Runs
             coEvery { client.subscribeToLobby(lobbyCode) } returns flow
 
-            viewModel.connect(username, lobbyCode)
+            viewModel.connect(username, lobbyCode, team, role)
 
             advanceUntilIdle()
 
@@ -74,30 +81,17 @@ class GameViewModelTest {
     @Test
     fun connect_shouldCallClientAndUpdateState_isAlreadyConnected() =
         runTest {
-            val lobbyCode = "1234"
-            val username = "user"
-
-            val testMessage =
-                GameMessage(
-                    "",
-                    "red",
-                    0,
-                    0,
-                    "",
-                    0,
-                    emptyList(),
-                )
 
             val flow = flowOf(testMessage)
 
             coEvery { client.connectStomp() } just Runs
             coEvery { client.subscribeToLobby(lobbyCode) } returns flow
 
-            viewModel.connect(username, lobbyCode)
+            viewModel.connect(username, lobbyCode, team, role)
 
             advanceUntilIdle()
 
-            viewModel.connect(username, lobbyCode)
+            viewModel.connect(username, lobbyCode, team, role)
 
             coVerify { client.connectStomp() }
             coVerify { client.subscribeToLobby(lobbyCode) }
@@ -108,19 +102,6 @@ class GameViewModelTest {
     @Test
     fun connect_shouldSendJoinMessage() =
         runTest {
-            val lobbyCode = "1234"
-            val username = "user"
-
-            val testMessage =
-                GameMessage(
-                    "",
-                    "red",
-                    0,
-                    0,
-                    "",
-                    0,
-                    emptyList(),
-                )
 
             val flow = flowOf(testMessage)
 
@@ -128,10 +109,12 @@ class GameViewModelTest {
             coEvery { client.subscribeToLobby(lobbyCode) } returns flow
             coEvery { client.sendLobbyJoinMessage(any()) } just Runs
 
-            viewModel.connect(username, lobbyCode)
+            viewModel.connect(username, lobbyCode, team, role)
 
             advanceUntilIdle()
 
             coVerify { client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode)) }
         }
+
+    
 }
