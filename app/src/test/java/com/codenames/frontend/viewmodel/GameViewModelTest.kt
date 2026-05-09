@@ -1,5 +1,6 @@
 package com.codenames.frontend.viewmodel
 
+import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
@@ -7,10 +8,13 @@ import com.codenames.frontend.network.websocket.GameWebSocketHandler
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -116,5 +120,37 @@ class GameViewModelTest {
             coVerify { client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode)) }
         }
 
-    
+    @Test
+    fun testSendLobbyMessage() = runTest {
+        val content = "Test msg"
+        viewModel.sendLobbyMessage(lobbyCode, username, content)
+        advanceUntilIdle()
+
+        coVerify {
+            chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
+        }
+    }
+
+    @Test
+    fun testSendTeamMessage() = runTest {
+        val content = "Test msg"
+        viewModel.sendTeamMessage(lobbyCode, team, username, content)
+        advanceUntilIdle()
+
+        coVerify {
+            chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
+        }
+    }
+
+    @Test
+    fun testSendOperativeMessage() = runTest {
+        val content = "Test msg"
+        viewModel.sendOperativeMessage(lobbyCode, team, username, content)
+        advanceUntilIdle()
+
+        coVerify {
+            chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
+        }
+    }
+
 }
