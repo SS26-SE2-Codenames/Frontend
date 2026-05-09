@@ -18,7 +18,7 @@ class ChatRepository
         ): Flow<ChatDomainModel> =
             flow {
                 val subscriptionFlow = webSocketHandler.subscribeToChat(topic)
-
+                // collect is called when we receive a new chat object from websocket, then we collect and emit to ViewModel
                 subscriptionFlow.collect { dto ->
                     emit(
                         ChatDomainModel(

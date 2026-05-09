@@ -61,6 +61,7 @@ class GameViewModel
                         }
 
                         launch {
+                            // msg is the domain model chat we emit in the ChatRepository
                             chatRepository.observeChat("/topic/chat/$lobbyCode", username).collect { msg ->
                                 _chatState.update { currentState ->
                                     currentState.copy(lobbyMessages = currentState.lobbyMessages + msg)
