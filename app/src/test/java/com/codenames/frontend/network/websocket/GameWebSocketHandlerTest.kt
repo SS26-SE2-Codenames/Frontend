@@ -14,9 +14,22 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxS
 import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
 import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
+import org.junit.Before
 import org.junit.Test
 
 class GameWebSocketHandlerTest {
+    private lateinit var client: StompClient
+    private lateinit var session: StompSessionWithKxSerialization
+    private lateinit var wsClient: GameWebSocketHandler
+
+    @Before
+    fun setup(){
+        client = mockk()
+        session = mockk(relaxed = true)
+        wsClient = GameWebSocketHandler(client)
+        wsClient.session = session
+    }
+
     @Test
     fun testConnectStomp() =
         runTest {
