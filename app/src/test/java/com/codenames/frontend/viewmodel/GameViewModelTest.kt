@@ -153,4 +153,54 @@ class GameViewModelTest {
         }
     }
 
+    @Test
+    fun testConnectUpdateLobbyChat() = runTest {
+        // We use shared instead of state flow, since state requires us to pass an argument and fill the List with an element upon start of the test
+        // This way we can never start from a clean slate and test with emit
+        val customLobbyFlow = MutableSharedFlow<ChatDomainModel>()
+        every { chatRepository.observeChat("/topic/chat/$lobbyCode", username) } returns customLobbyFlow
+
+        viewModel.connect(username, lobbyCode, team, role)
+        advanceUntilIdle()
+
+        val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
+        customLobbyFlow.emit(testChat)
+        advanceUntilIdle()
+
+        val currentMessageList = viewModel.chatState.value.lobbyMessages
+        assertEquals("Test msg", currentMessageList[0].text)
+    }
+
+    @Test
+    fun testConnectUpdateTeamChat() = runTest {
+        val customLobbyFlow = MutableSharedFlow<ChatDomainModel>()
+        every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username) } returns customLobbyFlow
+
+        viewModel.connect(username, lobbyCode, team, role)
+        advanceUntilIdle()
+
+        val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
+        customLobbyFlow.emit(testChat)
+        advanceUntilIdle()
+
+        val currentMessageList = viewModel.chatState.value.teamMessages
+        assertEquals("Test msg", currentMessageList[0].text)
+    }
+
+    @Test
+    fun testConnectUpdateOperativeChat() = runTest {
+        val customLobbyFlow = MutableSharedFlow<ChatDomainModel>()
+        every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username) } returns customLobbyFlow
+
+        viewModel.connect(username, lobbyCode, team, role)
+        advanceUntilIdle()
+
+        val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
+        customLobbyFlow.emit(testChat)
+        advanceUntilIdle()
+
+        val currentMessageList = viewModel.chatState.value.operativeMessages
+        assertEquals("Test msg", currentMessageList[0].text)
+    }
+
 }
