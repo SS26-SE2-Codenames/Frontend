@@ -8,7 +8,9 @@ import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -81,11 +83,58 @@ class ChatRepositoryTest {
         }
 
     @Test
-    fun testObserveChat_error() =
+    fun testObserveChat_multipleMessages() =
+        runTest {
+            val dtos =
+                flowOf(
+                    ChatMessageDto(testUser, "First"),
+                    ChatMessageDto("OtherUser", "Second"),
+                )
+            coEvery { webSocketHandler.subscribeToChat(testTopic) } returns dtos
+
+            val result = repository.observeChat(testTopic, testUser).toList()
+            assertEquals(2, result.size)
+        }
+
+    @Test
+    fun testObserveChat_webSocketError() =
         runTest {
             coEvery { webSocketHandler.subscribeToChat(any()) } throws RuntimeException()
             assertFailsWith<RuntimeException> {
                 repository.observeChat(testTopic, testUser).toList()
             }
+        }
+
+    @Test
+    fun testObserveChat_errorDuringCollection() =
+        runTest {
+            val flowWithError =
+                flow {
+                    emit(testDto)
+                    throw RuntimeException("Connection Lost")
+                }
+            coEvery { webSocketHandler.subscribeToChat(testTopic) } returns flowWithError
+
+            val flow = repository.observeChat(testTopic, testUser)
+            assertFailsWith<RuntimeException> {
+                flow.toList()
+            }
+        }
+
+    // Testing early cancellation of flow using .take(1)
+    @Test
+    fun testObserveChat_earlyCancellation() =
+        runTest {
+            val dtos =
+                flowOf(
+                    ChatMessageDto(testUser, "First"),
+                    ChatMessageDto("OtherUser", "Second"),
+                )
+            coEvery { webSocketHandler.subscribeToChat(testTopic) } returns dtos
+
+            // take() will consume x elements and cancel the flow
+            val result = repository.observeChat(testTopic, testUser).take(1).toList()
+
+            assertEquals(1, result.size)
         }
 }
