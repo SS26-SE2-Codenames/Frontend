@@ -1,6 +1,8 @@
 package com.codenames.frontend.viewmodel
 
 import com.codenames.frontend.data.model.ChatDomainModel
+import com.codenames.frontend.data.model.enums.Role
+import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
@@ -23,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -32,8 +35,8 @@ class GameViewModelTest {
 
     private val lobbyCode = "1234"
     private val username = "user"
-    private val team = "RED"
-    private val role = "OPERATIVE"
+    private val team = Team.RED.name
+    private val role = Role.OPERATIVE.name
 
     private val testMessage =
         GameMessage(
@@ -201,6 +204,22 @@ class GameViewModelTest {
 
         val currentMessageList = viewModel.chatState.value.operativeMessages
         assertEquals("Test msg", currentMessageList[0].text)
+    }
+
+    @Test
+    fun testConnectUpdateOperativeChat_notOperative() = runTest {
+        val customLobbyFlow = MutableSharedFlow<ChatDomainModel>()
+        every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username) } returns customLobbyFlow
+
+        viewModel.connect(username, lobbyCode, team, Role.SPYMASTER.name)
+        advanceUntilIdle()
+
+        val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
+        customLobbyFlow.emit(testChat)
+        advanceUntilIdle()
+
+        val currentMessageList = viewModel.chatState.value.operativeMessages
+        assertTrue(currentMessageList.isEmpty())
     }
 
 }
