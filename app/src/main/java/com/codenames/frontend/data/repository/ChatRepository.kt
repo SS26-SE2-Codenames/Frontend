@@ -14,7 +14,7 @@ class ChatRepository
     ) {
         fun observeChat(
             topic: String,
-            currentUsername: String,
+            currentUsername: String, // for UI to map message left or right depending on if it is from the sender themselves
         ): Flow<ChatDomainModel> =
             flow {
                 val subscriptionFlow = webSocketHandler.subscribeToChat(topic)
