@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -15,7 +16,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-
+import kotlin.test.assertFailsWith
 
 class ChatRepositoryTest {
     private lateinit var webSocketHandler: GameWebSocketHandler
@@ -64,5 +65,20 @@ class ChatRepositoryTest {
         coEvery { webSocketHandler.sendChatMessage(testTopic, testDto) } just Runs
         repository.sendMessage(testTopic, testUser, testContent)
         coVerify { webSocketHandler.sendChatMessage(testTopic, testDto) }
+    }
+
+    @Test
+    fun testObserveChat_emptyFlow() = runTest{
+        coEvery { webSocketHandler.subscribeToChat(testTopic) } returns emptyFlow()
+        val result = repository.observeChat(testTopic, testUser).toList()
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun testObserveChat_error() = runTest{
+        coEvery { webSocketHandler.subscribeToChat(any()) } throws RuntimeException()
+        assertFailsWith<RuntimeException> {
+            repository.observeChat(testTopic, testUser).toList()
+        }
     }
 }
