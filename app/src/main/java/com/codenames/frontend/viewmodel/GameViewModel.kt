@@ -31,6 +31,7 @@ class GameViewModel
 
         // _chatState is mutable and should only be used by view model
         private val _chatState = MutableStateFlow(ChatLists())
+
         // chatState is not mutable and is meant for the UI
         val chatState: StateFlow<ChatLists> = _chatState
 
@@ -73,7 +74,8 @@ class GameViewModel
                             chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username).collect { msg ->
                                 _chatState.update { currentState ->
                                     currentState.copy(teamMessages = currentState.teamMessages + msg)
-                                }                            }
+                                }
+                            }
                         }
 
                         if (role == Role.OPERATIVE.name) {

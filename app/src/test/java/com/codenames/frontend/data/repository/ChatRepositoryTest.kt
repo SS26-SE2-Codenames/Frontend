@@ -36,49 +36,56 @@ class ChatRepositoryTest {
     }
 
     @Test
-    fun testObserveChat_correctContent() = runTest {
-        // Since we mock the function to return a flow, we can call toList and grab all the contents
-        val result = repository.observeChat(testTopic, testUser).toList()
-        assertEquals(testContent, result[0].text)
-    }
-
-    @Test
-    fun testObserveChat_correctUser() = runTest {
-        val result = repository.observeChat(testTopic, testUser).toList()
-        assertEquals(testUser, result[0].sender)
-    }
-
-    @Test
-    fun testObserveChat_fromMe() = runTest {
-        val result = repository.observeChat(testTopic, testUser).toList()
-        assertTrue(result[0].isFromMe)
-    }
-
-    @Test
-    fun testObserveChat_notFromMe() = runTest {
-        val result = repository.observeChat(testTopic, "NotTestUser").toList()
-        assertFalse(result[0].isFromMe)
-    }
-
-    @Test
-    fun testSendMessage() = runTest{
-        coEvery { webSocketHandler.sendChatMessage(testTopic, testDto) } just Runs
-        repository.sendMessage(testTopic, testUser, testContent)
-        coVerify { webSocketHandler.sendChatMessage(testTopic, testDto) }
-    }
-
-    @Test
-    fun testObserveChat_emptyFlow() = runTest{
-        coEvery { webSocketHandler.subscribeToChat(testTopic) } returns emptyFlow()
-        val result = repository.observeChat(testTopic, testUser).toList()
-        assertTrue(result.isEmpty())
-    }
-
-    @Test
-    fun testObserveChat_error() = runTest{
-        coEvery { webSocketHandler.subscribeToChat(any()) } throws RuntimeException()
-        assertFailsWith<RuntimeException> {
-            repository.observeChat(testTopic, testUser).toList()
+    fun testObserveChat_correctContent() =
+        runTest {
+            // Since we mock the function to return a flow, we can call toList and grab all the contents
+            val result = repository.observeChat(testTopic, testUser).toList()
+            assertEquals(testContent, result[0].text)
         }
-    }
+
+    @Test
+    fun testObserveChat_correctUser() =
+        runTest {
+            val result = repository.observeChat(testTopic, testUser).toList()
+            assertEquals(testUser, result[0].sender)
+        }
+
+    @Test
+    fun testObserveChat_fromMe() =
+        runTest {
+            val result = repository.observeChat(testTopic, testUser).toList()
+            assertTrue(result[0].isFromMe)
+        }
+
+    @Test
+    fun testObserveChat_notFromMe() =
+        runTest {
+            val result = repository.observeChat(testTopic, "NotTestUser").toList()
+            assertFalse(result[0].isFromMe)
+        }
+
+    @Test
+    fun testSendMessage() =
+        runTest {
+            coEvery { webSocketHandler.sendChatMessage(testTopic, testDto) } just Runs
+            repository.sendMessage(testTopic, testUser, testContent)
+            coVerify { webSocketHandler.sendChatMessage(testTopic, testDto) }
+        }
+
+    @Test
+    fun testObserveChat_emptyFlow() =
+        runTest {
+            coEvery { webSocketHandler.subscribeToChat(testTopic) } returns emptyFlow()
+            val result = repository.observeChat(testTopic, testUser).toList()
+            assertTrue(result.isEmpty())
+        }
+
+    @Test
+    fun testObserveChat_error() =
+        runTest {
+            coEvery { webSocketHandler.subscribeToChat(any()) } throws RuntimeException()
+            assertFailsWith<RuntimeException> {
+                repository.observeChat(testTopic, testUser).toList()
+            }
+        }
 }

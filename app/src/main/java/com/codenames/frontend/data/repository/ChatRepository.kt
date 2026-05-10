@@ -25,7 +25,7 @@ class ChatRepository
                             sender = dto.senderUsername,
                             text = dto.content,
                             isFromMe = dto.senderUsername == currentUsername,
-                        )
+                        ),
                     )
                 }
             }
