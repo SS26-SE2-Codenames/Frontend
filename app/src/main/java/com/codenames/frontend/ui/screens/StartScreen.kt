@@ -133,7 +133,7 @@ fun StartScreen(
             AppButton(
                 text = "Connect to Server",
                 onClick = {
-                    viewModel.connect("TestUser", "12345")
+                    viewModel.connect("TestUser", "12345", "RED", "Spymaster")
                 },
                 modifier =
                     Modifier

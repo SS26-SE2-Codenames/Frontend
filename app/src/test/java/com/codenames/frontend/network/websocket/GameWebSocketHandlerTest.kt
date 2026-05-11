@@ -1,5 +1,6 @@
 package com.codenames.frontend.network.websocket
 
+import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
@@ -14,9 +15,22 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxS
 import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
 import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
+import org.junit.Before
 import org.junit.Test
 
 class GameWebSocketHandlerTest {
+    private lateinit var client: StompClient
+    private lateinit var session: StompSessionWithKxSerialization
+    private lateinit var wsClient: GameWebSocketHandler
+
+    @Before
+    fun setup() {
+        client = mockk()
+        session = mockk(relaxed = true)
+        wsClient = GameWebSocketHandler(client)
+        wsClient.session = session
+    }
+
     @Test
     fun testConnectStomp() =
         runTest {
@@ -98,5 +112,31 @@ class GameWebSocketHandlerTest {
             coVerify {
                 session.convertAndSend("app/1234/join", msg, WebSocketJoinMessage.serializer())
             }
+        }
+
+    @Test
+    fun testSubscribeToChat() =
+        runTest {
+            val topic = "/topic/chat/123"
+
+            wsClient.subscribeToChat(topic)
+
+            coVerify {
+                session.subscribe(
+                    match { it.destination == topic },
+                    ChatMessageDto.serializer(),
+                )
+            }
+        }
+
+    @Test
+    fun testSendMessage() =
+        runTest {
+            val destination = "app/chat/123"
+            val msg = ChatMessageDto("TestUser", "TestMsg")
+
+            wsClient.sendChatMessage(destination, msg)
+
+            coVerify { session.convertAndSend(destination, msg, ChatMessageDto.serializer()) }
         }
 }
