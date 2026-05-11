@@ -1,5 +1,6 @@
 package com.codenames.frontend.network.websocket
 
+import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
@@ -36,5 +37,14 @@ class GameWebSocketHandler
         suspend fun sendLobbyJoinMessage(msg: WebSocketJoinMessage) {
             val lobbyCode = msg.lobbyCode
             session.convertAndSend("app/$lobbyCode/join", msg, WebSocketJoinMessage.serializer())
+        }
+
+        suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> = session.subscribe(topicPath, ChatMessageDto.serializer())
+
+        suspend fun sendChatMessage(
+            destination: String,
+            msg: ChatMessageDto,
+        ) {
+            session.convertAndSend(destination, msg, ChatMessageDto.serializer())
         }
     }
