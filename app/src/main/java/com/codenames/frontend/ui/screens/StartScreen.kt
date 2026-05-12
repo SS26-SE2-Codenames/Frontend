@@ -168,7 +168,7 @@ fun StartScreen(
                     Text((state as ConnectionState.Error).message)
                 }
 
-                else -> {}
+                else -> { /* No message for other states */ }
             }
         }
 
