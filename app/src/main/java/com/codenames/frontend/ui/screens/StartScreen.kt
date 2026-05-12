@@ -51,6 +51,8 @@ fun StartScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Text("Welcome to Codenames, $username!", fontSize = 32.sp, modifier = Modifier.padding(bottom = 48.dp))
+
             Row(
                 modifier =
                     Modifier
