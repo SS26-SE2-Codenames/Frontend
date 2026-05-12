@@ -43,8 +43,9 @@ fun NavGraph() {
                 listOf(
                     navArgument("username") { type = NavType.StringType },
                 ),
-        ) {
-            StartScreen(navController)
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            StartScreen(navController = navController, username = username)
         }
 
         composable(Screen.Lobby.route) {

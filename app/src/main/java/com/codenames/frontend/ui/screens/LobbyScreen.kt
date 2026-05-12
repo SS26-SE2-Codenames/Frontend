@@ -32,42 +32,10 @@ import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
-
-val blueGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color(0xFF42A5F5),
-                Color(0xFF1565C0),
-            ),
-    )
-
-val redGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color(0xFFCF5530),
-                Color(0xFFDE8468),
-            ),
-    )
-
-val brownGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color(0xFF383330),
-                Color(0xFF1A1513),
-            ),
-    )
-
-val greenGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color(0xFF4CAF50),
-                Color(0xFF2E7D32),
-            ),
-    )
+import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.ui.theme.brownGradient
+import com.codenames.frontend.ui.theme.greenGradient
+import com.codenames.frontend.ui.theme.redGradient
 
 private const val JOIN_TEAM: String = "JOIN TEAM"
 private const val TEAM_JOINED: String = "👤 1 joined"

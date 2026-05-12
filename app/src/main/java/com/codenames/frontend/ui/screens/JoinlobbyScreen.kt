@@ -18,7 +18,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -38,6 +37,7 @@ import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.inputs.AppTextFieldType
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.theme.blueGradient
 
 internal const val JOIN_LOBBY_INPUT_TAG = "join_lobby_input"
 internal const val JOIN_LOBBY_BUTTON_TAG = "join_lobby_button"
@@ -60,15 +60,6 @@ fun JoinlobbyScreen(navController: NavHostController) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-
-    val blueGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF42A5F5),
-                    Color(0xFF1565C0),
-                ),
-        )
 
     val joinEnabled = isLobbyIdValid(lobbyId)
 

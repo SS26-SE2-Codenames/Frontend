@@ -16,7 +16,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,34 +26,19 @@ import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.viewmodel.GameViewModel
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun StartScreen(
     navController: NavHostController,
+    username: String,
     viewModel: GameViewModel = hiltViewModel(),
 ) {
     val state by viewModel.connectionState.collectAsState()
     ForceLandscape()
-
-    val greenGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF4CAF50),
-                    Color(0xFF2E7D32),
-                ),
-        )
-
-    val blueGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF42A5F5),
-                    Color(0xFF1565C0),
-                ),
-        )
 
     Box(
         modifier =

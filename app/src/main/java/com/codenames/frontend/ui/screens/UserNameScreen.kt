@@ -28,6 +28,7 @@ import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.theme.blueGradient
 
 @Suppress("ktlint:standard:function-naming")
 @Composable

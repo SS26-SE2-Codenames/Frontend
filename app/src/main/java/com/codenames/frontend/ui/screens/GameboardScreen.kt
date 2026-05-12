@@ -49,6 +49,9 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.ui.theme.greenGradient
+import com.codenames.frontend.ui.theme.redGradient
 
 enum class CardType {
     BLUE,
