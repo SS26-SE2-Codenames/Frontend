@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -20,25 +21,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
-import com.codenames.frontend.viewmodel.GameViewModel
+import com.codenames.frontend.viewmodel.LobbyViewModel
+import com.codenames.frontend.viewmodel.SessionViewModel
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun StartScreen(
     navController: NavHostController,
-    username: String,
-    viewModel: GameViewModel = hiltViewModel(),
+    viewModel: LobbyViewModel = hiltViewModel(),
+    sessionViewModel: SessionViewModel = viewModel(),
 ) {
-    val state by viewModel.connectionState.collectAsState()
     ForceLandscape()
+
+    val state by viewModel.state.collectAsState()
+    val usernameState by sessionViewModel.username.collectAsState()
+
+    LaunchedEffect(state.lobbyCode, state.error, state.isLoading) {
+        if (!state.isLoading && state.error == null && state.lobbyCode != null) {
+            navController.navigate(Screen.Lobby.route)
+        }
+    }
 
     Box(
         modifier =
@@ -51,7 +61,7 @@ fun StartScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Welcome to Codenames, $username!", fontSize = 32.sp, modifier = Modifier.padding(bottom = 48.dp))
+            Text("Welcome to Codenames, ${usernameState.username}!", fontSize = 32.sp, modifier = Modifier.padding(bottom = 48.dp))
 
             Row(
                 modifier =
@@ -62,6 +72,7 @@ fun StartScreen(
                 AppButton(
                     text = "Create Lobby",
                     onClick = {
+                        viewModel.createLobby(usernameState.username)
                         navController.navigate(Screen.Lobby.route)
                     },
                     modifier =
@@ -115,47 +126,6 @@ fun StartScreen(
                         lineHeight = 30.sp,
                     ),
             )
-
-            AppButton(
-                text = "Connect to Server",
-                onClick = {
-                    viewModel.connect("TestUser", "12345", "RED", "Spymaster")
-                },
-                modifier =
-                    Modifier
-                        .width(200.dp)
-                        .height(100.dp)
-                        .padding(bottom = 12.dp),
-                style =
-                    AppButtonStyle(
-                        backgroundBrush = blueGradient,
-                        fontSize = 26.sp,
-                        lineHeight = 30.sp,
-                    ),
-            )
-
-            when (state) {
-                is ConnectionState.CONNECTING ->
-                    Text(
-                        text = "Connecting...",
-                        color = Color.Yellow,
-                        fontSize = 25.sp,
-                    )
-
-                is ConnectionState.CONNECTED ->
-                    Text(
-                        text = "Connected",
-                        color = Color.Green,
-                        fontSize = 25.sp,
-                    )
-
-                is ConnectionState.Error -> {
-                    Text("Error while connecting: ")
-                    Text((state as ConnectionState.Error).message)
-                }
-
-                else -> { /* No message for other states */ }
-            }
         }
 
         SettingsCornerButton(

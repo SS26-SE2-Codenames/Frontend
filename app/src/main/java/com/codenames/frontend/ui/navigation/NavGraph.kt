@@ -18,7 +18,7 @@ import com.codenames.frontend.ui.screens.GameCard
 import com.codenames.frontend.ui.screens.GameSettingsScreen
 import com.codenames.frontend.ui.screens.GameTestScreen
 import com.codenames.frontend.ui.screens.GameboardScreen
-import com.codenames.frontend.ui.screens.JoinlobbyScreen
+import com.codenames.frontend.ui.screens.JoinLobbyScreen
 import com.codenames.frontend.ui.screens.LobbyScreen
 import com.codenames.frontend.ui.screens.SettingsScreen
 import com.codenames.frontend.ui.screens.StartScreen
@@ -38,22 +38,19 @@ fun NavGraph() {
         }
 
         composable(
-            route = "${Screen.Start.route}/{username}",
-            arguments =
-                listOf(
-                    navArgument("username") { type = NavType.StringType },
-                ),
-        ) { backStackEntry ->
-            val username = backStackEntry.arguments?.getString("username") ?: ""
-            StartScreen(navController = navController, username = username)
+            Screen.Start.route,
+        ) {
+            StartScreen(navController = navController)
         }
 
         composable(Screen.Lobby.route) {
             LobbyScreen(navController)
         }
 
-        composable(Screen.JoinLobby.route) {
-            JoinlobbyScreen(navController)
+        composable(
+            route = Screen.JoinLobby.route,
+        ) {
+            JoinLobbyScreen(navController)
         }
 
         composable(

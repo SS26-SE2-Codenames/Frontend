@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -27,6 +29,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -38,22 +42,31 @@ import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.inputs.AppTextFieldType
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.viewmodel.LobbyViewModel
+import com.codenames.frontend.viewmodel.SessionViewModel
 
 internal const val JOIN_LOBBY_INPUT_TAG = "join_lobby_input"
 internal const val JOIN_LOBBY_BUTTON_TAG = "join_lobby_button"
-private const val LOBBY_ID_MAX_LENGTH = 12
+private const val LOBBY_ID_LENGTH = 5 // lobby id hat genau 5 Zeichen
 
-internal fun sanitizeLobbyIdInput(input: String): String =
+private fun sanitizeLobbyIdInput(input: String): String =
     input
         .uppercase()
         .filter { it.isLetterOrDigit() }
-        .take(LOBBY_ID_MAX_LENGTH)
+        .take(LOBBY_ID_LENGTH)
 
-internal fun isLobbyIdValid(lobbyId: String): Boolean = lobbyId.isNotBlank()
+fun isLobbyIdValid(lobbyId: String): Boolean =
+    lobbyId.isNotBlank() &&
+            lobbyId.length == LOBBY_ID_LENGTH &&
+            lobbyId.matches("^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]+$".toRegex())
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun JoinlobbyScreen(navController: NavHostController) {
+fun JoinLobbyScreen(
+    navController: NavHostController,
+    viewModel: LobbyViewModel = viewModel(),
+    sessionViewModel: SessionViewModel = hiltViewModel(),
+) {
     ForceLandscape()
 
     var lobbyId by rememberSaveable { mutableStateOf("") }
@@ -61,7 +74,17 @@ fun JoinlobbyScreen(navController: NavHostController) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
+    val state by viewModel.state.collectAsState()
+    val username by sessionViewModel.username.collectAsState()
+
     val joinEnabled = isLobbyIdValid(lobbyId)
+
+    // Navigation wird ausgeführt, wenn alle notwendigen states im Lobby UI state gesetzt sind. Wird bei jeder rekomposition der UI durchlaufen
+    LaunchedEffect(state.lobbyCode, state.error, state.isLoading) {
+        if (!state.isLoading && state.error == null && state.lobbyCode != null) {
+            navController.navigate(Screen.Lobby.route)
+        }
+    }
 
     fun submitJoin() {
         if (!joinEnabled) return
@@ -69,7 +92,7 @@ fun JoinlobbyScreen(navController: NavHostController) {
         keyboardController?.hide()
         focusManager.clearFocus()
 
-        // Hier später den echten Frontend-Join-Flow anschließen.
+        viewModel.joinLobby(username.username, lobbyId)
     }
 
     Box(
