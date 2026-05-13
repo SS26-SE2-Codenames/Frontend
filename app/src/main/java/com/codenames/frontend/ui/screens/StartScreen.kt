@@ -1,5 +1,6 @@
 package com.codenames.frontend.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +38,7 @@ import com.codenames.frontend.viewmodel.SessionViewModel
 fun StartScreen(
     navController: NavHostController,
     viewModel: LobbyViewModel = hiltViewModel(),
-    sessionViewModel: SessionViewModel = viewModel(),
+    sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
 ) {
     ForceLandscape()
 
@@ -73,7 +74,6 @@ fun StartScreen(
                     text = "Create Lobby",
                     onClick = {
                         viewModel.createLobby(usernameState.username)
-                        navController.navigate(Screen.Lobby.route)
                     },
                     modifier =
                         Modifier

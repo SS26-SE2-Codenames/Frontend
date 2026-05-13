@@ -12,7 +12,7 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConver
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import javax.inject.Inject
 
-const val BASE_URL = "ws://localhost:8080/ws"
+const val BASE_URL = "ws://192.168.0.134:8080/ws"
 
 class GameWebSocketHandler
     @Inject
@@ -39,6 +39,7 @@ class GameWebSocketHandler
             session.convertAndSend("app/$lobbyCode/join", msg, WebSocketJoinMessage.serializer())
         }
 
+        @Suppress("kotlin:S6309")
         suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> = session.subscribe(topicPath, ChatMessageDto.serializer())
 
         suspend fun sendChatMessage(
