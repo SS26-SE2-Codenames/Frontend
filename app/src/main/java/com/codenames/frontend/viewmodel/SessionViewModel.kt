@@ -9,11 +9,13 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
-class SessionViewModel @Inject constructor(): ViewModel() {
-    private val _username = MutableStateFlow(SessionState(""))
-    val username: StateFlow<SessionState> = _username
+class SessionViewModel
+    @Inject
+    constructor() : ViewModel() {
+        private val _username = MutableStateFlow(SessionState(""))
+        val username: StateFlow<SessionState> = _username
 
-    fun setUsername(username: String) {
-        _username.update { SessionState(username) }
+        fun setUsername(username: String) {
+            _username.update { SessionState(username) }
+        }
     }
-}

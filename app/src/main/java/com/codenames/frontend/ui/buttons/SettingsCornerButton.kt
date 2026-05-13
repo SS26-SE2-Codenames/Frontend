@@ -1,6 +1,5 @@
 package com.codenames.frontend.ui.buttons
 
-import android.widget.Button
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,10 +33,11 @@ fun BoxScope.SettingsCornerButton(onClick: () -> Unit) {
         androidx.compose.material3.IconButton(
             onClick = onClick,
             modifier = Modifier.fillMaxSize(),
-            colors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = Color.White,
-            ),
+            colors =
+                androidx.compose.material3.IconButtonDefaults.iconButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White,
+                ),
         ) {
             Icon(
                 imageVector = androidx.compose.material.icons.Icons.Default.Settings,

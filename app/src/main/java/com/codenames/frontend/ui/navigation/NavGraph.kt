@@ -20,7 +20,10 @@ import com.codenames.frontend.viewmodel.SessionViewModel
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
-fun NavGraph(viewModel: LobbyViewModel = hiltViewModel(), sessionViewModel: SessionViewModel = hiltViewModel()) {
+fun NavGraph(
+    viewModel: LobbyViewModel = hiltViewModel(),
+    sessionViewModel: SessionViewModel = hiltViewModel(),
+) {
     val navController = rememberNavController()
     val usernameState by sessionViewModel.username.collectAsState()
 
@@ -50,7 +53,7 @@ fun NavGraph(viewModel: LobbyViewModel = hiltViewModel(), sessionViewModel: Sess
         }
 
         composable(
-            route = Screen.Gameboard.route
+            route = Screen.Gameboard.route,
         ) {
             val currentRole = viewModel.getRoleForUser(usernameState.username)
 

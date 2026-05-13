@@ -24,15 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.LobbyUiState
-import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -46,14 +43,16 @@ import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
-import kotlinx.coroutines.launch
 
 private const val JOIN_TEAM: String = "JOIN TEAM"
-private const val TEAM_JOINED: String = "👤 1 joined"
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun LobbyScreen(navController: NavHostController, viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")), sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph"))) {
+fun LobbyScreen(
+    navController: NavHostController,
+    viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+) {
     val usernameState by sessionViewModel.username.collectAsState()
     val lobbyUiState by viewModel.state.collectAsState()
 
@@ -82,11 +81,12 @@ fun LobbyScreen(navController: NavHostController, viewModel: LobbyViewModel = hi
             )
 
             GameSettingsColumn(
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .fillMaxHeight(),
+                modifier =
+                    Modifier
+                        .padding(horizontal = 24.dp)
+                        .fillMaxHeight(),
                 navController = navController,
-                lobbyCode = lobbyUiState.lobbyCode ?: ""
+                lobbyCode = lobbyUiState.lobbyCode ?: "",
             )
 
             TeamColumn(
@@ -119,8 +119,9 @@ fun TeamColumn(
 ) {
     val align = if (color == Team.RED) Alignment.End else Alignment.Start
     Column(
-        modifier = modifier
-            .fillMaxWidth(0.5f),
+        modifier =
+            modifier
+                .fillMaxWidth(0.5f),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -152,7 +153,7 @@ fun TeamColumn(
             onRoleSelect = onRoleSelect,
             modifier = cardModifier,
             title = "OPERATIVES",
-            players = if(color == Team.RED) lobbyUiState.redOperatives else lobbyUiState.blueOperatives,
+            players = if (color == Team.RED) lobbyUiState.redOperatives else lobbyUiState.blueOperatives,
         )
 
         RoleCard(
@@ -160,7 +161,7 @@ fun TeamColumn(
             onRoleSelect = onRoleSelect,
             modifier = cardModifier,
             title = "SPYMASTERS",
-            players = if(color == Team.RED) lobbyUiState.redSpymasters else lobbyUiState.blueSpymasters,
+            players = if (color == Team.RED) lobbyUiState.redSpymasters else lobbyUiState.blueSpymasters,
         )
     }
 }
@@ -220,7 +221,7 @@ fun GameSettingsColumn(
                 Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 8.dp),
-            )
+        )
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -281,9 +282,11 @@ fun GameSettingsColumn(
         AppButton(
             text = "LEAVE LOBBY",
             onClick = {
-                val onResult = { successful : Boolean ->
-                    if(successful) navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.Start.route) { inclusive = true }
+                val onResult = { successful: Boolean ->
+                    if (successful) {
+                        navController.navigate(Screen.Start.route) {
+                            popUpTo(Screen.Start.route) { inclusive = true }
+                        }
                     }
                 }
                 viewModel.leaveLobby(username = usernameState.username, onResult = onResult)
@@ -301,10 +304,7 @@ fun GameSettingsColumn(
                     contentColor = Color.Black,
                     type = AppButtonType.SECONDARY,
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp),
-                )
-
+                ),
         )
     }
 }
-
-

@@ -78,7 +78,10 @@ class LobbyViewModel
                     _state.update {
                         response.toLobbyState()
                     }
+                    updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
+                    Log.d("LobbyViewModel", "Joined lobby: ${response.lobbyCode}")
+                    Log.d("LobbyViewModel", "UI State: ${_state.value}")
                 } catch (e: Exception) {
                     setError(e.message)
                 } finally {
@@ -87,7 +90,10 @@ class LobbyViewModel
             }
         }
 
-        fun leaveLobby(username: String, onResult: (Boolean) -> Unit){
+        fun leaveLobby(
+            username: String,
+            onResult: (Boolean) -> Unit,
+        ) {
             val lobbyCode = _state.value.lobbyCode
             var successful = false
 
@@ -123,7 +129,7 @@ class LobbyViewModel
         fun changeRole(
             role: Role,
             team: Team,
-            username: String
+            username: String,
         ) {
             Log.d("LobbyViewModel", "Changing role to: $role, team: $team, username: $username")
             val lobbyCode = _state.value.lobbyCode
@@ -155,8 +161,11 @@ class LobbyViewModel
             }
         }
 
-        fun changeRole(role: PlayerRoles, username: String) {
-            when(role) {
+        fun changeRole(
+            role: PlayerRoles,
+            username: String,
+        ) {
+            when (role) {
                 PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username)
                 PlayerRoles.RED_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.RED, username = username)
                 PlayerRoles.BLUE_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.BLUE, username = username)
@@ -165,51 +174,50 @@ class LobbyViewModel
             }
         }
 
-    fun getRoleForUser(username: String) : PlayerRoles {
-        val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return PlayerRoles.NONE
-        return when(player.role) {
-            Role.OPERATIVE -> if(player.team == Team.BLUE) PlayerRoles.BLUE_OPERATIVE else PlayerRoles.RED_OPERATIVE
-            Role.SPYMASTER -> if(player.team == Team.BLUE) PlayerRoles.BLUE_SPYMASTER else PlayerRoles.RED_SPYMASTER
-            null -> PlayerRoles.NONE
+        fun getRoleForUser(username: String): PlayerRoles {
+            val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return PlayerRoles.NONE
+            return when (player.role) {
+                Role.OPERATIVE -> if (player.team == Team.BLUE) PlayerRoles.BLUE_OPERATIVE else PlayerRoles.RED_OPERATIVE
+                Role.SPYMASTER -> if (player.team == Team.BLUE) PlayerRoles.BLUE_SPYMASTER else PlayerRoles.RED_SPYMASTER
+                null -> PlayerRoles.NONE
+            }
         }
-    }
 
-    private fun cleanup() {
-        _state.update {
-            it.copy(
-                lobbyCode = null,
-                players = emptyList(),
-                blueOperatives = emptyList(),
-                blueSpymasters = emptyList(),
-                redOperatives = emptyList(),
-                redSpymasters = emptyList(),
-            )
+        private fun cleanup() {
+            _state.update {
+                it.copy(
+                    lobbyCode = null,
+                    players = emptyList(),
+                    blueOperatives = emptyList(),
+                    blueSpymasters = emptyList(),
+                    redOperatives = emptyList(),
+                    redSpymasters = emptyList(),
+                )
+            }
         }
-    }
 
-    private fun updateUiState(players: List<Player>) {
-        _state.update {
-            it.copy(
-                blueOperatives = players
-                    .filter { p -> p.team == Team.BLUE && p.role == Role.OPERATIVE }
-                    .map { it.name },
-
-                blueSpymasters = players
-                    .filter { p -> p.team == Team.BLUE && p.role == Role.SPYMASTER }
-                    .map { it.name },
-
-                redOperatives = players
-                    .filter { p -> p.team == Team.RED && p.role == Role.OPERATIVE }
-                    .map { it.name },
-
-                redSpymasters = players
-                    .filter { p -> p.team == Team.RED && p.role == Role.SPYMASTER }
-                    .map { it.name },
-            )
+        private fun updateUiState(players: List<Player>) {
+            _state.update {
+                it.copy(
+                    blueOperatives =
+                        players
+                            .filter { p -> p.team == Team.BLUE && p.role == Role.OPERATIVE }
+                            .map { p -> p.name },
+                    blueSpymasters =
+                        players
+                            .filter { p -> p.team == Team.BLUE && p.role == Role.SPYMASTER }
+                            .map { p -> p.name },
+                    redOperatives =
+                        players
+                            .filter { p -> p.team == Team.RED && p.role == Role.OPERATIVE }
+                            .map { p -> p.name },
+                    redSpymasters =
+                        players
+                            .filter { p -> p.team == Team.RED && p.role == Role.SPYMASTER }
+                            .map { p -> p.name },
+                )
+            }
         }
-    }
-
-
 
         private fun startPolling(lobbyCode: String) {
             if (pollingJob != null) return

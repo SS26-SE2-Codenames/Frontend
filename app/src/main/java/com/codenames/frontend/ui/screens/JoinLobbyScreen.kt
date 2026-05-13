@@ -30,7 +30,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -57,14 +56,14 @@ private fun sanitizeLobbyIdInput(input: String): String =
 
 fun isLobbyIdValid(lobbyId: String): Boolean =
     lobbyId.isNotBlank() &&
-            lobbyId.length == LOBBY_ID_LENGTH &&
-            lobbyId.matches("^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]+$".toRegex())
+        lobbyId.length == LOBBY_ID_LENGTH &&
+        lobbyId.matches("^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]+$".toRegex())
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun JoinLobbyScreen(
     navController: NavHostController,
-    viewModel: LobbyViewModel = hiltViewModel(),
+    viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
     sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
 ) {
     ForceLandscape()
