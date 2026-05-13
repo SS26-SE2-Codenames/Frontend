@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -20,23 +21,29 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
-import com.codenames.frontend.viewmodel.GameViewModel
+import com.codenames.frontend.viewmodel.LobbyViewModel
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun StartScreen(
     navController: NavHostController,
-    viewModel: GameViewModel = hiltViewModel(),
+    username: String,
+    lobbyViewModel: LobbyViewModel,
 ) {
-    val state by viewModel.connectionState.collectAsState()
+    val lobbyState by lobbyViewModel.state.collectAsState()
+
     ForceLandscape()
+
+    LaunchedEffect(lobbyState.lobbyCode) {
+        if (!lobbyState.lobbyCode.isNullOrBlank()) {
+            navController.navigate(Screen.Lobby.route)
+        }
+    }
 
     val greenGradient =
         Brush.verticalGradient(
@@ -76,7 +83,7 @@ fun StartScreen(
                 AppButton(
                     text = "Create Lobby",
                     onClick = {
-                        navController.navigate(Screen.Lobby.route)
+                        lobbyViewModel.createLobby(username)
                     },
                     modifier =
                         Modifier
@@ -86,6 +93,7 @@ fun StartScreen(
                             .padding(bottom = 12.dp, end = 12.dp),
                     style =
                         AppButtonStyle(
+                            enabled = !lobbyState.isLoading,
                             backgroundBrush = greenGradient,
                             fontSize = 26.sp,
                             lineHeight = 30.sp,
@@ -95,7 +103,7 @@ fun StartScreen(
                 AppButton(
                     text = "Join Lobby",
                     onClick = {
-                        navController.navigate(Screen.JoinLobby.route)
+                        navController.navigate("${Screen.JoinLobby.route}/$username")
                     },
                     modifier =
                         Modifier
@@ -105,70 +113,47 @@ fun StartScreen(
                             .padding(bottom = 12.dp, start = 12.dp),
                     style =
                         AppButtonStyle(
+                            enabled = !lobbyState.isLoading,
                             backgroundBrush = blueGradient,
+                            fontSize = 26.sp,
+                            lineHeight = 30.sp,
+                        ),
+                )
+
+                AppButton(
+                    text = "Offline UI Test",
+                    onClick = {
+                        navController.navigate("game_test")
+                    },
+                    modifier =
+                        Modifier
+                            .width(200.dp)
+                            .height(100.dp)
+                            .padding(bottom = 12.dp, start = 12.dp),
+                    style =
+                        AppButtonStyle(
+                            backgroundBrush = greenGradient,
                             fontSize = 26.sp,
                             lineHeight = 30.sp,
                         ),
                 )
             }
 
-            AppButton(
-                text = "test Mode",
-                onClick = {
-                    navController.navigate("game_test")
-                },
-                modifier =
-                    Modifier
-                        .width(200.dp)
-                        .height(100.dp)
-                        .padding(bottom = 12.dp),
-                style =
-                    AppButtonStyle(
-                        backgroundBrush = greenGradient,
-                        fontSize = 26.sp,
-                        lineHeight = 30.sp,
-                    ),
-            )
+            if (lobbyState.isLoading) {
+                Text(
+                    text = "Loading...",
+                    color = Color(0xFF383330),
+                    fontSize = 22.sp,
+                )
+            }
 
-            AppButton(
-                text = "Connect to Server",
-                onClick = {
-                    viewModel.connect("TestUser", "12345", "RED", "Spymaster")
-                },
-                modifier =
-                    Modifier
-                        .width(200.dp)
-                        .height(100.dp)
-                        .padding(bottom = 12.dp),
-                style =
-                    AppButtonStyle(
-                        backgroundBrush = blueGradient,
-                        fontSize = 26.sp,
-                        lineHeight = 30.sp,
-                    ),
-            )
-
-            when (state) {
-                is ConnectionState.CONNECTING ->
-                    Text(
-                        text = "Connecting...",
-                        color = Color.Yellow,
-                        fontSize = 25.sp,
-                    )
-
-                is ConnectionState.CONNECTED ->
-                    Text(
-                        text = "Connected",
-                        color = Color.Green,
-                        fontSize = 25.sp,
-                    )
-
-                is ConnectionState.Error -> {
-                    Text("Error while connecting: ")
-                    Text((state as ConnectionState.Error).message)
-                }
-
-                else -> {}
+            lobbyState.error?.let { error ->
+                Text(
+                    text = error,
+                    color = Color(0xFFCF5530),
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
             }
         }
 
