@@ -87,12 +87,13 @@ class LobbyViewModel
             }
         }
 
-        fun leaveLobby(username: String) {
+        fun leaveLobby(username: String) : Boolean{
             val lobbyCode = _state.value.lobbyCode
+            var successful = false
 
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a lobby, leaving not possible")
-                return
+                return successful
             }
 
             viewModelScope.launch {
@@ -105,12 +106,18 @@ class LobbyViewModel
                     }
 
                     stopPolling()
+                    successful = true
                 } catch (e: Exception) {
                     setError(e.message)
+                    Log.e("LobbyViewModel", "Error leaving lobby: ${e.message}")
+                    successful = false
                 } finally {
                     setLoading(false)
                 }
+                return@launch
             }
+            Log.d("LobbyViewModel", "Leaving lobby: $lobbyCode, successful: $successful, error: ${_state.value.error}")
+            return successful
         }
 
         fun changeRole(
@@ -203,8 +210,11 @@ class LobbyViewModel
                             _state.update {
                                 response.toLobbyState()
                             }
+                            Log.d("LobbyViewModel", "Polling: ${_state.value}")
+                            updateUiState(_state.value.players)
                         } catch (e: Exception) {
                             setError(e.message)
+                            Log.e("LobbyViewModel", "Error polling: ${e.message}")
                             return@launch
                         }
 

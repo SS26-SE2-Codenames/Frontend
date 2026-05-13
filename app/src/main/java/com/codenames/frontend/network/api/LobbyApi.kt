@@ -26,10 +26,10 @@ interface LobbyApi {
         @Path("lobbyCode") lobbyCode: String,
     ): LobbyResponse
 
-    @POST("lobby/{lobbyCode}/{username}/leave")
+    @POST("lobby/{lobbyCode}/leave")
     suspend fun leaveLobby(
-        @Path("username") username: String,
         @Path("lobbyCode") lobbyCode: String,
+        @Query("username") username: String,
     ): LobbyResponse
 
     @POST("lobby/{lobbyCode}/select-position")
