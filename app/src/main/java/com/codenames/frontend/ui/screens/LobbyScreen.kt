@@ -5,7 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,9 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.LobbyUiState
@@ -31,6 +36,7 @@ import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
+import com.codenames.frontend.ui.buttons.AppButtonType
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
@@ -60,7 +66,7 @@ fun LobbyScreen(navController: NavHostController, viewModel: LobbyViewModel = hi
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    .padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -75,7 +81,11 @@ fun LobbyScreen(navController: NavHostController, viewModel: LobbyViewModel = hi
             )
 
             GameSettingsColumn(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .fillMaxHeight(),
                 navController = navController,
+                lobbyCode = lobbyUiState.lobbyCode ?: ""
             )
 
             TeamColumn(
@@ -108,7 +118,8 @@ fun TeamColumn(
 ) {
     val align = if (color == Team.RED) Alignment.End else Alignment.Start
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth(0.5f),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -188,19 +199,34 @@ fun RoleCard(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameSettingsColumn(
+    modifier: Modifier,
     navController: NavController,
+    lobbyCode: String,
+    viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
 ) {
+    val usernameState by sessionViewModel.username.collectAsState()
     Column(
-        modifier = Modifier.padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.Center,
+        modifier = modifier,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Text(
+            text = "LOBBY CODE: $lobbyCode",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier =
+                Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 8.dp),
+            )
+
+        Spacer(modifier = Modifier.weight(1f))
+
         Column(
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
-                    .width(400.dp)
-                    .height(250.dp)
                     .fillMaxWidth(0.5f)
                     .background(brownGradient, RoundedCornerShape(12.dp))
                     .padding(16.dp),
@@ -230,6 +256,8 @@ fun GameSettingsColumn(
             )
         }
 
+        Spacer(modifier = Modifier.weight(1f))
+
         AppButton(
             text = "START GAME",
             onClick = {
@@ -238,16 +266,37 @@ fun GameSettingsColumn(
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
-                    .width(400.dp)
-                    .height(70.dp)
                     .fillMaxWidth(0.5f)
-                    .padding(top = 12.dp),
+                    .padding(top = 16.dp),
             style =
                 AppButtonStyle(
                     backgroundBrush = greenGradient,
-                    fontSize = 28.sp,
-                    lineHeight = 30.sp,
+                    fontSize = 20.sp,
+                    type = AppButtonType.PRIMARY,
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp),
                 ),
+        )
+
+        AppButton(
+            text = "LEAVE LOBBY",
+            onClick = {
+                viewModel.leaveLobby(username = usernameState.username)
+            },
+            modifier =
+                Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth(0.5f)
+                    .padding(top = 16.dp)
+                    .padding(bottom = 16.dp),
+            style =
+                AppButtonStyle(
+                    backgroundBrush = brownGradient,
+                    fontSize = 20.sp,
+                    contentColor = Color.Black,
+                    type = AppButtonType.SECONDARY,
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp),
+                )
+
         )
     }
 }
