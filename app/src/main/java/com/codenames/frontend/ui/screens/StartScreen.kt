@@ -37,7 +37,7 @@ import com.codenames.frontend.viewmodel.SessionViewModel
 @Composable
 fun StartScreen(
     navController: NavHostController,
-    viewModel: LobbyViewModel = hiltViewModel(),
+    viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
     sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
 ) {
     ForceLandscape()

@@ -4,10 +4,12 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.LobbyUiState
+import com.codenames.frontend.data.model.Player
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toLobbyState
 import com.codenames.frontend.data.repository.LobbyRepository
+import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -47,6 +49,7 @@ class LobbyViewModel
                     }
                     startPolling(response.lobbyCode)
                     Log.d("LobbyViewModel", "Lobby created: ${response.lobbyCode}")
+                    Log.d("LobbyViewModel", "UI State: ${_state.value}")
                 } catch (e: Exception) {
                     setError(e.message)
                     Log.e("LobbyViewModel", "Error creating lobby: ${e.message}")
@@ -111,13 +114,15 @@ class LobbyViewModel
         }
 
         fun changeRole(
-            username: String,
             role: Role,
             team: Team,
+            username: String
         ) {
+            Log.d("LobbyViewModel", "Changing role to: $role, team: $team, username: $username")
             val lobbyCode = _state.value.lobbyCode
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a Lobby")
+                Log.d("LobbyViewModel", "Not in a lobby")
                 return
             }
 
@@ -130,13 +135,61 @@ class LobbyViewModel
                     _state.update {
                         response.toLobbyState()
                     }
+                    updateUiState(_state.value.players)
+                    Log.d("LobbyViewModel", "Role changed: $role")
+                    Log.d("LobbyViewModel", "Team changed: $team")
+                    Log.d("LobbyViewModel", "UI State: ${_state.value}")
                 } catch (e: Exception) {
                     setError(e.message)
+                    Log.e("LobbyViewModel", "Error changing role: ${e.message}")
                 } finally {
                     setLoading(false)
                 }
             }
         }
+
+        fun changeRole(role: PlayerRoles, username: String) {
+            when(role) {
+                PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username)
+                PlayerRoles.RED_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.RED, username = username)
+                PlayerRoles.BLUE_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.BLUE, username = username)
+                PlayerRoles.RED_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.RED, username = username)
+                else -> setError("Invalid role")
+            }
+        }
+
+    fun getRoleForUser(username: String) : PlayerRoles {
+        val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return PlayerRoles.NONE
+        return when(player.role) {
+            Role.OPERATIVE -> if(player.team == Team.BLUE) PlayerRoles.BLUE_OPERATIVE else PlayerRoles.RED_OPERATIVE
+            Role.SPYMASTER -> if(player.team == Team.BLUE) PlayerRoles.BLUE_SPYMASTER else PlayerRoles.RED_SPYMASTER
+            null -> PlayerRoles.NONE
+        }
+    }
+
+    private fun updateUiState(players: List<Player>) {
+        _state.update {
+            it.copy(
+                blueOperatives = players
+                    .filter { p -> p.team == Team.BLUE && p.role == Role.OPERATIVE }
+                    .map { it.name },
+
+                blueSpymasters = players
+                    .filter { p -> p.team == Team.BLUE && p.role == Role.SPYMASTER }
+                    .map { it.name },
+
+                redOperatives = players
+                    .filter { p -> p.team == Team.RED && p.role == Role.OPERATIVE }
+                    .map { it.name },
+
+                redSpymasters = players
+                    .filter { p -> p.team == Team.RED && p.role == Role.SPYMASTER }
+                    .map { it.name },
+            )
+        }
+    }
+
+
 
         private fun startPolling(lobbyCode: String) {
             if (pollingJob != null) return

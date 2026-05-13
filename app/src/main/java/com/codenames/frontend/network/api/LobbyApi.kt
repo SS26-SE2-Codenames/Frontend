@@ -32,7 +32,7 @@ interface LobbyApi {
         @Path("lobbyCode") lobbyCode: String,
     ): LobbyResponse
 
-    @POST("lobby/{lobbyCode}/roleChange")
+    @POST("lobby/{lobbyCode}/select-position")
     suspend fun changeRole(
         @Path("lobbyCode") lobbyCode: String,
         @Body playerDto: PlayerDto,
