@@ -64,8 +64,8 @@ fun isLobbyIdValid(lobbyId: String): Boolean =
 @Composable
 fun JoinLobbyScreen(
     navController: NavHostController,
-    viewModel: LobbyViewModel = viewModel(),
-    sessionViewModel: SessionViewModel = hiltViewModel(),
+    viewModel: LobbyViewModel = hiltViewModel(),
+    sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
 ) {
     ForceLandscape()
 
