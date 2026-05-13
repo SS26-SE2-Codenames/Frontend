@@ -12,7 +12,9 @@ class LobbyRepository
     constructor(
         private val api: LobbyApi,
     ) {
-        suspend fun createLobby(username: String): LobbyResponse = api.createLobby(username)
+        suspend fun createLobby(username: String): LobbyResponse{
+            return api.createLobby(username)
+        }
 
         suspend fun leaveLobby(
             username: String,

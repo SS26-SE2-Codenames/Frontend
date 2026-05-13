@@ -1,6 +1,5 @@
 package com.codenames.frontend.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.codenames.frontend.data.model.SessionState
 import dagger.hilt.android.lifecycle.HiltViewModel

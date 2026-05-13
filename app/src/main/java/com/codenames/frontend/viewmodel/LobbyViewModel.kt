@@ -1,5 +1,6 @@
 package com.codenames.frontend.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.LobbyUiState
@@ -45,8 +46,10 @@ class LobbyViewModel
                         response.toLobbyState()
                     }
                     startPolling(response.lobbyCode)
+                    Log.d("LobbyViewModel", "Lobby created: ${response.lobbyCode}")
                 } catch (e: Exception) {
                     setError(e.message)
+                    Log.e("LobbyViewModel", "Error creating lobby: ${e.message}")
                 } finally {
                     setLoading(false)
                 }
