@@ -281,10 +281,12 @@ fun GameSettingsColumn(
         AppButton(
             text = "LEAVE LOBBY",
             onClick = {
-                val successful = viewModel.leaveLobby(username = usernameState.username)
-                if(successful) navController.navigate(Screen.Start.route) {
-                    popUpTo(Screen.Start.route) { inclusive = true }
+                val onResult = { successful : Boolean ->
+                    if(successful) navController.navigate(Screen.Start.route) {
+                        popUpTo(Screen.Start.route) { inclusive = true }
+                    }
                 }
+                viewModel.leaveLobby(username = usernameState.username, onResult = onResult)
             },
             modifier =
                 Modifier

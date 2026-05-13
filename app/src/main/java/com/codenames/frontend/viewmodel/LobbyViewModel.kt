@@ -87,20 +87,21 @@ class LobbyViewModel
             }
         }
 
-        fun leaveLobby(username: String) : Boolean{
+        fun leaveLobby(username: String, onResult: (Boolean) -> Unit){
             val lobbyCode = _state.value.lobbyCode
             var successful = false
 
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a lobby, leaving not possible")
-                return successful
+                onResult(successful)
+                return
             }
 
             viewModelScope.launch {
                 setLoading(true)
 
                 try {
-                    val response = repository.leaveLobby(username, lobbyCode)
+                    val response = repository.leaveLobby(lobbyCode, username)
                     _state.update {
                         response.toLobbyState()
                     }
@@ -113,11 +114,10 @@ class LobbyViewModel
                     successful = false
                 } finally {
                     setLoading(false)
+                    onResult(successful)
+                    if (successful) cleanup()
                 }
-                return@launch
             }
-            Log.d("LobbyViewModel", "Leaving lobby: $lobbyCode, successful: $successful, error: ${_state.value.error}")
-            return successful
         }
 
         fun changeRole(
@@ -171,6 +171,19 @@ class LobbyViewModel
             Role.OPERATIVE -> if(player.team == Team.BLUE) PlayerRoles.BLUE_OPERATIVE else PlayerRoles.RED_OPERATIVE
             Role.SPYMASTER -> if(player.team == Team.BLUE) PlayerRoles.BLUE_SPYMASTER else PlayerRoles.RED_SPYMASTER
             null -> PlayerRoles.NONE
+        }
+    }
+
+    private fun cleanup() {
+        _state.update {
+            it.copy(
+                lobbyCode = null,
+                players = emptyList(),
+                blueOperatives = emptyList(),
+                blueSpymasters = emptyList(),
+                redOperatives = emptyList(),
+                redSpymasters = emptyList(),
+            )
         }
     }
 
