@@ -1,6 +1,5 @@
 package com.codenames.frontend.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.LobbyUiState
@@ -48,11 +47,8 @@ class LobbyViewModel
                         response.toLobbyState()
                     }
                     startPolling(response.lobbyCode)
-                    Log.d("LobbyViewModel", "Lobby created: ${response.lobbyCode}")
-                    Log.d("LobbyViewModel", "UI State: ${_state.value}")
                 } catch (e: Exception) {
                     setError(e.message)
-                    Log.e("LobbyViewModel", "Error creating lobby: ${e.message}")
                 } finally {
                     setLoading(false)
                 }
@@ -80,8 +76,6 @@ class LobbyViewModel
                     }
                     updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
-                    Log.d("LobbyViewModel", "Joined lobby: ${response.lobbyCode}")
-                    Log.d("LobbyViewModel", "UI State: ${_state.value}")
                 } catch (e: Exception) {
                     setError(e.message)
                 } finally {
@@ -116,7 +110,6 @@ class LobbyViewModel
                     successful = true
                 } catch (e: Exception) {
                     setError(e.message)
-                    Log.e("LobbyViewModel", "Error leaving lobby: ${e.message}")
                     successful = false
                 } finally {
                     setLoading(false)
@@ -131,11 +124,9 @@ class LobbyViewModel
             team: Team,
             username: String,
         ) {
-            Log.d("LobbyViewModel", "Changing role to: $role, team: $team, username: $username")
             val lobbyCode = _state.value.lobbyCode
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a Lobby")
-                Log.d("LobbyViewModel", "Not in a lobby")
                 return
             }
 
@@ -149,12 +140,8 @@ class LobbyViewModel
                         response.toLobbyState()
                     }
                     updateUiState(_state.value.players)
-                    Log.d("LobbyViewModel", "Role changed: $role")
-                    Log.d("LobbyViewModel", "Team changed: $team")
-                    Log.d("LobbyViewModel", "UI State: ${_state.value}")
                 } catch (e: Exception) {
                     setError(e.message)
-                    Log.e("LobbyViewModel", "Error changing role: ${e.message}")
                 } finally {
                     setLoading(false)
                 }
@@ -231,11 +218,9 @@ class LobbyViewModel
                             _state.update {
                                 response.toLobbyState()
                             }
-                            Log.d("LobbyViewModel", "Polling: ${_state.value}")
                             updateUiState(_state.value.players)
                         } catch (e: Exception) {
                             setError(e.message)
-                            Log.e("LobbyViewModel", "Error polling: ${e.message}")
                             return@launch
                         }
 
@@ -247,7 +232,6 @@ class LobbyViewModel
         private fun stopPolling() {
             pollingJob?.cancel()
             pollingJob = null
-            Log.d("LobbyViewModel", "Polling stopped")
         }
 
         private fun setError(msg: String?) {

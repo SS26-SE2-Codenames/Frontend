@@ -5,9 +5,15 @@ import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.LobbyRepository
 import com.codenames.frontend.network.dto.LobbyResponse
 import com.codenames.frontend.network.dto.PlayerDto
+import com.codenames.frontend.ui.roles.PlayerRoles
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -20,6 +26,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -160,13 +167,13 @@ class LobbyViewModelTest {
 
             coEvery { repository.joinLobby("User", "1234") } returns response
             coEvery { repository.getLobbyInfo(any()) } returns response
-            coEvery { repository.leaveLobby("User", "1234") } returns response2
+            coEvery { repository.leaveLobby("1234", "User") } returns response2
 
             val viewModel = LobbyViewModel(repository)
 
             viewModel.joinLobby("User", "1234")
             advanceTimeBy(2000)
-            viewModel.leaveLobby("User")
+            viewModel.leaveLobby("User", onResult = {})
 
             advanceTimeBy(2000)
 
@@ -174,7 +181,7 @@ class LobbyViewModelTest {
 
             val state = viewModel.state.value
 
-            assertEquals("", state.lobbyCode)
+            assertEquals(null, state.lobbyCode)
             assertFalse(state.isLoading)
             assertNull(state.error)
         }
@@ -199,7 +206,7 @@ class LobbyViewModelTest {
 
             advanceTimeBy(2000)
 
-            viewModel.leaveLobby("User")
+            viewModel.leaveLobby("User", onResult = {})
 
             advanceTimeBy(2000)
 
@@ -241,7 +248,7 @@ class LobbyViewModelTest {
 
             advanceTimeBy(2000)
 
-            viewModel.changeRole("User", newRole, newTeam)
+            viewModel.changeRole(newRole, newTeam, "User")
             viewModel.stopPollingForTest()
 
             advanceTimeBy(2000)
@@ -282,7 +289,7 @@ class LobbyViewModelTest {
 
             advanceTimeBy(2000)
 
-            viewModel.changeRole("User", Role.OPERATIVE, Team.RED)
+            viewModel.changeRole(Role.OPERATIVE, Team.RED,"User")
 
             advanceTimeBy(2000)
 
@@ -482,7 +489,7 @@ class LobbyViewModelTest {
 
             val viewModel = LobbyViewModel(repository)
 
-            viewModel.leaveLobby("User")
+            viewModel.leaveLobby("User", onResult = {})
 
             advanceUntilIdle()
 
@@ -500,7 +507,7 @@ class LobbyViewModelTest {
 
             val viewModel = LobbyViewModel(repository)
 
-            viewModel.changeRole("User", Role.OPERATIVE, Team.RED)
+            viewModel.changeRole( Role.OPERATIVE, Team.RED,"User")
 
             advanceUntilIdle()
 
@@ -510,4 +517,27 @@ class LobbyViewModelTest {
             assertFalse(state.isLoading)
             assertEquals("Not in a Lobby", state.error)
         }
+
+    @Test
+    fun changeRole_DelegatesCorrectly1() {
+        val repository = mockk<LobbyRepository>()
+        val viewModel = spyk<LobbyViewModel>(LobbyViewModel(repository), recordPrivateCalls = true)
+        viewModel.changeRole(PlayerRoles.BLUE_SPYMASTER, "Alice")
+
+        verify {
+            viewModel.changeRole(Role.SPYMASTER, Team.BLUE, "Alice")
+        }
+    }
+
+    @Test
+    fun changeRole_DelegatesCorrectly2() {
+        val repository = mockk<LobbyRepository>()
+        val viewModel = spyk<LobbyViewModel>(LobbyViewModel(repository), recordPrivateCalls = true)
+
+        viewModel.changeRole(PlayerRoles.RED_OPERATIVE, "Bob")
+
+        verify {
+            viewModel.changeRole(Role.OPERATIVE, Team.RED, "Bob")
+        }
+    }
 }
