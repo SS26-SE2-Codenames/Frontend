@@ -8,7 +8,6 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionViewModelTest {
-
     private lateinit var viewModel: SessionViewModel
 
     @Before

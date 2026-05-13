@@ -6,11 +6,8 @@ import com.codenames.frontend.data.repository.LobbyRepository
 import com.codenames.frontend.network.dto.LobbyResponse
 import com.codenames.frontend.network.dto.PlayerDto
 import com.codenames.frontend.ui.roles.PlayerRoles
-import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
@@ -26,7 +23,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -289,7 +285,7 @@ class LobbyViewModelTest {
 
             advanceTimeBy(2000)
 
-            viewModel.changeRole(Role.OPERATIVE, Team.RED,"User")
+            viewModel.changeRole(Role.OPERATIVE, Team.RED, "User")
 
             advanceTimeBy(2000)
 
@@ -507,7 +503,7 @@ class LobbyViewModelTest {
 
             val viewModel = LobbyViewModel(repository)
 
-            viewModel.changeRole( Role.OPERATIVE, Team.RED,"User")
+            viewModel.changeRole(Role.OPERATIVE, Team.RED, "User")
 
             advanceUntilIdle()
 
