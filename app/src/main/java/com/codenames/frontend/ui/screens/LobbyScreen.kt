@@ -46,6 +46,7 @@ import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
+import kotlinx.coroutines.launch
 
 private const val JOIN_TEAM: String = "JOIN TEAM"
 private const val TEAM_JOINED: String = "👤 1 joined"

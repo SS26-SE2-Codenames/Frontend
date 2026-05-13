@@ -226,6 +226,7 @@ class LobbyViewModel
         private fun stopPolling() {
             pollingJob?.cancel()
             pollingJob = null
+            Log.d("LobbyViewModel", "Polling stopped")
         }
 
         private fun setError(msg: String?) {

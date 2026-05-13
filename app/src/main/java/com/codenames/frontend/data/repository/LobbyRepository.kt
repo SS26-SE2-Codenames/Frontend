@@ -17,9 +17,9 @@ class LobbyRepository
         }
 
         suspend fun leaveLobby(
-            username: String,
             lobbyCode: String,
-        ): LobbyResponse = api.leaveLobby(username, lobbyCode)
+            username: String,
+        ): LobbyResponse = api.leaveLobby(lobbyCode, username)
 
         suspend fun joinLobby(
             username: String,
