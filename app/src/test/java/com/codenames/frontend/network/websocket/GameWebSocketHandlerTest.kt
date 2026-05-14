@@ -68,7 +68,7 @@ class GameWebSocketHandlerTest {
             wsClient.sendGuess(msg)
 
             coVerify {
-                session.convertAndSend("/game/guess", msg, GuessMessage.serializer())
+                session.convertAndSend("/app/game/guess", msg, GuessMessage.serializer())
             }
         }
 
@@ -79,18 +79,17 @@ class GameWebSocketHandlerTest {
             val client = mockk<StompClient>()
 
             coEvery {
-                session.subscribe<GameMessage>("/game/ABCDE")
+                session.subscribe<GameMessage>("/topic/game/ABCDE")
             } returns emptyFlow()
 
             val wsClient = GameWebSocketHandler(client)
             wsClient.session = session
 
-            wsClient.subscribeToLobby("ABCDE") // warnings can be ignored, only subscribe is tested here, not the return value
+            wsClient.subscribeToLobby("ABCDE")
 
-            // only check destination, ignore headers and payload
             coVerify {
                 session.subscribe(
-                    match { it.destination == "/game/ABCDE" },
+                    match { it.destination == "/topic/game/ABCDE" },
                     GameMessage.serializer(),
                 )
             }
@@ -110,7 +109,7 @@ class GameWebSocketHandlerTest {
             wsClient.sendLobbyJoinMessage(msg)
 
             coVerify {
-                session.convertAndSend("app/1234/join", msg, WebSocketJoinMessage.serializer())
+                session.convertAndSend("/app/join", msg, WebSocketJoinMessage.serializer())
             }
         }
 
