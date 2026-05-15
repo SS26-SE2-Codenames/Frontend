@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.screens.GameSettingsScreen
+import com.codenames.frontend.ui.screens.GameState
 import com.codenames.frontend.ui.screens.GameboardScreen
 import com.codenames.frontend.ui.screens.JoinlobbyScreen
 import com.codenames.frontend.ui.screens.LobbyScreen
@@ -150,14 +151,17 @@ fun GameScreenWrapper(
 
     GameboardScreen(
         userRole = effectiveRole,
-        currentHint = gameState.currentClue ?: "Waiting for hint...",
-        currentTurn = gameState.currentTurn,
-        winner = gameState.winner,
-        remainingGuesses = gameState.remainingGuesses,
-        currentRedFound = gameState.currentRedFound,
-        currentBlueFound = gameState.currentBlueFound,
-        cards = cards,
-        chatMessages = chatState.teamMessages,
+        gameState =
+            GameState(
+                currentHint = gameState.currentClue ?: "Waiting for hint...",
+                currentTurn = gameState.currentTurn,
+                winner = gameState.winner,
+                remainingGuesses = gameState.remainingGuesses,
+                currentRedFound = gameState.currentRedFound,
+                currentBlueFound = gameState.currentBlueFound,
+                cards = cards,
+                chatMessages = chatState.teamMessages,
+            ),
         onHintChange = {
             // TODO: Send clue through GameViewModel once backend endpoint exists.
         },

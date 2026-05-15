@@ -66,6 +66,17 @@ data class GameCard(
     val revealed: Boolean = false,
 )
 
+data class GameState(
+    val currentHint: String,
+    val cards: List<GameCard>,
+    val currentTurn: String = "",
+    val winner: String? = null,
+    val remainingGuesses: Int = 0,
+    val currentRedFound: Int = 0,
+    val currentBlueFound: Int = 0,
+    val chatMessages: List<ChatDomainModel> = emptyList(),
+)
+
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameTestScreen() {
@@ -97,18 +108,24 @@ fun GameTestScreen() {
     Row(modifier = Modifier.fillMaxSize()) {
         GameboardScreen(
             userRole = PlayerRoles.BLUE_SPYMASTER,
-            currentHint = currentHint,
+            gameState =
+                GameState(
+                    currentHint = currentHint,
+                    cards = cards,
+                ),
             onHintChange = { currentHint = it },
-            cards = cards,
             onReveal = {},
             modifier = Modifier.weight(1f),
         )
 
         GameboardScreen(
             userRole = PlayerRoles.BLUE_OPERATIVE,
-            currentHint = currentHint,
+            gameState =
+                GameState(
+                    currentHint = currentHint,
+                    cards = cards,
+                ),
             onHintChange = {},
-            cards = cards,
             onReveal = { index -> revealCard(index) },
             modifier = Modifier.weight(1f),
         )
@@ -119,20 +136,22 @@ fun GameTestScreen() {
 @Composable
 fun GameboardScreen(
     userRole: PlayerRoles,
-    currentHint: String,
+    gameState: GameState,
     onHintChange: (String) -> Unit,
-    cards: List<GameCard>,
     onReveal: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    currentTurn: String = "",
-    winner: String? = null,
-    remainingGuesses: Int = 0,
-    currentRedFound: Int = 0,
-    currentBlueFound: Int = 0,
-    chatMessages: List<ChatDomainModel> = emptyList(),
     onSendChatMessage: (String) -> Unit = {},
     onSettingsClick: (() -> Unit)? = null,
 ) {
+    val currentHint = gameState.currentHint
+    val cards = gameState.cards
+    val currentTurn = gameState.currentTurn
+    val winner = gameState.winner
+    val remainingGuesses = gameState.remainingGuesses
+    val currentRedFound = gameState.currentRedFound
+    val currentBlueFound = gameState.currentBlueFound
+    val chatMessages = gameState.chatMessages
+
     var hintInput by rememberSaveable { mutableStateOf("") }
     var chatInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
@@ -751,13 +770,16 @@ fun OfflineGameStateTestScreen() {
 
     GameboardScreen(
         userRole = PlayerRoles.BLUE_OPERATIVE,
-        currentHint = currentHint,
-        currentTurn = currentTurn,
-        remainingGuesses = remainingGuesses,
-        currentBlueFound = currentBlueFound,
-        currentRedFound = currentRedFound,
-        cards = cards,
-        chatMessages = chatMessages,
+        gameState =
+            GameState(
+                currentHint = currentHint,
+                currentTurn = currentTurn,
+                remainingGuesses = remainingGuesses,
+                currentBlueFound = currentBlueFound,
+                currentRedFound = currentRedFound,
+                cards = cards,
+                chatMessages = chatMessages,
+            ),
         onHintChange = { currentHint = it },
         onReveal = { index -> revealCard(index) },
         onSendChatMessage = {},

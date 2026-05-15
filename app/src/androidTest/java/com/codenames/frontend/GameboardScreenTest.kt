@@ -10,6 +10,7 @@ import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.screens.CardType
 import com.codenames.frontend.ui.screens.GameCard
+import com.codenames.frontend.ui.screens.GameState
 import com.codenames.frontend.ui.screens.GameboardScreen
 import org.junit.Rule
 import org.junit.Test
@@ -31,12 +32,15 @@ class GameboardScreenTest {
         composeRule.setContent {
             GameboardScreen(
                 userRole = PlayerRoles.BLUE_SPYMASTER,
-                currentHint = "EAGLE",
-                currentTurn = "BLUE",
-                remainingGuesses = 3,
-                currentBlueFound = 2,
-                currentRedFound = 1,
-                cards = cards,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = "BLUE",
+                        remainingGuesses = 3,
+                        currentBlueFound = 2,
+                        currentRedFound = 1,
+                        cards = cards,
+                    ),
                 onHintChange = {},
                 onReveal = {},
             )
@@ -55,8 +59,11 @@ class GameboardScreenTest {
         composeRule.setContent {
             GameboardScreen(
                 userRole = PlayerRoles.BLUE_OPERATIVE,
-                currentHint = "EAGLE",
-                cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
                 onHintChange = {},
                 onReveal = {},
             )
@@ -70,15 +77,18 @@ class GameboardScreenTest {
         composeRule.setContent {
             GameboardScreen(
                 userRole = PlayerRoles.BLUE_OPERATIVE,
-                currentHint = "EAGLE",
-                cards = listOf(GameCard("BERLIN", CardType.BLUE)),
-                chatMessages =
-                    listOf(
-                        ChatDomainModel(
-                            sender = "Max",
-                            text = "Take Berlin",
-                            isFromMe = false,
-                        ),
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                        chatMessages =
+                            listOf(
+                                ChatDomainModel(
+                                    sender = "Max",
+                                    text = "Take Berlin",
+                                    isFromMe = false,
+                                ),
+                            ),
                     ),
                 onHintChange = {},
                 onReveal = {},

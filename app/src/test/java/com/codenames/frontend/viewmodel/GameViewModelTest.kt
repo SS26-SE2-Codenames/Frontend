@@ -105,19 +105,19 @@ class GameViewModelTest {
         }
 
     @Test
-    fun connect_shouldSendJoinMessage() =
+    fun connect_shouldRegisterWebSocketSession() =
         runTest {
             val flow = flowOf(testMessage)
 
             coEvery { client.connectStomp() } just Runs
             coEvery { client.subscribeToLobby(lobbyCode) } returns flow
-            coEvery { client.sendLobbyJoinMessage(any()) } just Runs
+            coEvery { client.registerWebSocketSession(any()) } just Runs
 
             viewModel.connect(username, lobbyCode, team, role)
 
             advanceUntilIdle()
 
-            coVerify { client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode)) }
+            coVerify { client.registerWebSocketSession(WebSocketJoinMessage(username, lobbyCode)) }
         }
 
     @Test

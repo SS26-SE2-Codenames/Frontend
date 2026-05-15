@@ -96,7 +96,7 @@ class GameWebSocketHandlerTest {
         }
 
     @Test
-    fun testSendJoinMessage_sendsMessage(): Unit =
+    fun testRegisterWebSocketSessionSendsMessage() =
         runTest {
             val session = mockk<StompSessionWithKxSerialization>(relaxed = true)
             val client = mockk<StompClient>()
@@ -106,7 +106,7 @@ class GameWebSocketHandlerTest {
 
             val msg = WebSocketJoinMessage("name", "1234")
 
-            wsClient.sendLobbyJoinMessage(msg)
+            wsClient.registerWebSocketSession(msg)
 
             coVerify {
                 session.convertAndSend("/app/join", msg, WebSocketJoinMessage.serializer())

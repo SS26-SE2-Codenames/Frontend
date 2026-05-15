@@ -88,7 +88,7 @@ class GameViewModel
                             }
                         }
 
-                        client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode))
+                        client.registerWebSocketSession(WebSocketJoinMessage(username, lobbyCode))
                     } catch (e: Exception) {
                         _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
                     }
