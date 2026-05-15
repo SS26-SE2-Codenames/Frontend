@@ -1,12 +1,11 @@
 package com.codenames.frontend.viewmodel
 
 import com.codenames.frontend.data.model.enums.ChatTab
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
 class ChatViewModelTest {
-
     private lateinit var viewModel: ChatViewModel
 
     @Before
@@ -20,7 +19,7 @@ class ChatViewModelTest {
 
         assertEquals(
             "Hallo",
-            viewModel.uiState.value.currentInput
+            viewModel.uiState.value.currentInput,
         )
     }
 
@@ -33,7 +32,7 @@ class ChatViewModelTest {
 
         viewModel.sendMessage(
             username = "Max",
-            tab = ChatTab.GLOBAL
+            tab = ChatTab.GLOBAL,
         )
 
         val state = viewModel.uiState.value
@@ -53,14 +52,16 @@ class ChatViewModelTest {
 
         viewModel.sendMessage(
             "Max",
-            ChatTab.GLOBAL
+            ChatTab.GLOBAL,
         )
 
         assertEquals(
             "",
-            viewModel.uiState.value.currentInput
+            viewModel.uiState.value.currentInput,
         )
     }
+
+
 
     @Test
     fun sendMessage_blankMessage_doesNothing() {
@@ -71,7 +72,7 @@ class ChatViewModelTest {
 
         viewModel.sendMessage(
             "Max",
-            ChatTab.GLOBAL
+            ChatTab.GLOBAL,
         )
 
         val after =
@@ -79,4 +80,6 @@ class ChatViewModelTest {
 
         assertEquals(before, after)
     }
+
+
 }
