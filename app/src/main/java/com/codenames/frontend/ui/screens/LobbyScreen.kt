@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.LobbyUiState
@@ -113,6 +112,8 @@ fun LobbyScreen(
                 lobbyCode = lobbyUiState.lobbyCode ?: "",
                 currentRole = currentRole,
                 onStartGame = onStartGame,
+                viewModel = viewModel,
+                sessionViewModel = sessionViewModel
             )
 
             TeamColumn(
@@ -253,15 +254,15 @@ fun GameSettingsColumn(
     modifier: Modifier,
     navController: NavController,
     lobbyCode: String,
-    viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
-    sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    viewModel: LobbyViewModel,
+    sessionViewModel: SessionViewModel,
     currentRole: PlayerRoles,
     onStartGame: () -> Unit,
 ) {
     val usernameState by sessionViewModel.username.collectAsState()
     val canStart =
         usernameState.username.isNotBlank() &&
-            !lobbyCode.isNullOrBlank() &&
+                lobbyCode.isNotBlank() &&
             currentRole != PlayerRoles.NONE
 
     Column(

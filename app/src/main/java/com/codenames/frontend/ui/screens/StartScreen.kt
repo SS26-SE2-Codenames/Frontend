@@ -36,7 +36,7 @@ import com.codenames.frontend.viewmodel.SessionViewModel
 fun StartScreen(
     navController: NavHostController,
     lobbyViewModel: LobbyViewModel,
-    sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    sessionViewModel: SessionViewModel,
 ) {
     ForceLandscape()
 

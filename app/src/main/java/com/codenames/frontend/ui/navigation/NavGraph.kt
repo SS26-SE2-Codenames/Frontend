@@ -40,7 +40,10 @@ fun NavGraph(
         composable(
             Screen.Start.route,
         ) {
-            StartScreen(lobbyViewModel = lobbyViewModel, navController = navController)
+            StartScreen(
+                lobbyViewModel = lobbyViewModel,
+                navController = navController,
+                sessionViewModel = sessionViewModel)
         }
 
         composable(Screen.Lobby.route) {
