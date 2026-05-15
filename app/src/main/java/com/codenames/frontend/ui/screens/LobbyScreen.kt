@@ -1,6 +1,5 @@
 package com.codenames.frontend.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -223,7 +222,6 @@ fun RoleCard(
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(title, color = Color.White, fontWeight = FontWeight.Bold)
-        Log.d("LobbyScreen", "Players: $players")
         if (players.isEmpty()) {
             Text(
                 text = "No players",
