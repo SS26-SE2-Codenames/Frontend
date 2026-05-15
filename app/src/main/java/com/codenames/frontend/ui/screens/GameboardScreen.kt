@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -16,13 +17,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,10 +44,14 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.codenames.frontend.data.model.ChatDomainModel
+import com.codenames.frontend.data.model.ChatMessage
+import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
+import com.codenames.frontend.ui.buttons.AppButtonType
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.composables.GameBoardGrid
 import com.codenames.frontend.ui.inputs.AppTextField
@@ -53,7 +59,7 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
-import com.codenames.frontend.ui.buttons.AppButtonType
+import com.codenames.frontend.viewmodel.ChatViewModel
 
 enum class CardType {
     BLUE,
@@ -144,6 +150,7 @@ fun GameboardScreen(
     modifier: Modifier = Modifier,
     onSendChatMessage: (String) -> Unit = {},
     onSettingsClick: (() -> Unit)? = null,
+    chatViewModel: ChatViewModel = viewModel(),
 ) {
     val currentHint = gameState.currentHint
     val cards = gameState.cards
@@ -152,10 +159,9 @@ fun GameboardScreen(
     val remainingGuesses = gameState.remainingGuesses
     val currentRedFound = gameState.currentRedFound
     val currentBlueFound = gameState.currentBlueFound
-    val chatMessages = gameState.chatMessages
+    val chatUiState by chatViewModel.uiState.collectAsState()
 
     var hintInput by rememberSaveable { mutableStateOf("") }
-    var chatInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
     var selectedChatTab by rememberSaveable { mutableStateOf(ChatTab.GLOBAL) }
 
@@ -261,24 +267,23 @@ fun GameboardScreen(
 
         if (!isSpymaster && isChatOpen) {
             ChatWindow(
-                chatInput = chatInput,
-                messages = chatMessages,
+                chatInput = chatUiState.currentInput,
+                messages = chatUiState.messages,
                 selectedTab = selectedChatTab,
                 onTabSelected = { selectedChatTab = it },
-                onChatInputChange = { chatInput = it },
+                onChatInputChange = { chatViewModel.updateInput(it) },
                 onSendClick = { tab ->
-                    if (chatInput.isNotBlank()) {
-                        onSendChatMessage(chatInput)
-                        chatInput = ""
-                        focusManager.clearFocus()
-                        keyboardController?.hide()
-                    }
+                    chatViewModel.sendMessage(
+                        username = "Player1",
+                        tab = tab,
+                    )
                 },
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(end = 24.dp, bottom = 96.dp)
-                    .width(420.dp)
-                    .fillMaxHeight(0.78f),
+                modifier =
+                    Modifier
+                        .align(Alignment.Center)
+                        .padding(end = 24.dp, bottom = 96.dp)
+                        .width(420.dp)
+                        .fillMaxHeight(0.78f),
             )
         }
 
@@ -356,17 +361,11 @@ fun ChatToggleButton(
     )
 }
 
-enum class ChatTab(val title: String){
-    GLOBAL("Global"),
-    TEAM("Team"),
-    OPERATIVES("Operatives")
-}
-
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun ChatWindow(
     chatInput: String,
-    messages: List<ChatDomainModel>,
+    messages: List<ChatMessage>,
     selectedTab: ChatTab,
     onTabSelected: (ChatTab) -> Unit,
     onChatInputChange: (String) -> Unit,
@@ -381,26 +380,28 @@ fun ChatWindow(
                     shape = RoundedCornerShape(12.dp),
                 ).padding(12.dp),
         verticalArrangement = Arrangement.SpaceBetween,
-    ){
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ){
-            ChatTab.values().forEach { tab ->
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ChatTab.entries.forEach { tab ->
                 AppButton(
                     text = tab.title,
                     onClick = { onTabSelected(tab) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp),
-                    style = AppButtonStyle(
-                        type = AppButtonType.PRIMARY,
-                        containerColor = if (selectedTab == tab) Color.Unspecified else Color.Transparent,
-                        contentColor = if (selectedTab == tab) Color.Unspecified else Color.LightGray,
-                        fontSize = 11.sp,
-                        lineHeight = 12.sp,
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp)
-                    )
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .height(36.dp),
+                    style =
+                        AppButtonStyle(
+                            type = AppButtonType.PRIMARY,
+                            containerColor = if (selectedTab == tab) Color.Unspecified else Color.Transparent,
+                            contentColor = if (selectedTab == tab) Color.Unspecified else Color.LightGray,
+                            fontSize = 11.sp,
+                            lineHeight = 12.sp,
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                        ),
                 )
             }
         }
@@ -446,7 +447,7 @@ fun ChatWindow(
 
             AppButton(
                 text = "Send",
-                onClick = {onSendClick(selectedTab)},
+                onClick = { onSendClick(selectedTab) },
                 modifier =
                     Modifier
                         .width(92.dp)
@@ -465,7 +466,7 @@ fun ChatWindow(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun ChatMessagesArea(
-    messages: List<ChatDomainModel>,
+    messages: List<ChatMessage>,
     modifier: Modifier = Modifier,
     selectedTab: ChatTab,
 ) {
@@ -497,8 +498,12 @@ fun ChatMessagesArea(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                items(messages) { message ->
-                    ChatMessageBubble(message)
+                items(
+                    messages.filter {
+                        it.chatTab == selectedTab
+                    },
+                ) { message ->
+                    ChatMessageBubble(message = message)
                 }
             }
         }
@@ -507,7 +512,7 @@ fun ChatMessagesArea(
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun ChatMessageBubble(message: ChatDomainModel) {
+fun ChatMessageBubble(message: ChatMessage) {
     val alignment = if (message.isFromMe) Alignment.End else Alignment.Start
     val bubbleColor = if (message.isFromMe) Color(0xFF4CAF50) else Color(0xFFE0D8C8)
     val textColor = if (message.isFromMe) Color.White else Color(0xFF383330)
@@ -531,7 +536,7 @@ fun ChatMessageBubble(message: ChatDomainModel) {
                     .padding(8.dp),
         ) {
             Text(
-                text = message.text,
+                text = message.message,
                 color = textColor,
                 fontSize = 13.sp,
             )
@@ -736,9 +741,9 @@ fun getColor(type: CardType): Color =
 fun OfflineGameStateTestScreen() {
     var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
     var currentTurn by rememberSaveable { mutableStateOf("BLUE") }
-    var remainingGuesses by rememberSaveable { mutableStateOf(3) }
-    var currentBlueFound by rememberSaveable { mutableStateOf(0) }
-    var currentRedFound by rememberSaveable { mutableStateOf(0) }
+    var remainingGuesses by rememberSaveable { mutableIntStateOf(3) }
+    var currentBlueFound by rememberSaveable { mutableIntStateOf(0) }
+    var currentRedFound by rememberSaveable { mutableIntStateOf(0) }
 
     val cards =
         remember {
