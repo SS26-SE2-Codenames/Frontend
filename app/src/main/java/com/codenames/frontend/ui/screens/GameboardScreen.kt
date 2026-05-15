@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Text
@@ -39,6 +41,7 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -63,12 +66,22 @@ data class GameCard(
     val revealed: Boolean = false,
 )
 
+data class GameState(
+    val currentHint: String,
+    val cards: List<GameCard>,
+    val currentTurn: String = "",
+    val winner: String? = null,
+    val remainingGuesses: Int = 0,
+    val currentRedFound: Int = 0,
+    val currentBlueFound: Int = 0,
+    val chatMessages: List<ChatDomainModel> = emptyList(),
+)
+
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameTestScreen() {
     var currentHint by remember { mutableStateOf("Waiting for hint...") }
 
-    // will be replaced by backend call
     val cards =
         remember {
             mutableStateListOf(
@@ -95,18 +108,24 @@ fun GameTestScreen() {
     Row(modifier = Modifier.fillMaxSize()) {
         GameboardScreen(
             userRole = PlayerRoles.BLUE_SPYMASTER,
-            currentHint = currentHint,
+            gameState =
+                GameState(
+                    currentHint = currentHint,
+                    cards = cards,
+                ),
             onHintChange = { currentHint = it },
-            cards = cards,
             onReveal = {},
             modifier = Modifier.weight(1f),
         )
 
         GameboardScreen(
             userRole = PlayerRoles.BLUE_OPERATIVE,
-            currentHint = currentHint,
+            gameState =
+                GameState(
+                    currentHint = currentHint,
+                    cards = cards,
+                ),
             onHintChange = {},
-            cards = cards,
             onReveal = { index -> revealCard(index) },
             modifier = Modifier.weight(1f),
         )
@@ -117,13 +136,22 @@ fun GameTestScreen() {
 @Composable
 fun GameboardScreen(
     userRole: PlayerRoles,
-    currentHint: String,
+    gameState: GameState,
     onHintChange: (String) -> Unit,
-    cards: List<GameCard>,
     onReveal: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onSendChatMessage: (String) -> Unit = {},
     onSettingsClick: (() -> Unit)? = null,
 ) {
+    val currentHint = gameState.currentHint
+    val cards = gameState.cards
+    val currentTurn = gameState.currentTurn
+    val winner = gameState.winner
+    val remainingGuesses = gameState.remainingGuesses
+    val currentRedFound = gameState.currentRedFound
+    val currentBlueFound = gameState.currentBlueFound
+    val chatMessages = gameState.chatMessages
+
     var hintInput by rememberSaveable { mutableStateOf("") }
     var chatInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
@@ -132,8 +160,6 @@ fun GameboardScreen(
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-    val blueLeft = cards.count { it.type == CardType.BLUE && !it.revealed }
-    val redLeft = cards.count { it.type == CardType.RED && !it.revealed }
 
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -147,6 +173,14 @@ fun GameboardScreen(
                     .fillMaxSize()
                     .padding(top = 72.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
         ) {
+            GameStatusBar(
+                currentTurn = currentTurn,
+                winner = winner,
+                remainingGuesses = remainingGuesses,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Row(
                 modifier =
                     Modifier
@@ -156,35 +190,54 @@ fun GameboardScreen(
                 TeamSidebar(
                     userRole,
                     color = Team.BLUE,
-                    teamLeft = blueLeft,
+                    teamFound = currentBlueFound,
                     textColor = Color(0xFF1565C0),
                     gradient = blueGradient,
                 )
 
-                GameBoardGrid(
-                    cards,
-                    scale,
-                    offset,
-                    isSpymaster,
-                    onReveal,
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .padding(horizontal = 8.dp)
-                            .clipToBounds()
-                            .pointerInput(Unit) {
-                                detectTransformGestures { _, pan, zoom, _ ->
-                                    scale = (scale * zoom).coerceIn(0.5f, 3f)
-                                    offset += pan
-                                }
-                            },
-                )
+                if (cards.isEmpty()) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .padding(horizontal = 8.dp)
+                                .background(Color(0xFFE0D8C8), RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "Waiting for game state...",
+                            color = Color(0xFF383330),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                } else {
+                    GameBoardGrid(
+                        cards,
+                        scale,
+                        offset,
+                        isSpymaster,
+                        onReveal,
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .padding(horizontal = 8.dp)
+                                .clipToBounds()
+                                .pointerInput(Unit) {
+                                    detectTransformGestures { _, pan, zoom, _ ->
+                                        scale = (scale * zoom).coerceIn(0.5f, 3f)
+                                        offset += pan
+                                    }
+                                },
+                    )
+                }
 
                 TeamSidebar(
                     userRole,
                     color = Team.RED,
-                    teamLeft = redLeft,
+                    teamFound = currentRedFound,
                     textColor = Color(0xFFCF5530),
                     gradient = redGradient,
                 )
@@ -206,11 +259,15 @@ fun GameboardScreen(
         if (!isSpymaster && isChatOpen) {
             ChatWindow(
                 chatInput = chatInput,
+                messages = chatMessages,
                 onChatInputChange = { chatInput = it },
                 onSendClick = {
-                    chatInput = ""
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
+                    if (chatInput.isNotBlank()) {
+                        onSendChatMessage(chatInput)
+                        chatInput = ""
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                    }
                 },
                 modifier =
                     Modifier
@@ -242,6 +299,37 @@ fun GameboardScreen(
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
+fun GameStatusBar(
+    currentTurn: String,
+    winner: String?,
+    remainingGuesses: Int,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(40.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val statusText =
+            when {
+                !winner.isNullOrBlank() -> "Winner: $winner"
+                currentTurn.isNotBlank() -> "Turn: $currentTurn | Guesses: $remainingGuesses"
+                else -> "Waiting for turn..."
+            }
+
+        Text(
+            text = statusText,
+            color = Color(0xFF383330),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
 fun ChatToggleButton(
     isChatOpen: Boolean,
     onClick: () -> Unit,
@@ -268,6 +356,7 @@ fun ChatToggleButton(
 @Composable
 fun ChatWindow(
     chatInput: String,
+    messages: List<ChatDomainModel>,
     onChatInputChange: (String) -> Unit,
     onSendClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -282,6 +371,7 @@ fun ChatWindow(
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         ChatMessagesArea(
+            messages = messages,
             modifier =
                 Modifier
                     .weight(1f)
@@ -339,7 +429,10 @@ fun ChatWindow(
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun ChatMessagesArea(modifier: Modifier = Modifier) {
+fun ChatMessagesArea(
+    messages: List<ChatDomainModel>,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier =
             modifier
@@ -358,11 +451,55 @@ fun ChatMessagesArea(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        if (messages.isEmpty()) {
+            Text(
+                text = "No messages yet.",
+                color = Color(0xFF383330),
+                fontSize = 14.sp,
+            )
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                items(messages) { message ->
+                    ChatMessageBubble(message)
+                }
+            }
+        }
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun ChatMessageBubble(message: ChatDomainModel) {
+    val alignment = if (message.isFromMe) Alignment.End else Alignment.Start
+    val bubbleColor = if (message.isFromMe) Color(0xFF4CAF50) else Color(0xFFE0D8C8)
+    val textColor = if (message.isFromMe) Color.White else Color(0xFF383330)
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = alignment,
+    ) {
         Text(
-            text = "Messages will appear here.",
+            text = message.sender,
             color = Color(0xFF383330),
-            fontSize = 14.sp,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
         )
+
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth(0.78f)
+                    .background(bubbleColor, RoundedCornerShape(8.dp))
+                    .padding(8.dp),
+        ) {
+            Text(
+                text = message.text,
+                color = textColor,
+                fontSize = 13.sp,
+            )
+        }
     }
 }
 
@@ -371,7 +508,7 @@ fun ChatMessagesArea(modifier: Modifier = Modifier) {
 fun TeamSidebar(
     userRole: PlayerRoles,
     color: Team,
-    teamLeft: Int,
+    teamFound: Int,
     textColor: Color,
     gradient: Brush,
 ) {
@@ -379,6 +516,7 @@ fun TeamSidebar(
     val operative = if (isRed) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_OPERATIVE
     val spymaster = if (isRed) PlayerRoles.RED_SPYMASTER else PlayerRoles.BLUE_SPYMASTER
     val title = if (isRed) "RED TEAM" else "BLUE TEAM"
+
     Column(
         modifier =
             Modifier
@@ -392,6 +530,7 @@ fun TeamSidebar(
             color = textColor,
             fontSize = 12.sp,
         )
+
         Spacer(modifier = Modifier.height(8.dp))
 
         TeamRoleBox(
@@ -399,7 +538,9 @@ fun TeamSidebar(
             gradient = gradient,
             isCurrentUser = userRole == operative,
         )
+
         Spacer(modifier = Modifier.height(8.dp))
+
         TeamRoleBox(
             title = "SPYMASTERS",
             gradient = gradient,
@@ -407,11 +548,12 @@ fun TeamSidebar(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
         Text(
-            text = "$teamLeft LEFT",
+            text = "$teamFound FOUND",
             color = textColor,
             fontWeight = FontWeight.ExtraBold,
-            fontSize = 18.sp,
+            fontSize = 16.sp,
         )
     }
 }
@@ -502,7 +644,7 @@ fun TeamRoleBox(
         if (isCurrentUser) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "👤 You",
+                text = "You",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -525,6 +667,13 @@ fun CodenamesCard(
             else -> Color(0xFFE0D8C8)
         }
 
+    val contentColor =
+        if (!card.revealed && !isSpymaster) {
+            Color(0xFF383330)
+        } else {
+            Color.White
+        }
+
     AppButton(
         text = card.word,
         onClick = onClick,
@@ -532,7 +681,7 @@ fun CodenamesCard(
         style =
             AppButtonStyle(
                 containerColor = backgroundColor,
-                contentColor = Color.White,
+                contentColor = contentColor,
                 fontSize = 10.sp,
             ),
     )
@@ -545,3 +694,94 @@ fun getColor(type: CardType): Color =
         CardType.NEUTRAL -> Color(0xFF383330)
         CardType.ASSASSIN -> Color.Black
     }
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun OfflineGameStateTestScreen() {
+    var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
+    var currentTurn by rememberSaveable { mutableStateOf("BLUE") }
+    var remainingGuesses by rememberSaveable { mutableStateOf(3) }
+    var currentBlueFound by rememberSaveable { mutableStateOf(0) }
+    var currentRedFound by rememberSaveable { mutableStateOf(0) }
+
+    val cards =
+        remember {
+            mutableStateListOf(
+                GameCard("BERLIN", CardType.BLUE),
+                GameCard("RIVER", CardType.BLUE),
+                GameCard("MOON", CardType.BLUE),
+                GameCard("PIANO", CardType.BLUE),
+                GameCard("FOREST", CardType.BLUE),
+                GameCard("ROME", CardType.RED),
+                GameCard("APPLE", CardType.RED),
+                GameCard("TRAIN", CardType.RED),
+                GameCard("KING", CardType.RED),
+                GameCard("GLASS", CardType.RED),
+                GameCard("CHAIR", CardType.NEUTRAL),
+                GameCard("STONE", CardType.NEUTRAL),
+                GameCard("CLOUD", CardType.NEUTRAL),
+                GameCard("FIELD", CardType.NEUTRAL),
+                GameCard("WATCH", CardType.NEUTRAL),
+                GameCard("VIPER", CardType.ASSASSIN),
+                GameCard("BREAD", CardType.NEUTRAL),
+                GameCard("LASER", CardType.RED),
+                GameCard("BRIDGE", CardType.BLUE),
+                GameCard("QUEEN", CardType.RED),
+                GameCard("OCEAN", CardType.BLUE),
+                GameCard("MOUSE", CardType.NEUTRAL),
+                GameCard("PLANE", CardType.RED),
+                GameCard("SUN", CardType.BLUE),
+                GameCard("KEY", CardType.NEUTRAL),
+            )
+        }
+
+    val chatMessages =
+        listOf(
+            ChatDomainModel(
+                sender = "Max",
+                text = "I think BERLIN fits the hint.",
+                isFromMe = false,
+            ),
+            ChatDomainModel(
+                sender = "You",
+                text = "Maybe RIVER too.",
+                isFromMe = true,
+            ),
+        )
+
+    fun revealCard(index: Int) {
+        val card = cards[index]
+
+        if (card.revealed) return
+
+        cards[index] = card.copy(revealed = true)
+
+        when (card.type) {
+            CardType.BLUE -> currentBlueFound++
+            CardType.RED -> currentRedFound++
+            CardType.NEUTRAL -> currentTurn = if (currentTurn == "BLUE") "RED" else "BLUE"
+            CardType.ASSASSIN -> currentTurn = "GAME OVER"
+        }
+
+        if (remainingGuesses > 0) {
+            remainingGuesses--
+        }
+    }
+
+    GameboardScreen(
+        userRole = PlayerRoles.BLUE_OPERATIVE,
+        gameState =
+            GameState(
+                currentHint = currentHint,
+                currentTurn = currentTurn,
+                remainingGuesses = remainingGuesses,
+                currentBlueFound = currentBlueFound,
+                currentRedFound = currentRedFound,
+                cards = cards,
+                chatMessages = chatMessages,
+            ),
+        onHintChange = { currentHint = it },
+        onReveal = { index -> revealCard(index) },
+        onSendChatMessage = {},
+    )
+}

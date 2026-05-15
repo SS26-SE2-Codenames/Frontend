@@ -1,11 +1,9 @@
 package com.codenames.frontend.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -13,21 +11,26 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.codenames.frontend.ui.roles.PlayerRoles
-import com.codenames.frontend.ui.screens.CardType
-import com.codenames.frontend.ui.screens.GameCard
 import com.codenames.frontend.ui.screens.GameSettingsScreen
-import com.codenames.frontend.ui.screens.GameTestScreen
+import com.codenames.frontend.ui.screens.GameState
 import com.codenames.frontend.ui.screens.GameboardScreen
 import com.codenames.frontend.ui.screens.JoinlobbyScreen
 import com.codenames.frontend.ui.screens.LobbyScreen
+import com.codenames.frontend.ui.screens.OfflineGameStateTestScreen
 import com.codenames.frontend.ui.screens.SettingsScreen
 import com.codenames.frontend.ui.screens.StartScreen
 import com.codenames.frontend.ui.screens.UserNameScreen
+import com.codenames.frontend.ui.toGameCard
+import com.codenames.frontend.ui.toPlayerRole
+import com.codenames.frontend.viewmodel.GameViewModel
+import com.codenames.frontend.viewmodel.LobbyViewModel
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
 fun NavGraph() {
     val navController = rememberNavController()
+    val lobbyViewModel: LobbyViewModel = hiltViewModel()
+    val gameViewModel: GameViewModel = hiltViewModel()
 
     NavHost(
         navController = navController,
@@ -43,25 +46,57 @@ fun NavGraph() {
                 listOf(
                     navArgument("username") { type = NavType.StringType },
                 ),
-        ) {
-            StartScreen(navController)
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username").orEmpty()
+
+            StartScreen(
+                navController = navController,
+                username = username,
+                lobbyViewModel = lobbyViewModel,
+            )
         }
 
         composable(Screen.Lobby.route) {
-            LobbyScreen(navController)
-        }
+            val lobbyState by lobbyViewModel.state.collectAsState()
+            val currentUsername =
+                lobbyState.players
+                    .firstOrNull { it.isHost }
+                    ?.name
+                    .orEmpty()
 
-        composable(Screen.JoinLobby.route) {
-            JoinlobbyScreen(navController)
+            LobbyScreen(
+                navController = navController,
+                username = currentUsername,
+                lobbyViewModel = lobbyViewModel,
+                gameViewModel = gameViewModel,
+            )
         }
 
         composable(
-            route = "${Screen.Gameboard.route}/{role}",
+            route = "${Screen.JoinLobby.route}/{username}",
             arguments =
                 listOf(
+                    navArgument("username") { type = NavType.StringType },
+                ),
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username").orEmpty()
+
+            JoinlobbyScreen(
+                navController = navController,
+                username = username,
+                lobbyViewModel = lobbyViewModel,
+            )
+        }
+
+        composable(
+            route = "${Screen.Gameboard.route}/{username}/{role}",
+            arguments =
+                listOf(
+                    navArgument("username") { type = NavType.StringType },
                     navArgument("role") { type = NavType.StringType },
                 ),
         ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username").orEmpty()
             val roleString =
                 backStackEntry.arguments?.getString("role") ?: PlayerRoles.NONE.name
 
@@ -74,7 +109,10 @@ fun NavGraph() {
 
             GameScreenWrapper(
                 navController = navController,
+                username = username,
                 userRole = passedRole,
+                lobbyViewModel = lobbyViewModel,
+                gameViewModel = gameViewModel,
             )
         }
 
@@ -87,7 +125,7 @@ fun NavGraph() {
         }
 
         composable("game_test") {
-            GameTestScreen()
+            OfflineGameStateTestScreen()
         }
     }
 }
@@ -96,40 +134,49 @@ fun NavGraph() {
 @Suppress("ktlint:standard:function-naming")
 fun GameScreenWrapper(
     navController: NavHostController,
+    username: String,
     userRole: PlayerRoles,
+    lobbyViewModel: LobbyViewModel,
+    gameViewModel: GameViewModel,
 ) {
-    var currentHint by remember { mutableStateOf("Waiting for hint...") }
+    val lobbyState by lobbyViewModel.state.collectAsState()
+    val gameState by gameViewModel.uiState.collectAsState()
+    val chatState by gameViewModel.chatState.collectAsState()
 
-    val cards =
-        remember {
-            mutableStateListOf(
-                *List(25) {
-                    GameCard(
-                        word = "Word ${it + 1}",
-                        type =
-                            when (it) {
-                                0 -> CardType.ASSASSIN
-                                in 1..8 -> CardType.BLUE
-                                in 9..15 -> CardType.RED
-                                else -> CardType.NEUTRAL
-                            },
-                    )
-                }.toTypedArray(),
-            )
-        }
-
-    fun revealCard(index: Int) {
-        val card = cards[index]
-        cards[index] = card.copy(revealed = true)
-    }
+    val currentPlayer = lobbyState.players.firstOrNull { it.name == username }
+    val effectiveRole = currentPlayer?.toPlayerRole() ?: userRole
+    val team = currentPlayer?.team
+    val lobbyCode = lobbyState.lobbyCode.orEmpty()
+    val cards = gameState.cardList.map { it.toGameCard() }
 
     GameboardScreen(
-        userRole = userRole,
-        currentHint = currentHint,
-        onHintChange = { currentHint = it },
-        cards = cards,
-        onReveal = { index ->
-            revealCard(index)
+        userRole = effectiveRole,
+        gameState =
+            GameState(
+                currentHint = gameState.currentClue ?: "Waiting for hint...",
+                currentTurn = gameState.currentTurn,
+                winner = gameState.winner,
+                remainingGuesses = gameState.remainingGuesses,
+                currentRedFound = gameState.currentRedFound,
+                currentBlueFound = gameState.currentBlueFound,
+                cards = cards,
+                chatMessages = chatState.teamMessages,
+            ),
+        onHintChange = {
+            // TODO: Send clue through GameViewModel once backend endpoint exists.
+        },
+        onReveal = {
+            // TODO: Send guess through GameViewModel once backend endpoint exists.
+        },
+        onSendChatMessage = { message ->
+            if (lobbyCode.isNotBlank() && team != null) {
+                gameViewModel.sendTeamMessage(
+                    lobbyCode = lobbyCode,
+                    team = team.name,
+                    username = username,
+                    content = message,
+                )
+            }
         },
         onSettingsClick = {
             navController.navigate(Screen.Settings.route)

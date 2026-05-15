@@ -12,7 +12,7 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConver
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import javax.inject.Inject
 
-const val BASE_URL = "ws://localhost:8080/ws"
+const val BASE_URL = "ws://localhost:8080/ws-fallback"
 
 class GameWebSocketHandler
     @Inject
@@ -21,22 +21,20 @@ class GameWebSocketHandler
     ) {
         lateinit var session: StompSessionWithKxSerialization
 
-        // called by GameViewModel
         suspend fun connectStomp() {
             session = client.connect(BASE_URL).withJsonConversions()
         }
 
         suspend fun sendGuess(msg: GuessMessage) {
-            session.convertAndSend("/game/guess", msg, GuessMessage.serializer())
+            session.convertAndSend("/app/game/guess", msg, GuessMessage.serializer())
         }
 
-        // suspend is necessary here, because api calls are suspending functions
         @Suppress("kotlin:S6309")
-        suspend fun subscribeToLobby(lobbyCode: String): Flow<GameMessage> = session.subscribe("/game/$lobbyCode", GameMessage.serializer())
+        suspend fun subscribeToLobby(lobbyCode: String): Flow<GameMessage> =
+            session.subscribe("/topic/game/$lobbyCode", GameMessage.serializer())
 
-        suspend fun sendLobbyJoinMessage(msg: WebSocketJoinMessage) {
-            val lobbyCode = msg.lobbyCode
-            session.convertAndSend("app/$lobbyCode/join", msg, WebSocketJoinMessage.serializer())
+        suspend fun registerWebSocketSession(msg: WebSocketJoinMessage) {
+            session.convertAndSend("/app/join", msg, WebSocketJoinMessage.serializer())
         }
 
         suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> = session.subscribe(topicPath, ChatMessageDto.serializer())

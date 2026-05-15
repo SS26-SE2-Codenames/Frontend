@@ -11,7 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,6 +41,7 @@ import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.inputs.AppTextFieldType
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.viewmodel.LobbyViewModel
 
 internal const val JOIN_LOBBY_INPUT_TAG = "join_lobby_input"
 internal const val JOIN_LOBBY_BUTTON_TAG = "join_lobby_button"
@@ -53,13 +57,26 @@ internal fun isLobbyIdValid(lobbyId: String): Boolean = lobbyId.isNotBlank()
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun JoinlobbyScreen(navController: NavHostController) {
+fun JoinlobbyScreen(
+    navController: NavHostController,
+    username: String,
+    lobbyViewModel: LobbyViewModel,
+) {
     ForceLandscape()
 
+    val lobbyState by lobbyViewModel.state.collectAsState()
+
     var lobbyId by rememberSaveable { mutableStateOf("") }
+    var joinSubmitted by rememberSaveable { mutableStateOf(false) }
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(lobbyState.lobbyCode, joinSubmitted) {
+        if (joinSubmitted && !lobbyState.lobbyCode.isNullOrBlank()) {
+            navController.navigate(Screen.Lobby.route)
+        }
+    }
 
     val blueGradient =
         Brush.verticalGradient(
@@ -70,15 +87,15 @@ fun JoinlobbyScreen(navController: NavHostController) {
                 ),
         )
 
-    val joinEnabled = isLobbyIdValid(lobbyId)
+    val joinEnabled = isLobbyIdValid(lobbyId) && !lobbyState.isLoading
 
     fun submitJoin() {
         if (!joinEnabled) return
 
         keyboardController?.hide()
         focusManager.clearFocus()
-
-        // Hier später den echten Frontend-Join-Flow anschließen.
+        joinSubmitted = true
+        lobbyViewModel.joinLobby(username, lobbyId)
     }
 
     Box(
@@ -148,6 +165,24 @@ fun JoinlobbyScreen(navController: NavHostController) {
                         lineHeight = 30.sp,
                     ),
             )
+
+            if (lobbyState.isLoading) {
+                Text(
+                    text = "Joining...",
+                    color = Color(0xFF383330),
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
+
+            lobbyState.error?.let { error ->
+                Text(
+                    text = error,
+                    color = Color(0xFFCF5530),
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
         }
 
         SettingsCornerButton(

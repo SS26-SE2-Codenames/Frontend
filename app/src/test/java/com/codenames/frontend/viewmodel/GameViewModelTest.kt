@@ -4,6 +4,7 @@ import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.ChatRepository
+import com.codenames.frontend.network.dto.CardDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
@@ -104,19 +105,19 @@ class GameViewModelTest {
         }
 
     @Test
-    fun connect_shouldSendJoinMessage() =
+    fun connect_shouldRegisterWebSocketSession() =
         runTest {
             val flow = flowOf(testMessage)
 
             coEvery { client.connectStomp() } just Runs
             coEvery { client.subscribeToLobby(lobbyCode) } returns flow
-            coEvery { client.sendLobbyJoinMessage(any()) } just Runs
+            coEvery { client.registerWebSocketSession(any()) } just Runs
 
             viewModel.connect(username, lobbyCode, team, role)
 
             advanceUntilIdle()
 
-            coVerify { client.sendLobbyJoinMessage(WebSocketJoinMessage(username, lobbyCode)) }
+            coVerify { client.registerWebSocketSession(WebSocketJoinMessage(username, lobbyCode)) }
         }
 
     @Test
@@ -223,5 +224,34 @@ class GameViewModelTest {
 
             val currentMessageList = viewModel.chatState.value.operativeMessages
             assertTrue(currentMessageList.isEmpty())
+        }
+
+    @Test
+    fun handleMessage_updatesGameState() =
+        runTest {
+            val message =
+                GameMessage(
+                    winner = null,
+                    currentTurn = "BLUE",
+                    currentRedFound = 1,
+                    currentBlueFound = 2,
+                    currentClue = "EAGLE",
+                    remainingGuesses = 3,
+                    cardList =
+                        listOf(
+                            CardDto("BERLIN", "BLUE", false),
+                            CardDto("ROME", "RED", true),
+                        ),
+                )
+
+            viewModel.handleMessage(message)
+
+            val state = viewModel.uiState.value
+
+            assertEquals("BLUE", state.currentTurn)
+            assertEquals("EAGLE", state.currentClue)
+            assertEquals(3, state.remainingGuesses)
+            assertEquals(2, state.cardList.size)
+            assertEquals("BERLIN", state.cardList[0].word)
         }
 }

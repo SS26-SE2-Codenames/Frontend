@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -24,14 +22,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.codenames.frontend.data.model.LobbyUiState
+import com.codenames.frontend.data.model.Player
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.toPlayerRole
+import com.codenames.frontend.ui.toTeamAndRole
+import com.codenames.frontend.viewmodel.GameViewModel
+import com.codenames.frontend.viewmodel.LobbyViewModel
 
 val blueGradient =
     Brush.verticalGradient(
@@ -70,13 +73,61 @@ val greenGradient =
     )
 
 private const val JOIN_TEAM: String = "JOIN TEAM"
-private const val TEAM_JOINED: String = "👤 1 joined"
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun LobbyScreen(navController: NavHostController) {
-    var currentRole by remember { mutableStateOf(PlayerRoles.NONE) }
+fun LobbyScreen(
+    navController: NavHostController,
+    username: String,
+    lobbyViewModel: LobbyViewModel,
+    gameViewModel: GameViewModel,
+) {
+    val lobbyState by lobbyViewModel.state.collectAsState()
+    val currentPlayer = lobbyState.players.firstOrNull { it.name == username }
+    val currentRole = currentPlayer?.toPlayerRole() ?: PlayerRoles.NONE
 
+    LobbyContent(
+        username = username,
+        lobbyState = lobbyState,
+        currentRole = currentRole,
+        onRoleSelect = { selectedRole ->
+            selectedRole.toTeamAndRole()?.let { (team, role) ->
+                lobbyViewModel.changeRole(username, role, team)
+            }
+        },
+        onStartGame = {
+            val lobbyCode = lobbyState.lobbyCode.orEmpty()
+            val teamAndRole = currentRole.toTeamAndRole()
+
+            if (lobbyCode.isNotBlank() && teamAndRole != null) {
+                val (team, role) = teamAndRole
+
+                gameViewModel.connect(
+                    username = username,
+                    lobbyCode = lobbyCode,
+                    team = team.name,
+                    role = role.name,
+                )
+
+                navController.navigate("${Screen.Gameboard.route}/$username/${currentRole.name}")
+            }
+        },
+        onSettingsClick = {
+            navController.navigate(Screen.Settings.route)
+        },
+    )
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun LobbyContent(
+    username: String,
+    lobbyState: LobbyUiState,
+    currentRole: PlayerRoles,
+    onRoleSelect: (PlayerRoles) -> Unit,
+    onStartGame: () -> Unit,
+    onSettingsClick: () -> Unit,
+) {
     Box(
         modifier =
             Modifier
@@ -98,12 +149,15 @@ fun LobbyScreen(navController: NavHostController) {
                 textColor = Color(0xFF42A5F5),
                 title = "BLUE TEAM",
                 currentRole = currentRole,
-                onRoleSelect = { currentRole = it },
+                players = lobbyState.players,
+                onRoleSelect = onRoleSelect,
             )
 
             GameSettingsColumn(
+                username = username,
+                lobbyCode = lobbyState.lobbyCode,
                 currentRole = currentRole,
-                navController = navController,
+                onStartGame = onStartGame,
             )
 
             TeamColumn(
@@ -113,12 +167,25 @@ fun LobbyScreen(navController: NavHostController) {
                 textColor = Color(0xFFDE8468),
                 title = "RED TEAM",
                 currentRole = currentRole,
-                onRoleSelect = { currentRole = it },
+                players = lobbyState.players,
+                onRoleSelect = onRoleSelect,
+            )
+        }
+
+        lobbyState.error?.let { error ->
+            Text(
+                text = error,
+                color = Color(0xFFCF5530),
+                fontSize = 16.sp,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 16.dp),
             )
         }
 
         SettingsCornerButton(
-            onClick = { navController.navigate(Screen.Settings.route) },
+            onClick = onSettingsClick,
         )
     }
 }
@@ -132,9 +199,11 @@ fun TeamColumn(
     textColor: Color,
     title: String,
     currentRole: PlayerRoles,
+    players: List<Player>,
     onRoleSelect: (PlayerRoles) -> Unit,
 ) {
     val align = if (color == Team.RED) Alignment.End else Alignment.Start
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -166,6 +235,7 @@ fun TeamColumn(
         RoleCard(
             role = if (color == Team.RED) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_OPERATIVE,
             currentRole = currentRole,
+            players = players,
             onRoleSelect = onRoleSelect,
             modifier = cardModifier,
             title = "OPERATIVES",
@@ -174,6 +244,7 @@ fun TeamColumn(
         RoleCard(
             role = if (color == Team.RED) PlayerRoles.RED_SPYMASTER else PlayerRoles.BLUE_SPYMASTER,
             currentRole = currentRole,
+            players = players,
             onRoleSelect = onRoleSelect,
             modifier = cardModifier,
             title = "SPYMASTERS",
@@ -186,23 +257,54 @@ fun TeamColumn(
 fun RoleCard(
     role: PlayerRoles,
     currentRole: PlayerRoles,
+    players: List<Player>,
     onRoleSelect: (PlayerRoles) -> Unit,
     modifier: Modifier,
     title: String,
 ) {
+    val playersInRole = players.filter { it.toPlayerRole() == role }
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(title, color = Color.White, fontWeight = FontWeight.Bold)
+        Text(
+            text = title,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+        )
 
-        if (currentRole == role) {
-            Text(
-                text = TEAM_JOINED,
-                color = Color.White,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            if (playersInRole.isEmpty()) {
+                Text(
+                    text = "No players",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 12.sp,
+                )
+            } else {
+                playersInRole.forEach { player ->
+                    Text(
+                        text = player.name,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight =
+                            if (currentRole == role) {
+                                FontWeight.Bold
+                            } else {
+                                FontWeight.Normal
+                            },
+                    )
+                }
+            }
         }
 
         AppButton(
@@ -220,9 +322,16 @@ fun RoleCard(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameSettingsColumn(
+    username: String,
+    lobbyCode: String?,
     currentRole: PlayerRoles,
-    navController: NavController,
+    onStartGame: () -> Unit,
 ) {
+    val canStart =
+        username.isNotBlank() &&
+            !lobbyCode.isNullOrBlank() &&
+            currentRole != PlayerRoles.NONE
+
     Column(
         modifier = Modifier.padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.Center,
@@ -247,13 +356,33 @@ fun GameSettingsColumn(
                 modifier = Modifier.padding(bottom = 16.dp),
             )
 
+            Text(
+                text = "Lobby: ${lobbyCode ?: "-"}",
+                color = Color.White,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+
+            Text(
+                text = "Player: ${username.ifBlank { "-" }}",
+                color = Color.White,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+
+            Text(
+                text = "Role: ${currentRole.name}",
+                color = Color.White,
+                fontSize = 16.sp,
+            )
+
             AppButton(
                 text = "TIMER: OFF",
-                onClick = { /* TODO: Timer Logik */ },
+                onClick = { },
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                        .padding(top = 24.dp),
                 style =
                     AppButtonStyle(
                         containerColor = Color(0xFF555555),
@@ -265,9 +394,7 @@ fun GameSettingsColumn(
 
         AppButton(
             text = "START GAME",
-            onClick = {
-                navController.navigate("${Screen.Gameboard.route}/${currentRole.name}")
-            },
+            onClick = onStartGame,
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
@@ -277,6 +404,7 @@ fun GameSettingsColumn(
                     .padding(top = 12.dp),
             style =
                 AppButtonStyle(
+                    enabled = canStart,
                     backgroundBrush = greenGradient,
                     fontSize = 28.sp,
                     lineHeight = 30.sp,
