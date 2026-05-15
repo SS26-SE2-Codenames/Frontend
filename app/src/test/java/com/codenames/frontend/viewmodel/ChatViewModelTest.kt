@@ -61,8 +61,6 @@ class ChatViewModelTest {
         )
     }
 
-
-
     @Test
     fun sendMessage_blankMessage_doesNothing() {
         viewModel.updateInput("     ")
@@ -80,6 +78,4 @@ class ChatViewModelTest {
 
         assertEquals(before, after)
     }
-
-
 }
