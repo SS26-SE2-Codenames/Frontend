@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -36,7 +35,7 @@ import com.codenames.frontend.viewmodel.SessionViewModel
 @Composable
 fun UserNameScreen(
     navController: NavController,
-    viewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    viewModel: SessionViewModel,
 ) {
     var username by remember { mutableStateOf("") }
 

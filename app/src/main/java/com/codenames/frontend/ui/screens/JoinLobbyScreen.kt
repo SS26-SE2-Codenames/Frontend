@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,7 +30,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -61,10 +61,10 @@ fun isLobbyIdValid(lobbyId: String): Boolean =
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun JoinLobbyScreen(
+fun JoinlobbyScreen(
     navController: NavHostController,
-    viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
-    sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    viewModel: LobbyViewModel,
+    sessionViewModel: SessionViewModel,
 ) {
     ForceLandscape()
 
@@ -161,6 +161,24 @@ fun JoinLobbyScreen(
                         lineHeight = 30.sp,
                     ),
             )
+
+            if (state.isLoading) {
+                Text(
+                    text = "Joining...",
+                    color = Color(0xFF383330),
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
+
+            state.error?.let { error ->
+                Text(
+                    text = error,
+                    color = Color(0xFFCF5530),
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
         }
 
         SettingsCornerButton(

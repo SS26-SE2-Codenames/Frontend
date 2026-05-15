@@ -35,16 +35,16 @@ import com.codenames.frontend.viewmodel.SessionViewModel
 @Composable
 fun StartScreen(
     navController: NavHostController,
-    viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    lobbyViewModel: LobbyViewModel,
     sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
 ) {
     ForceLandscape()
 
-    val state by viewModel.state.collectAsState()
+    val lobbyState by lobbyViewModel.state.collectAsState()
     val usernameState by sessionViewModel.username.collectAsState()
 
-    LaunchedEffect(state.lobbyCode, state.error, state.isLoading) {
-        if (!state.isLoading && state.error == null && state.lobbyCode != null) {
+    LaunchedEffect(lobbyState.lobbyCode, lobbyState.error, lobbyState.isLoading) {
+        if (!lobbyState.isLoading && lobbyState.error == null && lobbyState.lobbyCode != null) {
             navController.navigate(Screen.Lobby.route)
         }
     }
@@ -71,7 +71,7 @@ fun StartScreen(
                 AppButton(
                     text = "Create Lobby",
                     onClick = {
-                        viewModel.createLobby(usernameState.username)
+                        lobbyViewModel.createLobby(usernameState.username)
                     },
                     modifier =
                         Modifier
@@ -81,6 +81,7 @@ fun StartScreen(
                             .padding(bottom = 12.dp, end = 12.dp),
                     style =
                         AppButtonStyle(
+                            enabled = !lobbyState.isLoading,
                             backgroundBrush = greenGradient,
                             fontSize = 26.sp,
                             lineHeight = 30.sp,
@@ -100,30 +101,48 @@ fun StartScreen(
                             .padding(bottom = 12.dp, start = 12.dp),
                     style =
                         AppButtonStyle(
+                            enabled = !lobbyState.isLoading,
                             backgroundBrush = blueGradient,
+                            fontSize = 26.sp,
+                            lineHeight = 30.sp,
+                        ),
+                )
+
+                AppButton(
+                    text = "Offline UI Test",
+                    onClick = {
+                        navController.navigate("game_test")
+                    },
+                    modifier =
+                        Modifier
+                            .width(200.dp)
+                            .height(100.dp)
+                            .padding(bottom = 12.dp, start = 12.dp),
+                    style =
+                        AppButtonStyle(
+                            backgroundBrush = greenGradient,
                             fontSize = 26.sp,
                             lineHeight = 30.sp,
                         ),
                 )
             }
 
-            AppButton(
-                text = "test Mode",
-                onClick = {
-                    navController.navigate("game_test")
-                },
-                modifier =
-                    Modifier
-                        .width(200.dp)
-                        .height(100.dp)
-                        .padding(bottom = 12.dp),
-                style =
-                    AppButtonStyle(
-                        backgroundBrush = greenGradient,
-                        fontSize = 26.sp,
-                        lineHeight = 30.sp,
-                    ),
-            )
+            if (lobbyState.isLoading) {
+                Text(
+                    text = "Loading...",
+                    color = Color(0xFF383330),
+                    fontSize = 22.sp,
+                )
+            }
+
+            lobbyState.error?.let { error ->
+                Text(
+                    text = error,
+                    color = Color(0xFFCF5530),
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
         }
 
         SettingsCornerButton(

@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 
-const val BASE_URL = "http://192.168.0.134:8080/"
+const val BASE_URL = "http://localhost:8080/"
 
 @Module
 @InstallIn(SingletonComponent::class)

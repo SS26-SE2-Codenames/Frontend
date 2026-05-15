@@ -41,6 +41,9 @@ import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.brownGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
+import com.codenames.frontend.ui.toPlayerRole
+import com.codenames.frontend.ui.toTeamAndRole
+import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
 
@@ -50,11 +53,32 @@ private const val JOIN_TEAM: String = "JOIN TEAM"
 @Composable
 fun LobbyScreen(
     navController: NavHostController,
-    viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
-    sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    viewModel: LobbyViewModel,
+    sessionViewModel: SessionViewModel,
+    gameViewModel: GameViewModel,
 ) {
     val usernameState by sessionViewModel.username.collectAsState()
     val lobbyUiState by viewModel.state.collectAsState()
+    val currentPlayer = lobbyUiState.players.firstOrNull { it.name == usernameState.username }
+    val currentRole = currentPlayer?.toPlayerRole() ?: PlayerRoles.NONE
+
+    val onStartGame = {
+        val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
+        val teamAndRole = currentRole.toTeamAndRole()
+
+        if (lobbyCode.isNotBlank() && teamAndRole != null) {
+            val (team, role) = teamAndRole
+
+            gameViewModel.connect(
+                username = usernameState.username,
+                lobbyCode = lobbyCode,
+                team = team.name,
+                role = role.name,
+            )
+
+            navController.navigate("${Screen.Gameboard.route}/${usernameState.username}/${currentRole.name}")
+        }
+    }
 
     Box(
         modifier =
@@ -87,6 +111,8 @@ fun LobbyScreen(
                         .fillMaxHeight(),
                 navController = navController,
                 lobbyCode = lobbyUiState.lobbyCode ?: "",
+                currentRole = currentRole,
+                onStartGame = onStartGame,
             )
 
             TeamColumn(
@@ -100,8 +126,22 @@ fun LobbyScreen(
             )
         }
 
+        lobbyUiState.error?.let { error ->
+            Text(
+                text = error,
+                color = Color(0xFFCF5530),
+                fontSize = 16.sp,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 16.dp),
+            )
+        }
+
         SettingsCornerButton(
-            onClick = { navController.navigate(Screen.Settings.route) },
+            onClick = {
+                navController.navigate(Screen.Settings.route)
+            },
         )
     }
 }
@@ -118,6 +158,7 @@ fun TeamColumn(
     lobbyUiState: LobbyUiState,
 ) {
     val align = if (color == Team.RED) Alignment.End else Alignment.Start
+
     Column(
         modifier =
             modifier
@@ -182,8 +223,16 @@ fun RoleCard(
     ) {
         Text(title, color = Color.White, fontWeight = FontWeight.Bold)
         Log.d("LobbyScreen", "Players: $players")
-        for (player in players) {
-            Text(player, color = Color.White)
+        if (players.isEmpty()) {
+            Text(
+                text = "No players",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 12.sp,
+            )
+        } else {
+            for (player in players) {
+                Text(player, color = Color.White)
+            }
         }
 
         AppButton(
@@ -206,8 +255,15 @@ fun GameSettingsColumn(
     lobbyCode: String,
     viewModel: LobbyViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
     sessionViewModel: SessionViewModel = hiltViewModel(navController.getBackStackEntry("main_graph")),
+    currentRole: PlayerRoles,
+    onStartGame: () -> Unit,
 ) {
     val usernameState by sessionViewModel.username.collectAsState()
+    val canStart =
+        usernameState.username.isNotBlank() &&
+            !lobbyCode.isNullOrBlank() &&
+            currentRole != PlayerRoles.NONE
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Top,
@@ -262,9 +318,7 @@ fun GameSettingsColumn(
 
         AppButton(
             text = "START GAME",
-            onClick = {
-                navController.navigate(Screen.Gameboard.route)
-            },
+            onClick = onStartGame,
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
@@ -272,6 +326,7 @@ fun GameSettingsColumn(
                     .padding(top = 16.dp),
             style =
                 AppButtonStyle(
+                    enabled = canStart,
                     backgroundBrush = greenGradient,
                     fontSize = 20.sp,
                     type = AppButtonType.PRIMARY,

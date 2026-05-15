@@ -9,20 +9,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.codenames.frontend.ui.screens.GameScreenWrapper
 import com.codenames.frontend.ui.screens.GameSettingsScreen
-import com.codenames.frontend.ui.screens.GameTestScreen
-import com.codenames.frontend.ui.screens.JoinLobbyScreen
+import com.codenames.frontend.ui.screens.JoinlobbyScreen
 import com.codenames.frontend.ui.screens.LobbyScreen
+import com.codenames.frontend.ui.screens.OfflineGameStateTestScreen
 import com.codenames.frontend.ui.screens.SettingsScreen
 import com.codenames.frontend.ui.screens.StartScreen
 import com.codenames.frontend.ui.screens.UserNameScreen
+import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
 fun NavGraph(
-    viewModel: LobbyViewModel = hiltViewModel(),
+    lobbyViewModel: LobbyViewModel = hiltViewModel(),
     sessionViewModel: SessionViewModel = hiltViewModel(),
+    gameViewModel: GameViewModel = hiltViewModel(),
 ) {
     val navController = rememberNavController()
     val usernameState by sessionViewModel.username.collectAsState()
@@ -30,36 +32,41 @@ fun NavGraph(
     NavHost(
         navController = navController,
         startDestination = Screen.Username.route,
-        route = "main_graph",
     ) {
         composable(Screen.Username.route) {
-            UserNameScreen(navController)
+            UserNameScreen(navController, sessionViewModel)
         }
 
         composable(
             Screen.Start.route,
         ) {
-            StartScreen(navController = navController)
+            StartScreen(lobbyViewModel = lobbyViewModel, navController = navController)
         }
 
         composable(Screen.Lobby.route) {
-            LobbyScreen(navController)
+            LobbyScreen(
+                navController = navController,
+                viewModel = lobbyViewModel,
+                gameViewModel = gameViewModel,
+                sessionViewModel = sessionViewModel,
+            )
         }
 
-        composable(
-            route = Screen.JoinLobby.route,
-        ) {
-            JoinLobbyScreen(navController)
+        composable(Screen.JoinLobby.route) {
+            JoinlobbyScreen(viewModel = lobbyViewModel, navController = navController, sessionViewModel = sessionViewModel)
         }
 
         composable(
             route = Screen.Gameboard.route,
         ) {
-            val currentRole = viewModel.getRoleForUser(usernameState.username)
+            val currentRole = lobbyViewModel.getRoleForUser(usernameState.username)
 
             GameScreenWrapper(
                 navController = navController,
                 userRole = currentRole,
+                lobbyViewModel = lobbyViewModel,
+                gameViewModel = gameViewModel,
+                sessionViewModel = sessionViewModel,
             )
         }
 
@@ -72,7 +79,7 @@ fun NavGraph(
         }
 
         composable("game_test") {
-            GameTestScreen()
+            OfflineGameStateTestScreen()
         }
     }
 }
