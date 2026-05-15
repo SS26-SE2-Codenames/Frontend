@@ -22,7 +22,7 @@ class LobbyRepository
         suspend fun joinLobby(
             username: String,
             lobbyCode: String,
-        ): LobbyResponse = api.joinLobby(username, lobbyCode)
+        ): LobbyResponse = api.joinLobby(lobbyCode, username)
 
         suspend fun getLobbyInfo(lobbyCode: String): LobbyResponse = api.getLobbyInfo(lobbyCode)
 

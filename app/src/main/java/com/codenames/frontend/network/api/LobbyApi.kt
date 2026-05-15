@@ -10,15 +10,15 @@ import retrofit2.http.Query
 
 // will be extended / adapted to different endpoints when backend is ready
 interface LobbyApi {
-    @POST("lobby/create")
+    @GET("lobby/create")
     suspend fun createLobby(
         @Query("username") username: String,
     ): LobbyResponse
 
-    @POST("lobby/join")
+    @GET("lobby/{lobbyCode}/join")
     suspend fun joinLobby(
+        @Path("lobbyCode") lobbyCode: String,
         @Query("username") username: String,
-        @Query("lobbyCode") lobbyCode: String,
     ): LobbyResponse
 
     @GET("lobby/{lobbyCode}")
@@ -26,7 +26,7 @@ interface LobbyApi {
         @Path("lobbyCode") lobbyCode: String,
     ): LobbyResponse
 
-    @POST("lobby/{lobbyCode}/leave")
+    @GET("lobby/{lobbyCode}/leave")
     suspend fun leaveLobby(
         @Path("lobbyCode") lobbyCode: String,
         @Query("username") username: String,
