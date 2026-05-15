@@ -112,7 +112,7 @@ fun LobbyScreen(
                 currentRole = currentRole,
                 onStartGame = onStartGame,
                 viewModel = viewModel,
-                sessionViewModel = sessionViewModel
+                sessionViewModel = sessionViewModel,
             )
 
             TeamColumn(
@@ -260,7 +260,7 @@ fun GameSettingsColumn(
     val usernameState by sessionViewModel.username.collectAsState()
     val canStart =
         usernameState.username.isNotBlank() &&
-                lobbyCode.isNotBlank() &&
+            lobbyCode.isNotBlank() &&
             currentRole != PlayerRoles.NONE
 
     Column(

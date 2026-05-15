@@ -43,7 +43,8 @@ fun NavGraph(
             StartScreen(
                 lobbyViewModel = lobbyViewModel,
                 navController = navController,
-                sessionViewModel = sessionViewModel)
+                sessionViewModel = sessionViewModel,
+            )
         }
 
         composable(Screen.Lobby.route) {

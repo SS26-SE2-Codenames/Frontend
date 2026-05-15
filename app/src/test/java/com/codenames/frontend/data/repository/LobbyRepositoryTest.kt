@@ -51,11 +51,11 @@ class LobbyRepositoryTest {
 
             val response = LobbyResponse(lobbyCode, emptyList())
 
-            coEvery { api.joinLobby(username, lobbyCode) } returns response
+            coEvery { api.joinLobby(lobbyCode, username) } returns response
 
             val result = repository.joinLobby(username, lobbyCode)
 
-            coVerify { api.joinLobby(username, lobbyCode) }
+            coVerify { api.joinLobby(lobbyCode, username) }
             assertEquals(response, result)
         }
 
