@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Text
@@ -52,6 +53,7 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.buttons.AppButtonType
 
 enum class CardType {
     BLUE,
@@ -155,6 +157,7 @@ fun GameboardScreen(
     var hintInput by rememberSaveable { mutableStateOf("") }
     var chatInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
+    var selectedChatTab by rememberSaveable { mutableStateOf(ChatTab.GLOBAL) }
 
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
@@ -260,8 +263,10 @@ fun GameboardScreen(
             ChatWindow(
                 chatInput = chatInput,
                 messages = chatMessages,
+                selectedTab = selectedChatTab,
+                onTabSelected = { selectedChatTab = it },
                 onChatInputChange = { chatInput = it },
-                onSendClick = {
+                onSendClick = { tab ->
                     if (chatInput.isNotBlank()) {
                         onSendChatMessage(chatInput)
                         chatInput = ""
@@ -269,12 +274,11 @@ fun GameboardScreen(
                         keyboardController?.hide()
                     }
                 },
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .padding(end = 24.dp, bottom = 96.dp)
-                        .width(420.dp)
-                        .fillMaxHeight(0.78f),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(end = 24.dp, bottom = 96.dp)
+                    .width(420.dp)
+                    .fillMaxHeight(0.78f),
             )
         }
 
@@ -352,13 +356,21 @@ fun ChatToggleButton(
     )
 }
 
+enum class ChatTab(val title: String){
+    GLOBAL("Global"),
+    TEAM("Team"),
+    OPERATIVES("Operatives")
+}
+
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun ChatWindow(
     chatInput: String,
     messages: List<ChatDomainModel>,
+    selectedTab: ChatTab,
+    onTabSelected: (ChatTab) -> Unit,
     onChatInputChange: (String) -> Unit,
-    onSendClick: () -> Unit,
+    onSendClick: (ChatTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -369,13 +381,36 @@ fun ChatWindow(
                     shape = RoundedCornerShape(12.dp),
                 ).padding(12.dp),
         verticalArrangement = Arrangement.SpaceBetween,
-    ) {
+    ){
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ){
+            ChatTab.values().forEach { tab ->
+                AppButton(
+                    text = tab.title,
+                    onClick = { onTabSelected(tab) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(36.dp),
+                    style = AppButtonStyle(
+                        type = AppButtonType.PRIMARY,
+                        containerColor = if (selectedTab == tab) Color.Unspecified else Color.Transparent,
+                        contentColor = if (selectedTab == tab) Color.Unspecified else Color.LightGray,
+                        fontSize = 11.sp,
+                        lineHeight = 12.sp,
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp)
+                    )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         ChatMessagesArea(
             messages = messages,
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
+            selectedTab = selectedTab,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -411,7 +446,7 @@ fun ChatWindow(
 
             AppButton(
                 text = "Send",
-                onClick = onSendClick,
+                onClick = {onSendClick(selectedTab)},
                 modifier =
                     Modifier
                         .width(92.dp)
@@ -432,6 +467,7 @@ fun ChatWindow(
 fun ChatMessagesArea(
     messages: List<ChatDomainModel>,
     modifier: Modifier = Modifier,
+    selectedTab: ChatTab,
 ) {
     Column(
         modifier =
@@ -443,7 +479,7 @@ fun ChatMessagesArea(
         verticalArrangement = Arrangement.Top,
     ) {
         Text(
-            text = "Team Chat",
+            text = "${selectedTab.title} Chat",
             color = Color(0xFF383330),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
