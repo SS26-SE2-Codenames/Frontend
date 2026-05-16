@@ -31,9 +31,10 @@ fun GameScreenWrapper(
     val team = currentPlayer?.team
     val lobbyCode = lobbyState.lobbyCode.orEmpty()
     val cards = gameState.cardList.map { it.toGameCard() }
-    val currentHintText = gameState.currentClue?.let {
-        "${it.word} ${it.guessAmount}"
-    } ?: "Waiting for hint..."
+    val currentHintText =
+        gameState.currentClue?.let {
+            "${it.word} ${it.guessAmount}"
+        } ?: "Waiting for hint..."
 
     GameboardScreen(
         userRole = effectiveRole,

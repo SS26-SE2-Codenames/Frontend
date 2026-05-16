@@ -8,5 +8,5 @@ data class ClueMessageDto(
     val lobbyCode: String,
     val word: String,
     val guessAmount: Int,
-    val currentTurn: Team
+    val currentTurn: Team,
 )

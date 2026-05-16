@@ -6,7 +6,6 @@ import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.repository.ChatRepository
-import com.codenames.frontend.network.dto.ClueDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
@@ -128,7 +127,11 @@ class GameViewModel
             }
         }
 
-        fun submitClue(lobbyCode: String, word: String, count: Int) {
+        fun submitClue(
+            lobbyCode: String,
+            word: String,
+            count: Int,
+        ) {
             val turn = uiState.value.currentTurn ?: return
             viewModelScope.launch {
                 try {

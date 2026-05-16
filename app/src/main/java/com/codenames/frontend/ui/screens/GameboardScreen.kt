@@ -597,7 +597,7 @@ fun HintSection(
                 value = countInput,
                 onValueChange = onCountChange,
                 modifier = Modifier.width(80.dp),
-                state = AppTextFieldState(label = "COUNT", placeholder = "0")
+                state = AppTextFieldState(label = "COUNT", placeholder = "0"),
             )
 
             AppButton(
@@ -787,11 +787,12 @@ fun OfflineGameStateTestScreen() {
                 currentRedFound = currentRedFound,
                 cards = cards,
                 chatMessages = chatMessages,
-                currentPhase = Role.OPERATIVE
+                currentPhase = Role.OPERATIVE,
             ),
         onHintChange = { word, count ->
             currentHint = word
-            remainingGuesses = count },
+            remainingGuesses = count
+        },
         onReveal = { index -> revealCard(index) },
         onSendChatMessage = {},
     )

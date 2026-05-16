@@ -260,17 +260,17 @@ class GameViewModelTest {
         }
 
     @Test
-    fun testSubmitClue() = runTest {
-        val word = "EAGLE"
-        val count = 2
-        viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED))
+    fun testSubmitClue() =
+        runTest {
+            val word = "EAGLE"
+            val count = 2
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED))
 
-        viewModel.submitClue(lobbyCode, word, count)
-        advanceUntilIdle()
+            viewModel.submitClue(lobbyCode, word, count)
+            advanceUntilIdle()
 
-        coVerify {
-            client.sendClue(lobbyCode, word, count, Team.RED)
+            coVerify {
+                client.sendClue(lobbyCode, word, count, Team.RED)
+            }
         }
-    }
-
 }
