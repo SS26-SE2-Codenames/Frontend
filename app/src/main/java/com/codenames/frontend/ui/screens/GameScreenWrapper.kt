@@ -38,6 +38,7 @@ fun GameScreenWrapper(
             GameState(
                 currentHint = gameState.currentClue ?: "Waiting for hint...",
                 currentTurn = gameState.currentTurn,
+                currentPhase = gameState.currentPhase,
                 winner = gameState.winner,
                 remainingGuesses = gameState.remainingGuesses,
                 currentRedFound = gameState.currentRedFound,
@@ -45,8 +46,12 @@ fun GameScreenWrapper(
                 cards = cards,
                 chatMessages = chatState.teamMessages,
             ),
-        onHintChange = {
-            // TODO: Send clue through GameViewModel once backend endpoint exists.
+        onHintChange = { word, count ->
+
+            if (lobbyCode.isNotBlank()) {
+                gameViewModel.submitClue(lobbyCode, word, count)
+            }
+            // TODO: Check if I implemented the correct endpoint in submitClue.
         },
         onReveal = {
             // TODO: Send guess through GameViewModel once backend endpoint exists.
