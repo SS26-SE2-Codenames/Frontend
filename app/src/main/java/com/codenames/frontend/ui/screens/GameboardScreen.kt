@@ -690,7 +690,7 @@ fun getColor(type: CardType): Color =
 @Composable
 fun OfflineGameStateTestScreen() {
     var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
-    var currentTurn by rememberSaveable { mutableStateOf("BLUE") }
+    var currentTurn by rememberSaveable { mutableStateOf(Team.BLUE) }
     var remainingGuesses by rememberSaveable { mutableIntStateOf(3) }
     var currentBlueFound by rememberSaveable { mutableIntStateOf(0) }
     var currentRedFound by rememberSaveable { mutableIntStateOf(0) }
@@ -750,8 +750,8 @@ fun OfflineGameStateTestScreen() {
         when (card.type) {
             CardType.BLUE -> currentBlueFound++
             CardType.RED -> currentRedFound++
-            CardType.NEUTRAL -> currentTurn = if (currentTurn == "BLUE") "RED" else "BLUE"
-            CardType.ASSASSIN -> currentTurn = "GAME OVER"
+            CardType.NEUTRAL -> currentTurn = if (currentTurn == Team.BLUE) Team.RED else Team.BLUE
+            CardType.ASSASSIN -> currentTurn = if (currentTurn == Team.BLUE) Team.RED else Team.BLUE
         }
 
         if (remainingGuesses > 0) {
