@@ -5,6 +5,7 @@ import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.network.dto.CardDto
+import com.codenames.frontend.network.dto.ClueDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
@@ -40,8 +41,9 @@ class GameViewModelTest {
 
     private val testMessage =
         GameMessage(
-            "",
-            "red",
+            Team.RED,
+            Team.RED,
+            currentPhase = Role.OPERATIVE,
             0,
             0,
             "",
@@ -232,7 +234,8 @@ class GameViewModelTest {
             val message =
                 GameMessage(
                     winner = null,
-                    currentTurn = "BLUE",
+                    currentTurn = Team.BLUE,
+                    currentPhase = Role.OPERATIVE,
                     currentRedFound = 1,
                     currentBlueFound = 2,
                     currentClue = "EAGLE",
@@ -248,7 +251,8 @@ class GameViewModelTest {
 
             val state = viewModel.uiState.value
 
-            assertEquals("BLUE", state.currentTurn)
+            assertEquals(Team.BLUE, state.currentTurn)
+            assertEquals(Role.OPERATIVE, state.currentPhase)
             assertEquals("EAGLE", state.currentClue)
             assertEquals(3, state.remainingGuesses)
             assertEquals(2, state.cardList.size)
