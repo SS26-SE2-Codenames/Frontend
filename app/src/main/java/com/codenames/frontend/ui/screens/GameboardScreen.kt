@@ -48,6 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatMessage
 import com.codenames.frontend.data.model.enums.ChatTab
+import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -80,8 +81,9 @@ data class GameCard(
 data class GameState(
     val currentHint: String,
     val cards: List<GameCard>,
-    val currentTurn: String = "",
-    val winner: String? = null,
+    val currentTurn: Team? = null,
+    val currentPhase: Role? = null,
+    val winner: Team? = null,
     val remainingGuesses: Int = 0,
     val currentRedFound: Int = 0,
     val currentBlueFound: Int = 0,
@@ -257,8 +259,8 @@ fun GameboardScreen(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameStatusBar(
-    currentTurn: String,
-    winner: String?,
+    currentTurn: Team?,
+    winner: Team?,
     remainingGuesses: Int,
 ) {
     Row(
@@ -271,8 +273,8 @@ fun GameStatusBar(
     ) {
         val statusText =
             when {
-                !winner.isNullOrBlank() -> "Winner: $winner"
-                currentTurn.isNotBlank() -> "Turn: $currentTurn | Guesses: $remainingGuesses"
+                winner != null -> "Winner: $winner"
+                currentTurn != null -> "Turn: $currentTurn | Guesses: $remainingGuesses"
                 else -> "Waiting for turn..."
             }
 
