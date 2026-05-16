@@ -253,7 +253,7 @@ class GameViewModelTest {
 
             assertEquals(Team.BLUE, state.currentTurn)
             assertEquals(Role.OPERATIVE, state.currentPhase)
-            assertEquals("EAGLE", state.currentClue)
+            assertEquals("EAGLE", state.currentClue?.word)
             assertEquals(3, state.remainingGuesses)
             assertEquals(2, state.cardList.size)
             assertEquals("BERLIN", state.cardList[0].word)
@@ -263,6 +263,7 @@ class GameViewModelTest {
     fun testSubmitClue() = runTest {
         val word = "EAGLE"
         val count = 2
+        viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED))
 
         viewModel.submitClue(lobbyCode, word, count)
         advanceUntilIdle()
