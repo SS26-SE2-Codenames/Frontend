@@ -128,15 +128,15 @@ class GameViewModel
             }
         }
 
-    fun submitClue(lobbyCode: String, word: String, count: Int) {
-        viewModelScope.launch {
-            try {
-                client.sendClue(lobbyCode, ClueDto(word, count))
-            } catch (e: Exception) {
-                _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+        fun submitClue(lobbyCode: String, word: String, count: Int) {
+            viewModelScope.launch {
+                try {
+                    client.sendClue(lobbyCode, ClueDto(word, count))
+                } catch (e: Exception) {
+                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                }
             }
         }
-    }
 
         fun handleMessage(message: GameMessage) {
             _uiState.value = message
