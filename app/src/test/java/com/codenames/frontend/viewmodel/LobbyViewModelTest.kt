@@ -5,9 +5,12 @@ import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.LobbyRepository
 import com.codenames.frontend.network.dto.LobbyResponse
 import com.codenames.frontend.network.dto.PlayerDto
+import com.codenames.frontend.ui.roles.PlayerRoles
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -20,6 +23,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -160,13 +164,13 @@ class LobbyViewModelTest {
 
             coEvery { repository.joinLobby("User", "1234") } returns response
             coEvery { repository.getLobbyInfo(any()) } returns response
-            coEvery { repository.leaveLobby("User", "1234") } returns response2
+            coEvery { repository.leaveLobby("1234", "User") } returns response2
 
             val viewModel = LobbyViewModel(repository)
 
             viewModel.joinLobby("User", "1234")
             advanceTimeBy(2000)
-            viewModel.leaveLobby("User")
+            viewModel.leaveLobby("User", onResult = {})
 
             advanceTimeBy(2000)
 
@@ -174,7 +178,7 @@ class LobbyViewModelTest {
 
             val state = viewModel.state.value
 
-            assertEquals("", state.lobbyCode)
+            assertEquals(null, state.lobbyCode)
             assertFalse(state.isLoading)
             assertNull(state.error)
         }
@@ -199,7 +203,7 @@ class LobbyViewModelTest {
 
             advanceTimeBy(2000)
 
-            viewModel.leaveLobby("User")
+            viewModel.leaveLobby("User", onResult = {})
 
             advanceTimeBy(2000)
 
@@ -241,7 +245,7 @@ class LobbyViewModelTest {
 
             advanceTimeBy(2000)
 
-            viewModel.changeRole("User", newRole, newTeam)
+            viewModel.changeRole(newRole, newTeam, "User")
             viewModel.stopPollingForTest()
 
             advanceTimeBy(2000)
@@ -282,7 +286,7 @@ class LobbyViewModelTest {
 
             advanceTimeBy(2000)
 
-            viewModel.changeRole("User", Role.OPERATIVE, Team.RED)
+            viewModel.changeRole(Role.OPERATIVE, Team.RED, "User")
 
             advanceTimeBy(2000)
 
@@ -482,7 +486,7 @@ class LobbyViewModelTest {
 
             val viewModel = LobbyViewModel(repository)
 
-            viewModel.leaveLobby("User")
+            viewModel.leaveLobby("User", onResult = {})
 
             advanceUntilIdle()
 
@@ -500,7 +504,7 @@ class LobbyViewModelTest {
 
             val viewModel = LobbyViewModel(repository)
 
-            viewModel.changeRole("User", Role.OPERATIVE, Team.RED)
+            viewModel.changeRole(Role.OPERATIVE, Team.RED, "User")
 
             advanceUntilIdle()
 
@@ -509,5 +513,170 @@ class LobbyViewModelTest {
             assertEquals(null, state.lobbyCode)
             assertFalse(state.isLoading)
             assertEquals("Not in a Lobby", state.error)
+        }
+
+    @Test
+    fun changeRole_DelegatesCorrectly1() {
+        val repository = mockk<LobbyRepository>()
+        val viewModel = spyk<LobbyViewModel>(LobbyViewModel(repository), recordPrivateCalls = true)
+        viewModel.changeRole(PlayerRoles.BLUE_SPYMASTER, "Alice")
+
+        verify {
+            viewModel.changeRole(Role.SPYMASTER, Team.BLUE, "Alice")
+        }
+    }
+
+    @Test
+    fun changeRole_DelegatesCorrectly2() {
+        val repository = mockk<LobbyRepository>()
+        val viewModel = spyk<LobbyViewModel>(LobbyViewModel(repository), recordPrivateCalls = true)
+
+        viewModel.changeRole(PlayerRoles.RED_OPERATIVE, "Bob")
+
+        verify {
+            viewModel.changeRole(Role.OPERATIVE, Team.RED, "Bob")
+        }
+    }
+
+    @Test
+    fun `getRoleForUser returns BLUE_OPERATIVE`() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+            val viewModel = LobbyViewModel(repository)
+
+            val players =
+                listOf(
+                    PlayerDto(
+                        username = "Max",
+                        role = Role.OPERATIVE,
+                        team = Team.BLUE,
+                        isHost = true,
+                    ),
+                )
+
+            val response =
+                LobbyResponse(
+                    lobbyCode = "ABCD",
+                    playerList = players,
+                )
+
+            coEvery {
+                repository.joinLobby("Max", "ABCD")
+            } returns response
+
+            viewModel.joinLobby("Max", "ABCD")
+
+            advanceUntilIdle()
+
+            val result = viewModel.getRoleForUser("Max")
+
+            assertEquals(PlayerRoles.BLUE_OPERATIVE, result)
+        }
+
+    @Test
+    fun `getRoleForUser returns NONE when player does not exist`() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+            val viewModel = LobbyViewModel(repository)
+
+            val result = viewModel.getRoleForUser("Unknown")
+
+            assertEquals(PlayerRoles.NONE, result)
+        }
+
+    @Test
+    fun `changeRole updates player role correctly`() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+            val viewModel = LobbyViewModel(repository)
+
+            val initialPlayers =
+                listOf(
+                    PlayerDto(
+                        username = "Max",
+                        role = Role.OPERATIVE,
+                        team = Team.BLUE,
+                        isHost = true,
+                    ),
+                )
+
+            val updatedPlayers =
+                listOf(
+                    PlayerDto(
+                        username = "Max",
+                        role = Role.SPYMASTER,
+                        team = Team.RED,
+                        isHost = false,
+                    ),
+                )
+
+            val joinResponse =
+                LobbyResponse(
+                    lobbyCode = "ABCD",
+                    playerList = initialPlayers,
+                )
+
+            val changeRoleResponse =
+                LobbyResponse(
+                    lobbyCode = "ABCD",
+                    playerList = updatedPlayers,
+                )
+
+            coEvery {
+                repository.joinLobby("Max", "ABCD")
+            } returns joinResponse
+
+            coEvery {
+                repository.changeRole(
+                    "Max",
+                    "ABCD",
+                    Role.SPYMASTER,
+                    Team.RED,
+                )
+            } returns changeRoleResponse
+
+            viewModel.joinLobby("Max", "ABCD")
+            advanceUntilIdle()
+
+            viewModel.changeRole(
+                role = Role.SPYMASTER,
+                team = Team.RED,
+                username = "Max",
+            )
+
+            advanceUntilIdle()
+
+            val result = viewModel.getRoleForUser("Max")
+
+            assertEquals(PlayerRoles.RED_SPYMASTER, result)
+
+            coVerify(exactly = 1) {
+                repository.changeRole(
+                    "Max",
+                    "ABCD",
+                    Role.SPYMASTER,
+                    Team.RED,
+                )
+            }
+        }
+
+    @Test
+    fun `changeRole sets error when not in lobby`() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.changeRole(
+                role = Role.SPYMASTER,
+                team = Team.RED,
+                username = "Max",
+            )
+
+            advanceUntilIdle()
+
+            assertTrue(
+                viewModel.state.value.error
+                    ?.contains("Not in a Lobby") == true,
+            )
         }
 }

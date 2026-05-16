@@ -4,7 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,55 +25,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.LobbyUiState
-import com.codenames.frontend.data.model.Player
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
+import com.codenames.frontend.ui.buttons.AppButtonType
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.ui.theme.brownGradient
+import com.codenames.frontend.ui.theme.greenGradient
+import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.ui.toPlayerRole
 import com.codenames.frontend.ui.toTeamAndRole
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
-
-val blueGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color(0xFF42A5F5),
-                Color(0xFF1565C0),
-            ),
-    )
-
-val redGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color(0xFFCF5530),
-                Color(0xFFDE8468),
-            ),
-    )
-
-val brownGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color(0xFF383330),
-                Color(0xFF1A1513),
-            ),
-    )
-
-val greenGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color(0xFF4CAF50),
-                Color(0xFF2E7D32),
-            ),
-    )
+import com.codenames.frontend.viewmodel.SessionViewModel
 
 private const val JOIN_TEAM: String = "JOIN TEAM"
 
@@ -78,56 +51,33 @@ private const val JOIN_TEAM: String = "JOIN TEAM"
 @Composable
 fun LobbyScreen(
     navController: NavHostController,
-    username: String,
-    lobbyViewModel: LobbyViewModel,
+    viewModel: LobbyViewModel,
+    sessionViewModel: SessionViewModel,
     gameViewModel: GameViewModel,
 ) {
-    val lobbyState by lobbyViewModel.state.collectAsState()
-    val currentPlayer = lobbyState.players.firstOrNull { it.name == username }
+    val usernameState by sessionViewModel.username.collectAsState()
+    val lobbyUiState by viewModel.state.collectAsState()
+    val currentPlayer = lobbyUiState.players.firstOrNull { it.name == usernameState.username }
     val currentRole = currentPlayer?.toPlayerRole() ?: PlayerRoles.NONE
 
-    LobbyContent(
-        username = username,
-        lobbyState = lobbyState,
-        currentRole = currentRole,
-        onRoleSelect = { selectedRole ->
-            selectedRole.toTeamAndRole()?.let { (team, role) ->
-                lobbyViewModel.changeRole(username, role, team)
-            }
-        },
-        onStartGame = {
-            val lobbyCode = lobbyState.lobbyCode.orEmpty()
-            val teamAndRole = currentRole.toTeamAndRole()
+    val onStartGame = {
+        val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
+        val teamAndRole = currentRole.toTeamAndRole()
 
-            if (lobbyCode.isNotBlank() && teamAndRole != null) {
-                val (team, role) = teamAndRole
+        if (lobbyCode.isNotBlank() && teamAndRole != null) {
+            val (team, role) = teamAndRole
 
-                gameViewModel.connect(
-                    username = username,
-                    lobbyCode = lobbyCode,
-                    team = team.name,
-                    role = role.name,
-                )
+            gameViewModel.connect(
+                username = usernameState.username,
+                lobbyCode = lobbyCode,
+                team = team.name,
+                role = role.name,
+            )
 
-                navController.navigate("${Screen.Gameboard.route}/$username/${currentRole.name}")
-            }
-        },
-        onSettingsClick = {
-            navController.navigate(Screen.Settings.route)
-        },
-    )
-}
+            navController.navigate("${Screen.Gameboard.route}/${usernameState.username}/${currentRole.name}")
+        }
+    }
 
-@Suppress("ktlint:standard:function-naming")
-@Composable
-fun LobbyContent(
-    username: String,
-    lobbyState: LobbyUiState,
-    currentRole: PlayerRoles,
-    onRoleSelect: (PlayerRoles) -> Unit,
-    onStartGame: () -> Unit,
-    onSettingsClick: () -> Unit,
-) {
     Box(
         modifier =
             Modifier
@@ -138,7 +88,7 @@ fun LobbyContent(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    .padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -148,16 +98,21 @@ fun LobbyContent(
                 gradient = blueGradient,
                 textColor = Color(0xFF42A5F5),
                 title = "BLUE TEAM",
-                currentRole = currentRole,
-                players = lobbyState.players,
-                onRoleSelect = onRoleSelect,
+                onRoleSelect = { viewModel.changeRole(it, usernameState.username) },
+                lobbyUiState = lobbyUiState,
             )
 
             GameSettingsColumn(
-                username = username,
-                lobbyCode = lobbyState.lobbyCode,
+                modifier =
+                    Modifier
+                        .padding(horizontal = 24.dp)
+                        .fillMaxHeight(),
+                navController = navController,
+                lobbyCode = lobbyUiState.lobbyCode ?: "",
                 currentRole = currentRole,
                 onStartGame = onStartGame,
+                viewModel = viewModel,
+                sessionViewModel = sessionViewModel,
             )
 
             TeamColumn(
@@ -166,13 +121,12 @@ fun LobbyContent(
                 gradient = redGradient,
                 textColor = Color(0xFFDE8468),
                 title = "RED TEAM",
-                currentRole = currentRole,
-                players = lobbyState.players,
-                onRoleSelect = onRoleSelect,
+                onRoleSelect = { viewModel.changeRole(it, usernameState.username) },
+                lobbyUiState = lobbyUiState,
             )
         }
 
-        lobbyState.error?.let { error ->
+        lobbyUiState.error?.let { error ->
             Text(
                 text = error,
                 color = Color(0xFFCF5530),
@@ -185,7 +139,9 @@ fun LobbyContent(
         }
 
         SettingsCornerButton(
-            onClick = onSettingsClick,
+            onClick = {
+                navController.navigate(Screen.Settings.route)
+            },
         )
     }
 }
@@ -198,14 +154,15 @@ fun TeamColumn(
     gradient: Brush,
     textColor: Color,
     title: String,
-    currentRole: PlayerRoles,
-    players: List<Player>,
     onRoleSelect: (PlayerRoles) -> Unit,
+    lobbyUiState: LobbyUiState,
 ) {
     val align = if (color == Team.RED) Alignment.End else Alignment.Start
 
     Column(
-        modifier = modifier,
+        modifier =
+            modifier
+                .fillMaxWidth(0.5f),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -234,20 +191,18 @@ fun TeamColumn(
 
         RoleCard(
             role = if (color == Team.RED) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_OPERATIVE,
-            currentRole = currentRole,
-            players = players,
             onRoleSelect = onRoleSelect,
             modifier = cardModifier,
             title = "OPERATIVES",
+            players = if (color == Team.RED) lobbyUiState.redOperatives else lobbyUiState.blueOperatives,
         )
 
         RoleCard(
             role = if (color == Team.RED) PlayerRoles.RED_SPYMASTER else PlayerRoles.BLUE_SPYMASTER,
-            currentRole = currentRole,
-            players = players,
             onRoleSelect = onRoleSelect,
             modifier = cardModifier,
             title = "SPYMASTERS",
+            players = if (color == Team.RED) lobbyUiState.redSpymasters else lobbyUiState.blueSpymasters,
         )
     }
 }
@@ -256,54 +211,26 @@ fun TeamColumn(
 @Composable
 fun RoleCard(
     role: PlayerRoles,
-    currentRole: PlayerRoles,
-    players: List<Player>,
     onRoleSelect: (PlayerRoles) -> Unit,
     modifier: Modifier,
     title: String,
+    players: List<String> = emptyList(),
 ) {
-    val playersInRole = players.filter { it.toPlayerRole() == role }
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = title,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            if (playersInRole.isEmpty()) {
-                Text(
-                    text = "No players",
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 12.sp,
-                )
-            } else {
-                playersInRole.forEach { player ->
-                    Text(
-                        text = player.name,
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight =
-                            if (currentRole == role) {
-                                FontWeight.Bold
-                            } else {
-                                FontWeight.Normal
-                            },
-                    )
-                }
+        Text(title, color = Color.White, fontWeight = FontWeight.Bold)
+        if (players.isEmpty()) {
+            Text(
+                text = "No players",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 12.sp,
+            )
+        } else {
+            for (player in players) {
+                Text(player, color = Color.White)
             }
         }
 
@@ -322,27 +249,41 @@ fun RoleCard(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameSettingsColumn(
-    username: String,
-    lobbyCode: String?,
+    modifier: Modifier,
+    navController: NavController,
+    lobbyCode: String,
+    viewModel: LobbyViewModel,
+    sessionViewModel: SessionViewModel,
     currentRole: PlayerRoles,
     onStartGame: () -> Unit,
 ) {
+    val usernameState by sessionViewModel.username.collectAsState()
     val canStart =
-        username.isNotBlank() &&
-            !lobbyCode.isNullOrBlank() &&
+        usernameState.username.isNotBlank() &&
+            lobbyCode.isNotBlank() &&
             currentRole != PlayerRoles.NONE
 
     Column(
-        modifier = Modifier.padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.Center,
+        modifier = modifier,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Text(
+            text = "LOBBY CODE: $lobbyCode",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier =
+                Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 8.dp),
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
         Column(
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
-                    .width(400.dp)
-                    .height(250.dp)
                     .fillMaxWidth(0.5f)
                     .background(brownGradient, RoundedCornerShape(12.dp))
                     .padding(16.dp),
@@ -356,33 +297,13 @@ fun GameSettingsColumn(
                 modifier = Modifier.padding(bottom = 16.dp),
             )
 
-            Text(
-                text = "Lobby: ${lobbyCode ?: "-"}",
-                color = Color.White,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(bottom = 12.dp),
-            )
-
-            Text(
-                text = "Player: ${username.ifBlank { "-" }}",
-                color = Color.White,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-
-            Text(
-                text = "Role: ${currentRole.name}",
-                color = Color.White,
-                fontSize = 16.sp,
-            )
-
             AppButton(
                 text = "TIMER: OFF",
-                onClick = { },
+                onClick = { /* TODO: Timer Logik */ },
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp),
+                        .padding(bottom = 8.dp),
                 style =
                     AppButtonStyle(
                         containerColor = Color(0xFF555555),
@@ -392,22 +313,51 @@ fun GameSettingsColumn(
             )
         }
 
+        Spacer(modifier = Modifier.weight(1f))
+
         AppButton(
             text = "START GAME",
             onClick = onStartGame,
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
-                    .width(400.dp)
-                    .height(70.dp)
                     .fillMaxWidth(0.5f)
-                    .padding(top = 12.dp),
+                    .padding(top = 16.dp),
             style =
                 AppButtonStyle(
                     enabled = canStart,
                     backgroundBrush = greenGradient,
-                    fontSize = 28.sp,
-                    lineHeight = 30.sp,
+                    fontSize = 20.sp,
+                    type = AppButtonType.PRIMARY,
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp),
+                ),
+        )
+
+        AppButton(
+            text = "LEAVE LOBBY",
+            onClick = {
+                val onResult = { successful: Boolean ->
+                    if (successful) {
+                        navController.navigate(Screen.Start.route) {
+                            popUpTo(Screen.Start.route) { inclusive = true }
+                        }
+                    }
+                }
+                viewModel.leaveLobby(username = usernameState.username, onResult = onResult)
+            },
+            modifier =
+                Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth(0.5f)
+                    .padding(top = 16.dp)
+                    .padding(bottom = 16.dp),
+            style =
+                AppButtonStyle(
+                    backgroundBrush = brownGradient,
+                    fontSize = 20.sp,
+                    contentColor = Color.Black,
+                    type = AppButtonType.SECONDARY,
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp),
                 ),
         )
     }

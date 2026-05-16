@@ -37,6 +37,7 @@ class GameWebSocketHandler
             session.convertAndSend("/app/join", msg, WebSocketJoinMessage.serializer())
         }
 
+        @Suppress("kotlin:S6309")
         suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> = session.subscribe(topicPath, ChatMessageDto.serializer())
 
         suspend fun sendChatMessage(

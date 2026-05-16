@@ -59,6 +59,9 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.ui.theme.greenGradient
+import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.viewmodel.ChatViewModel
 
 enum class CardType {
@@ -84,61 +87,6 @@ data class GameState(
     val currentBlueFound: Int = 0,
     val chatMessages: List<ChatDomainModel> = emptyList(),
 )
-
-@Suppress("ktlint:standard:function-naming")
-@Composable
-fun GameTestScreen() {
-    var currentHint by remember { mutableStateOf("Waiting for hint...") }
-
-    val cards =
-        remember {
-            mutableStateListOf(
-                *List(25) {
-                    GameCard(
-                        word = "Word ${it + 1}",
-                        type =
-                            when (it) {
-                                0 -> CardType.ASSASSIN
-                                in 1..8 -> CardType.BLUE
-                                in 9..15 -> CardType.RED
-                                else -> CardType.NEUTRAL
-                            },
-                    )
-                }.toTypedArray(),
-            )
-        }
-
-    fun revealCard(index: Int) {
-        val card = cards[index]
-        cards[index] = card.copy(revealed = true)
-    }
-
-    Row(modifier = Modifier.fillMaxSize()) {
-        GameboardScreen(
-            userRole = PlayerRoles.BLUE_SPYMASTER,
-            gameState =
-                GameState(
-                    currentHint = currentHint,
-                    cards = cards,
-                ),
-            onHintChange = { currentHint = it },
-            onReveal = {},
-            modifier = Modifier.weight(1f),
-        )
-
-        GameboardScreen(
-            userRole = PlayerRoles.BLUE_OPERATIVE,
-            gameState =
-                GameState(
-                    currentHint = currentHint,
-                    cards = cards,
-                ),
-            onHintChange = {},
-            onReveal = { index -> revealCard(index) },
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
 
 @Suppress("ktlint:standard:function-naming")
 @Composable

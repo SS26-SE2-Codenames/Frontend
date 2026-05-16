@@ -3,10 +3,12 @@ package com.codenames.frontend.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.LobbyUiState
+import com.codenames.frontend.data.model.Player
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toLobbyState
 import com.codenames.frontend.data.repository.LobbyRepository
+import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -72,6 +74,7 @@ class LobbyViewModel
                     _state.update {
                         response.toLobbyState()
                     }
+                    updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
                     setError(e.message)
@@ -81,11 +84,16 @@ class LobbyViewModel
             }
         }
 
-        fun leaveLobby(username: String) {
+        fun leaveLobby(
+            username: String,
+            onResult: (Boolean) -> Unit,
+        ) {
             val lobbyCode = _state.value.lobbyCode
+            var successful = false
 
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a lobby, leaving not possible")
+                onResult(successful)
                 return
             }
 
@@ -93,24 +101,28 @@ class LobbyViewModel
                 setLoading(true)
 
                 try {
-                    val response = repository.leaveLobby(username, lobbyCode)
+                    val response = repository.leaveLobby(lobbyCode, username)
                     _state.update {
                         response.toLobbyState()
                     }
 
                     stopPolling()
+                    successful = true
                 } catch (e: Exception) {
                     setError(e.message)
+                    successful = false
                 } finally {
                     setLoading(false)
+                    onResult(successful)
+                    if (successful) cleanup()
                 }
             }
         }
 
         fun changeRole(
-            username: String,
             role: Role,
             team: Team,
+            username: String,
         ) {
             val lobbyCode = _state.value.lobbyCode
             if (lobbyCode.isNullOrBlank()) {
@@ -127,11 +139,70 @@ class LobbyViewModel
                     _state.update {
                         response.toLobbyState()
                     }
+                    updateUiState(_state.value.players)
                 } catch (e: Exception) {
                     setError(e.message)
                 } finally {
                     setLoading(false)
                 }
+            }
+        }
+
+        fun changeRole(
+            role: PlayerRoles,
+            username: String,
+        ) {
+            when (role) {
+                PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username)
+                PlayerRoles.RED_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.RED, username = username)
+                PlayerRoles.BLUE_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.BLUE, username = username)
+                PlayerRoles.RED_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.RED, username = username)
+                else -> setError("Invalid role")
+            }
+        }
+
+        fun getRoleForUser(username: String): PlayerRoles {
+            val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return PlayerRoles.NONE
+            return when (player.role) {
+                Role.OPERATIVE -> if (player.team == Team.BLUE) PlayerRoles.BLUE_OPERATIVE else PlayerRoles.RED_OPERATIVE
+                Role.SPYMASTER -> if (player.team == Team.BLUE) PlayerRoles.BLUE_SPYMASTER else PlayerRoles.RED_SPYMASTER
+                null -> PlayerRoles.NONE
+            }
+        }
+
+        private fun cleanup() {
+            _state.update {
+                it.copy(
+                    lobbyCode = null,
+                    players = emptyList(),
+                    blueOperatives = emptyList(),
+                    blueSpymasters = emptyList(),
+                    redOperatives = emptyList(),
+                    redSpymasters = emptyList(),
+                )
+            }
+        }
+
+        private fun updateUiState(players: List<Player>) {
+            _state.update {
+                it.copy(
+                    blueOperatives =
+                        players
+                            .filter { p -> p.team == Team.BLUE && p.role == Role.OPERATIVE }
+                            .map { p -> p.name },
+                    blueSpymasters =
+                        players
+                            .filter { p -> p.team == Team.BLUE && p.role == Role.SPYMASTER }
+                            .map { p -> p.name },
+                    redOperatives =
+                        players
+                            .filter { p -> p.team == Team.RED && p.role == Role.OPERATIVE }
+                            .map { p -> p.name },
+                    redSpymasters =
+                        players
+                            .filter { p -> p.team == Team.RED && p.role == Role.SPYMASTER }
+                            .map { p -> p.name },
+                )
             }
         }
 
@@ -147,6 +218,7 @@ class LobbyViewModel
                             _state.update {
                                 response.toLobbyState()
                             }
+                            updateUiState(_state.value.players)
                         } catch (e: Exception) {
                             setError(e.message)
                             return@launch

@@ -17,7 +17,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,42 +25,28 @@ import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.viewmodel.LobbyViewModel
+import com.codenames.frontend.viewmodel.SessionViewModel
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun StartScreen(
     navController: NavHostController,
-    username: String,
     lobbyViewModel: LobbyViewModel,
+    sessionViewModel: SessionViewModel,
 ) {
-    val lobbyState by lobbyViewModel.state.collectAsState()
-
     ForceLandscape()
 
-    LaunchedEffect(lobbyState.lobbyCode) {
-        if (!lobbyState.lobbyCode.isNullOrBlank()) {
+    val lobbyState by lobbyViewModel.state.collectAsState()
+    val usernameState by sessionViewModel.username.collectAsState()
+
+    LaunchedEffect(lobbyState.lobbyCode, lobbyState.error, lobbyState.isLoading) {
+        if (!lobbyState.isLoading && lobbyState.error == null && lobbyState.lobbyCode != null) {
             navController.navigate(Screen.Lobby.route)
         }
     }
-
-    val greenGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF4CAF50),
-                    Color(0xFF2E7D32),
-                ),
-        )
-
-    val blueGradient =
-        Brush.verticalGradient(
-            colors =
-                listOf(
-                    Color(0xFF42A5F5),
-                    Color(0xFF1565C0),
-                ),
-        )
 
     Box(
         modifier =
@@ -74,6 +59,8 @@ fun StartScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Text("Welcome to Codenames, ${usernameState.username}!", fontSize = 32.sp, modifier = Modifier.padding(bottom = 48.dp))
+
             Row(
                 modifier =
                     Modifier
@@ -83,7 +70,7 @@ fun StartScreen(
                 AppButton(
                     text = "Create Lobby",
                     onClick = {
-                        lobbyViewModel.createLobby(username)
+                        lobbyViewModel.createLobby(usernameState.username)
                     },
                     modifier =
                         Modifier
@@ -103,7 +90,7 @@ fun StartScreen(
                 AppButton(
                     text = "Join Lobby",
                     onClick = {
-                        navController.navigate("${Screen.JoinLobby.route}/$username")
+                        navController.navigate(Screen.JoinLobby.route)
                     },
                     modifier =
                         Modifier

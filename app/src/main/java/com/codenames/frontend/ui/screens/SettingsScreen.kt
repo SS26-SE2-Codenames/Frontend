@@ -20,6 +20,8 @@ import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.ReturnCornerButton
+import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.ui.theme.greenGradient
 
 @Suppress("ktlint:standard:function-naming")
 @Composable

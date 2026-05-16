@@ -28,10 +28,15 @@ import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.viewmodel.SessionViewModel
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun UserNameScreen(navController: NavController) {
+fun UserNameScreen(
+    navController: NavController,
+    viewModel: SessionViewModel,
+) {
     var username by remember { mutableStateOf("") }
 
     Box(
@@ -62,7 +67,11 @@ fun UserNameScreen(navController: NavController) {
 
             AppButton(
                 text = "Continue",
-                onClick = { navController.navigate("${Screen.Start.route}/$username") },
+                onClick = {
+                    if (username.isBlank()) return@AppButton
+                    viewModel.setUsername(username)
+                    navController.navigate(Screen.Start.route)
+                },
                 modifier =
                     Modifier
                         .width(220.dp)
