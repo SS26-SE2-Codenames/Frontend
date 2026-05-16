@@ -6,6 +6,7 @@ import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.repository.ChatRepository
+import com.codenames.frontend.network.dto.ClueDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
@@ -126,6 +127,16 @@ class GameViewModel
                 chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
             }
         }
+
+    fun submitClue(lobbyCode: String, word: String, count: Int) {
+        viewModelScope.launch {
+            try {
+                client.sendClue(lobbyCode, ClueDto(word, count))
+            } catch (e: Exception) {
+                _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+            }
+        }
+    }
 
         fun handleMessage(message: GameMessage) {
             _uiState.value = message

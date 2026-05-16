@@ -1,6 +1,7 @@
 package com.codenames.frontend.network.websocket
 
 import com.codenames.frontend.network.dto.ChatMessageDto
+import com.codenames.frontend.network.dto.ClueDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
@@ -46,4 +47,10 @@ class GameWebSocketHandler
         ) {
             session.convertAndSend(destination, msg, ChatMessageDto.serializer())
         }
+
+        suspend fun sendClue(lobbyCode: String, msg: ClueDto) {
+        session.convertAndSend("/app/game/clue/$lobbyCode", msg, ClueDto.serializer())
+        }
+
+
     }
