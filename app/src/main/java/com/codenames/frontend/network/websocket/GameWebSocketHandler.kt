@@ -49,7 +49,7 @@ class GameWebSocketHandler
         }
 
         suspend fun sendClue(lobbyCode: String, msg: ClueDto) {
-        session.convertAndSend("/app/game/clue/$lobbyCode", msg, ClueDto.serializer())
+        session.convertAndSend("/app/submit-clue", msg, ClueDto.serializer())
         }
 
 
