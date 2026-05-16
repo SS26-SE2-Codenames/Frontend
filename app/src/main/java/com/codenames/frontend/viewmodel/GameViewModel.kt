@@ -129,9 +129,10 @@ class GameViewModel
         }
 
         fun submitClue(lobbyCode: String, word: String, count: Int) {
+            val turn = uiState.value.currentTurn ?: return
             viewModelScope.launch {
                 try {
-                    client.sendClue(lobbyCode, ClueDto(word, count))
+                    client.sendClue(lobbyCode, word, count, turn)
                 } catch (e: Exception) {
                     _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
                 }
