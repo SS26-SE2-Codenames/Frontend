@@ -46,7 +46,7 @@ class GameViewModelTest {
             currentPhase = Role.OPERATIVE,
             0,
             0,
-            "",
+            null,
             0,
             emptyList(),
         )
@@ -238,7 +238,7 @@ class GameViewModelTest {
                     currentPhase = Role.OPERATIVE,
                     currentRedFound = 1,
                     currentBlueFound = 2,
-                    currentClue = "EAGLE",
+                    currentClue = ClueDto("EAGLE", 3),
                     remainingGuesses = 3,
                     cardList =
                         listOf(
@@ -268,7 +268,7 @@ class GameViewModelTest {
         advanceUntilIdle()
 
         coVerify {
-            client.sendClue(lobbyCode, ClueDto(word, count))
+            client.sendClue(lobbyCode, word, count, Team.RED)
         }
     }
 
