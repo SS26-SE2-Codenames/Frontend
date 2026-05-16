@@ -54,7 +54,6 @@ fun GameScreenWrapper(
             if (lobbyCode.isNotBlank()) {
                 gameViewModel.submitClue(lobbyCode, word, count)
             }
-            // TODO: Check if I implemented the correct endpoint in submitClue.
         },
         onReveal = {
             // TODO: Send guess through GameViewModel once backend endpoint exists.
