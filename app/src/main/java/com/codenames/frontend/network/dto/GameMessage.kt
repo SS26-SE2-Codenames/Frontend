@@ -11,7 +11,7 @@ data class GameMessage(
     val currentPhase: Role? = null,
     val currentRedFound: Int = 0,
     val currentBlueFound: Int = 0,
-    val currentClue: String? = null,
+    val currentClue: ClueDto? = null,
     val remainingGuesses: Int = 0,
     val cardList: List<CardDto> = emptyList(),
 )
