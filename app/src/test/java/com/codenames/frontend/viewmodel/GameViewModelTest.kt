@@ -258,4 +258,18 @@ class GameViewModelTest {
             assertEquals(2, state.cardList.size)
             assertEquals("BERLIN", state.cardList[0].word)
         }
+
+    @Test
+    fun testSubmitClue() = runTest {
+        val word = "EAGLE"
+        val count = 2
+
+        viewModel.submitClue(lobbyCode, word, count)
+        advanceUntilIdle()
+
+        coVerify {
+            client.sendClue(lobbyCode, ClueDto(word, count))
+        }
+    }
+
 }
