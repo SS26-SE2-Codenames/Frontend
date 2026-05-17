@@ -1,17 +1,23 @@
 package com.codenames.frontend.viewmodel
 
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.ChatLists
+import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
+import com.codenames.frontend.data.model.enums.Team
+import com.codenames.frontend.data.model.toGameState
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -28,8 +34,8 @@ class GameViewModel
     ) : ViewModel() {
         private var job: Job? = null
 
-        private val _uiState = MutableStateFlow(GameMessage())
-        val uiState: StateFlow<GameMessage> = _uiState
+        private val _uiState = MutableStateFlow(GameState())
+        val uiState: StateFlow<GameState> = _uiState
 
         // _chatState is mutable and should only be used by view model
         private val _chatState = MutableStateFlow(ChatLists())
@@ -96,7 +102,8 @@ class GameViewModel
                         }
 
                         if(isHost) {
-                            gameRepository.startGame(lobbyCode)
+                            delay(2000)
+                            sendGameStart(lobbyCode)
                         }
 
                     } catch (e: Exception) {
@@ -105,9 +112,8 @@ class GameViewModel
                 }
         }
 
-        fun sendGameStart(lobbyCode: String) {
+        private fun sendGameStart(lobbyCode: String) {
             if(lobbyCode.isBlank()){
-                setError("Could not send game start, lobby Code is blank")
                 return
             }
             viewModelScope.launch {
@@ -148,13 +154,21 @@ class GameViewModel
         }
 
         fun handleMessage(message: GameMessage) {
-            _uiState.value = message
-            // Add logic to handle incoming messages
+            val state = message.toGameState()
+            _uiState.update {
+                state
+            }
+            Log.d("GameViewModel", "Updated game state: $state")
         }
 
-        private fun setError(msg: String) {
-            _uiState.update {
-                it.copy(error = msg)
+        fun getCurrentFound(team: CardType): Int {
+            val cards = _uiState.value.cards
+            var count = 0
+            for(card in cards) {
+                if(card.type == team && card.revealed) {
+                    count++
+                }
             }
+            return count
         }
     }

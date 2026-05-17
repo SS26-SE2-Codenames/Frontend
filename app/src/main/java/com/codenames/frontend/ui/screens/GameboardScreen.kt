@@ -66,6 +66,7 @@ import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.viewmodel.ChatViewModel
+import com.codenames.frontend.viewmodel.GameViewModel
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -78,14 +79,15 @@ fun GameboardScreen(
     onSendChatMessage: (String) -> Unit = {},
     onSettingsClick: (() -> Unit)? = null,
     chatViewModel: ChatViewModel = viewModel(),
+    gameViewModel: GameViewModel
 ) {
     val currentHint = gameState.currentHint
     val cards = gameState.cards
     val currentTurn = gameState.currentTurn
     val winner = gameState.winner
     val remainingGuesses = gameState.remainingGuesses
-    val currentRedFound = gameState.currentRedFound
-    val currentBlueFound = gameState.currentBlueFound
+    val currentRedFound = gameViewModel.getCurrentFound(CardType.RED)
+    val currentBlueFound = gameViewModel.getCurrentFound(CardType.BLUE)
     val chatUiState by chatViewModel.uiState.collectAsState()
 
     var hintInput by rememberSaveable { mutableStateOf("") }
@@ -665,12 +667,15 @@ fun getColor(type: CardType): Color =
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun OfflineGameStateTestScreen() {
+fun OfflineGameStateTestScreen(
+    gameViewModel: GameViewModel
+) {
     var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
     var currentTurn by rememberSaveable { mutableStateOf("BLUE") }
     var remainingGuesses by rememberSaveable { mutableIntStateOf(3) }
     var currentBlueFound by rememberSaveable { mutableIntStateOf(0) }
     var currentRedFound by rememberSaveable { mutableIntStateOf(0) }
+
 
     val cards =
         remember {
@@ -743,13 +748,11 @@ fun OfflineGameStateTestScreen() {
                 currentHint = currentHint,
                 currentTurn = currentTurn,
                 remainingGuesses = remainingGuesses,
-                currentBlueFound = currentBlueFound,
-                currentRedFound = currentRedFound,
                 cards = cards,
-                chatMessages = chatMessages,
             ),
         onHintChange = { currentHint = it },
         onReveal = { index -> revealCard(index) },
         onSendChatMessage = {},
+        gameViewModel = gameViewModel
     )
 }

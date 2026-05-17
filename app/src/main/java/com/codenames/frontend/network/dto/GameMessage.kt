@@ -1,5 +1,7 @@
 package com.codenames.frontend.network.dto
 
+import androidx.compose.runtime.currentComposer
+import com.codenames.frontend.data.model.GameState
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -11,16 +11,7 @@ import com.codenames.frontend.ui.roles.PlayerRoles
 fun CardDto.toGameCard(): GameCard =
     GameCard(
         word = word,
-        type =
-            when (color.uppercase()) {
-                "BLUE" -> CardType.BLUE
-                "RED" -> CardType.RED
-                "BLACK" -> CardType.ASSASSIN
-                "ASSASSIN" -> CardType.ASSASSIN
-                "WHITE" -> CardType.NEUTRAL
-                "NEUTRAL" -> CardType.NEUTRAL
-                else -> CardType.NEUTRAL
-            },
+        type = color,
         revealed = isGuessed,
     )
 

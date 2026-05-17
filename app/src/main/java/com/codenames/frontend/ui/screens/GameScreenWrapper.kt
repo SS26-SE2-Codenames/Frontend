@@ -3,12 +3,11 @@ package com.codenames.frontend.ui.screens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
-import com.codenames.frontend.ui.toGameCard
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
@@ -31,20 +30,17 @@ fun GameScreenWrapper(
     val effectiveRole = lobbyViewModel.getRoleForUser(usernameState.username)
     val team = currentPlayer?.team
     val lobbyCode = lobbyState.lobbyCode.orEmpty()
-    val cards = gameState.cardList.map { it.toGameCard() }
+    val cards = gameState.cards
 
     GameboardScreen(
         userRole = effectiveRole,
         gameState =
             GameState(
-                currentHint = gameState.currentClue ?: "Waiting for hint...",
+                currentHint = gameState.currentHint,
                 currentTurn = gameState.currentTurn,
                 winner = gameState.winner,
                 remainingGuesses = gameState.remainingGuesses,
-                currentRedFound = gameState.currentRedFound,
-                currentBlueFound = gameState.currentBlueFound,
                 cards = cards,
-                chatMessages = chatState.teamMessages,
             ),
         onHintChange = {
             // TODO: Send clue through GameViewModel once backend endpoint exists.
@@ -65,5 +61,6 @@ fun GameScreenWrapper(
         onSettingsClick = {
             navController.navigate(Screen.Settings.route)
         },
+        gameViewModel = gameViewModel
     )
 }

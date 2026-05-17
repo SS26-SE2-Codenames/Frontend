@@ -31,7 +31,7 @@ class GameWebSocketHandler
         }
 
         suspend fun startGame(msg: StartGameMessage) {
-            session.convertAndSend("/topic/game/start-game", msg, StartGameMessage.serializer() )
+            session.convertAndSend("/app/start-game", msg, StartGameMessage.serializer() )
         }
 
         suspend fun sendGuess(msg: GuessMessage) {

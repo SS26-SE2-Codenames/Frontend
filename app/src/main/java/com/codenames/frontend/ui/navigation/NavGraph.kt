@@ -83,7 +83,9 @@ fun NavGraph(
         }
 
         composable("game_test") {
-            OfflineGameStateTestScreen()
+            OfflineGameStateTestScreen(
+                gameViewModel
+            )
         }
     }
 }
