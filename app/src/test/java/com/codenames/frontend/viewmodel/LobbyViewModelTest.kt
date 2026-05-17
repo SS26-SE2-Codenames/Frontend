@@ -50,6 +50,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    isStarted = false
                 )
 
             coEvery { repository.createLobby("User") } returns response
@@ -100,6 +101,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -107,6 +109,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             val viewModel = LobbyViewModel(repository)
@@ -154,12 +157,14 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             val response2 =
                 LobbyResponse(
                     lobbyCode = "",
                     playerList = emptyList(),
+                    false
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -192,6 +197,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -227,12 +233,14 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             val response2 =
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", newRole, newTeam, true)),
+                    false
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -268,6 +276,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -350,6 +359,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             val viewModel = LobbyViewModel(repository)
@@ -373,8 +383,8 @@ class LobbyViewModelTest {
 
             coEvery { repository.getLobbyInfo(any()) } returnsMany
                 listOf(
-                    LobbyResponse("1", emptyList()),
-                    LobbyResponse("2", emptyList()),
+                    LobbyResponse("1", emptyList(), false),
+                    LobbyResponse("2", emptyList(), false),
                 )
 
             val viewModel = LobbyViewModel(repository)
@@ -398,6 +408,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             val viewModel = LobbyViewModel(repository)
@@ -428,6 +439,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             coEvery { repository.createLobby("User") } returns response
@@ -458,6 +470,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false
                 )
 
             coEvery { repository.createLobby("User") } returns response
@@ -558,6 +571,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "ABCD",
                     playerList = players,
+                    false
                 )
 
             coEvery {
@@ -614,12 +628,14 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "ABCD",
                     playerList = initialPlayers,
+                    false
                 )
 
             val changeRoleResponse =
                 LobbyResponse(
                     lobbyCode = "ABCD",
                     playerList = updatedPlayers,
+                    false
                 )
 
             coEvery {

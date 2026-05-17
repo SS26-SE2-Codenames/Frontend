@@ -1,12 +1,18 @@
 package com.codenames.frontend.network.websocket
 
+import android.util.Log
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
+import io.mockk.awaits
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.runs
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.hildan.krossbow.stomp.StompClient
@@ -38,7 +44,10 @@ class GameWebSocketHandlerTest {
             val session = mockk<StompSession>()
             val sessionWithJson = mockk<StompSessionWithKxSerialization>()
 
+            mockkStatic(Log::class)
+
             coEvery { client.connect(BASE_URL) } returns session
+            every { Log.d(any(), any())} returns 0
 
             coEvery {
                 sessionWithJson.subscribe<GameMessage>(any(), any())

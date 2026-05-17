@@ -1,9 +1,12 @@
 package com.codenames.frontend.data.model
 
+import com.codenames.frontend.data.model.enums.Role
+import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.CardDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.LobbyResponse
 import com.codenames.frontend.network.dto.PlayerDto
+import com.codenames.frontend.ui.roles.PlayerRoles
 
 fun LobbyResponse.toLobbyState(): LobbyUiState =
     LobbyUiState(
@@ -25,7 +28,7 @@ fun GameMessage.toGameState(): GameState =
     GameState(
         currentHint = currentClue ?: "",
         cards = cardList.map { it.toGameCard() },
-        currentTurn = currentTurn,
+        currentTurn = getCurrentTurn(),
         winner = winner,
         remainingGuesses = remainingGuesses,
     )
@@ -36,3 +39,12 @@ fun CardDto.toGameCard(): GameCard =
         type = color,
         revealed = isGuessed,
     )
+
+fun GameMessage.getCurrentTurn() : PlayerRoles {
+    if(currentTurn == Team.RED) {
+        if (currentPhase == Role.SPYMASTER) return PlayerRoles.RED_SPYMASTER
+        return PlayerRoles.RED_OPERATIVE
+    }
+    if(currentPhase == Role.SPYMASTER) return PlayerRoles.BLUE_SPYMASTER
+    return PlayerRoles.BLUE_OPERATIVE
+}

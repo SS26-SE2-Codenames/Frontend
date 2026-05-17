@@ -238,8 +238,8 @@ fun GameboardScreen(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameStatusBar(
-    currentTurn: String,
-    winner: String?,
+    currentTurn: PlayerRoles?,
+    winner: Team?,
     remainingGuesses: Int,
 ) {
     Row(
@@ -252,8 +252,8 @@ fun GameStatusBar(
     ) {
         val statusText =
             when {
-                !winner.isNullOrBlank() -> "Winner: $winner"
-                currentTurn.isNotBlank() -> "Turn: $currentTurn | Guesses: $remainingGuesses"
+                winner != null -> "Winner: $winner"
+                currentTurn != null -> "Turn: ${currentTurn.name} | Guesses: $remainingGuesses"
                 else -> "Waiting for turn..."
             }
 
@@ -669,7 +669,7 @@ fun getColor(type: CardType): Color =
 @Composable
 fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
     var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
-    var currentTurn by rememberSaveable { mutableStateOf("BLUE") }
+    var currentTurn by rememberSaveable { mutableStateOf(PlayerRoles.RED_OPERATIVE) }
     var remainingGuesses by rememberSaveable { mutableIntStateOf(3) }
     var currentBlueFound by rememberSaveable { mutableIntStateOf(0) }
     var currentRedFound by rememberSaveable { mutableIntStateOf(0) }
@@ -729,8 +729,8 @@ fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
         when (card.type) {
             CardType.BLUE -> currentBlueFound++
             CardType.RED -> currentRedFound++
-            CardType.NEUTRAL -> currentTurn = if (currentTurn == "BLUE") "RED" else "BLUE"
-            CardType.ASSASSIN -> currentTurn = "GAME OVER"
+            CardType.NEUTRAL -> currentTurn = if (currentTurn == PlayerRoles.BLUE_SPYMASTER) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_SPYMASTER
+            CardType.ASSASSIN -> currentTurn = PlayerRoles.NONE
         }
 
         if (remainingGuesses > 0) {

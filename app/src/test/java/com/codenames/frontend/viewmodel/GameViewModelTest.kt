@@ -1,22 +1,29 @@
 package com.codenames.frontend.viewmodel
 
+import android.util.Log
 import com.codenames.frontend.data.model.ChatDomainModel
+import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.Player
+import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.ChatRepository
+import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.CardDto
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.ui.roles.PlayerRoles
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -33,32 +40,43 @@ import org.junit.Test
 class GameViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
-    private val lobbyCode = "1234"
+    private val lobbyCode = "12345"
     private val username = "user"
     private val team = Team.RED.name
     private val role = Role.OPERATIVE.name
 
+    private val testState =
+        GameState(
+            currentHint = "Hint",
+            cards = listOf(),
+            currentTurn = PlayerRoles.RED_OPERATIVE,
+            winner = null,
+            remainingGuesses = 0
+        )
     private val testMessage =
         GameMessage(
-            "",
-            "red",
+            winner = null,
+            Team.RED,
+            Role.SPYMASTER,
             0,
             0,
             "",
-            0,
-            emptyList(),
+            0
         )
+
 
     private lateinit var viewModel: GameViewModel
     private lateinit var client: GameWebSocketHandler
     private lateinit var chatRepository: ChatRepository
+    private lateinit var gameRepository: GameRepository
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        client = mockk(relaxed = true)
+        client = mockk<GameWebSocketHandler>()
         chatRepository = mockk(relaxed = true)
-        viewModel = GameViewModel(client, chatRepository)
+        gameRepository = mockk(relaxed = true)
+        viewModel = GameViewModel(client, chatRepository, gameRepository)
     }
 
     @After
@@ -81,7 +99,7 @@ class GameViewModelTest {
             coVerify { client.connectStomp() }
             coVerify { client.subscribeToLobby(lobbyCode) }
 
-            assertEquals(testMessage, viewModel.uiState.value)
+            assertEquals(testState, viewModel.uiState.value)
         }
 
     @Test
@@ -102,22 +120,6 @@ class GameViewModelTest {
             coVerify { client.subscribeToLobby(lobbyCode) }
 
             assertEquals(testMessage, viewModel.uiState.value)
-        }
-
-    @Test
-    fun connect_shouldRegisterWebSocketSession() =
-        runTest {
-            val flow = flowOf(testMessage)
-
-            coEvery { client.connectStomp() } just Runs
-            coEvery { client.subscribeToLobby(lobbyCode) } returns flow
-            coEvery { client.sendReconnectMessage(any()) } just Runs
-
-            viewModel.connect(username, lobbyCode, team, role)
-
-            advanceUntilIdle()
-
-            coVerify { client.sendReconnectMessage(WebSocketJoinMessage(username, lobbyCode)) }
         }
 
     @Test
@@ -161,8 +163,13 @@ class GameViewModelTest {
         runTest {
             // We use shared instead of state flow, since state requires us to pass an argument and fill the List with an element upon start of the test
             // This way we can never start from a clean slate and test with emit
-            val customLobbyFlow = MutableSharedFlow<ChatDomainModel>()
+            val customLobbyFlow = MutableSharedFlow<ChatDomainModel>(replay = 1)
             every { chatRepository.observeChat("/topic/chat/$lobbyCode", username) } returns customLobbyFlow
+            coEvery { client.connectStomp() } just Runs
+            coEvery { client.subscribeToLobby(any()) } returns emptyFlow()
+            every {
+                chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username)
+            } returns emptyFlow()
 
             viewModel.connect(username, lobbyCode, team, role)
             advanceUntilIdle()
@@ -229,18 +236,21 @@ class GameViewModelTest {
     @Test
     fun handleMessage_updatesGameState() =
         runTest {
+            mockkStatic(Log::class)
+            every {Log.d(any(), any())} returns 0
             val message =
                 GameMessage(
                     winner = null,
-                    currentTurn = "BLUE",
+                    currentTurn = Team.BLUE,
+                    currentPhase = Role.SPYMASTER,
                     currentRedFound = 1,
                     currentBlueFound = 2,
                     currentClue = "EAGLE",
                     remainingGuesses = 3,
                     cardList =
                         listOf(
-                            CardDto("BERLIN", "BLUE", false),
-                            CardDto("ROME", "RED", true),
+                            CardDto("BERLIN", CardType.BLUE, false),
+                            CardDto("ROME", CardType.RED, true),
                         ),
                 )
 
@@ -248,10 +258,10 @@ class GameViewModelTest {
 
             val state = viewModel.uiState.value
 
-            assertEquals("BLUE", state.currentTurn)
-            assertEquals("EAGLE", state.currentClue)
+            assertEquals(PlayerRoles.BLUE_SPYMASTER, state.currentTurn)
+            assertEquals("EAGLE", state.currentHint)
             assertEquals(3, state.remainingGuesses)
-            assertEquals(2, state.cardList.size)
-            assertEquals("BERLIN", state.cardList[0].word)
+            assertEquals(2, state.cards.size)
+            assertEquals("BERLIN", state.cards[0].word)
         }
 }

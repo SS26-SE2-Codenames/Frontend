@@ -33,6 +33,7 @@ class LobbyRepositoryTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = emptyList(),
+                    isStarted = false
                 )
 
             coEvery { api.createLobby(username) } returns response
@@ -49,7 +50,7 @@ class LobbyRepositoryTest {
             val username = "Max"
             val lobbyCode = "1234"
 
-            val response = LobbyResponse(lobbyCode, emptyList())
+            val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.joinLobby(lobbyCode, username) } returns response
 
@@ -65,7 +66,7 @@ class LobbyRepositoryTest {
             val username = "Max"
             val lobbyCode = "1234"
 
-            val response = LobbyResponse(lobbyCode, emptyList())
+            val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.leaveLobby(username, lobbyCode) } returns response
 
@@ -80,7 +81,7 @@ class LobbyRepositoryTest {
         runTest {
             val lobbyCode = "1234"
 
-            val response = LobbyResponse(lobbyCode, emptyList())
+            val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.getLobbyInfo(lobbyCode) } returns response
 
@@ -96,7 +97,7 @@ class LobbyRepositoryTest {
             val role = Role.OPERATIVE
             val team = Team.RED
 
-            val response = LobbyResponse(lobbyCode, emptyList())
+            val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.changeRole(eq(lobbyCode), any()) } returns response
 
