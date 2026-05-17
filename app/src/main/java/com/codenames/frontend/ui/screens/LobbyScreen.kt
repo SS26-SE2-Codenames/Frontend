@@ -261,7 +261,8 @@ fun GameSettingsColumn(
     val canStart =
         usernameState.username.isNotBlank() &&
             lobbyCode.isNotBlank() &&
-            currentRole != PlayerRoles.NONE
+            currentRole != PlayerRoles.NONE &&
+                viewModel.getIsHost(usernameState.username)
 
     Column(
         modifier = modifier,

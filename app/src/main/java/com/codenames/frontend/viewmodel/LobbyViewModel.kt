@@ -170,6 +170,11 @@ class LobbyViewModel
             }
         }
 
+    fun getIsHost(username: String) : Boolean {
+        val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return false
+        return player.isHost
+    }
+
         private fun cleanup() {
             _state.update {
                 it.copy(
