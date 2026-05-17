@@ -78,7 +78,7 @@ fun NavGraph(
 
         composable("game_test") {
             OfflineGameStateTestScreen(
-                gameViewModel
+                gameViewModel,
             )
         }
     }

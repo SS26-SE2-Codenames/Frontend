@@ -28,7 +28,7 @@ class GameViewModel
     constructor(
         private val client: GameWebSocketHandler,
         private val chatRepository: ChatRepository,
-        private val gameRepository: GameRepository
+        private val gameRepository: GameRepository,
     ) : ViewModel() {
         private var job: Job? = null
 
@@ -49,7 +49,7 @@ class GameViewModel
             lobbyCode: String,
             team: String,
             role: String,
-            isHost: Boolean = false
+            isHost: Boolean = false,
         ) {
             job?.cancel()
 
@@ -99,11 +99,10 @@ class GameViewModel
                             }
                         }
 
-                        if(isHost) {
+                        if (isHost) {
                             delay(2000)
                             sendGameStart(lobbyCode)
                         }
-
                     } catch (e: Exception) {
                         _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
                     }
@@ -111,7 +110,7 @@ class GameViewModel
         }
 
         private fun sendGameStart(lobbyCode: String) {
-            if(lobbyCode.isBlank()){
+            if (lobbyCode.isBlank()) {
                 return
             }
             viewModelScope.launch {
@@ -162,8 +161,8 @@ class GameViewModel
         fun getCurrentFound(team: CardType): Int {
             val cards = _uiState.value.cards
             var count = 0
-            for(card in cards) {
-                if(card.type == team && card.revealed) {
+            for (card in cards) {
+                if (card.type == team && card.revealed) {
                     count++
                 }
             }

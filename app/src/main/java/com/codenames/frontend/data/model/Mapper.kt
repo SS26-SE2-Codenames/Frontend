@@ -9,7 +9,7 @@ fun LobbyResponse.toLobbyState(): LobbyUiState =
     LobbyUiState(
         lobbyCode = lobbyCode,
         players = playerList.map { it.toUi() },
-        isGameStarted = isStarted
+        isGameStarted = isStarted,
     )
 
 fun PlayerDto.toUi(): Player =
@@ -27,13 +27,12 @@ fun GameMessage.toGameState(): GameState =
         cards = cardList.map { it.toGameCard() },
         currentTurn = currentTurn,
         winner = winner,
-        remainingGuesses = remainingGuesses
+        remainingGuesses = remainingGuesses,
     )
-
 
 fun CardDto.toGameCard(): GameCard =
     GameCard(
         word = word,
         type = color,
-        revealed = isGuessed
+        revealed = isGuessed,
     )

@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class LobbyResponse(
     val lobbyCode: String,
     val playerList: List<PlayerDto>,
-    val isStarted: Boolean
+    val isStarted: Boolean,
 )

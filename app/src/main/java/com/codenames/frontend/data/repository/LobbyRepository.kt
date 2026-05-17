@@ -38,8 +38,6 @@ class LobbyRepository
 
         suspend fun sendStartGame(
             lobbyCode: String,
-            username: String
-        ): LobbyResponse {
-            return api.startGame(lobbyCode, username)
-        }
+            username: String,
+        ): LobbyResponse = api.startGame(lobbyCode, username)
     }

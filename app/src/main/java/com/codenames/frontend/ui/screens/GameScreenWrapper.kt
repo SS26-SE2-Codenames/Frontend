@@ -57,6 +57,6 @@ fun GameScreenWrapper(
         onSettingsClick = {
             navController.navigate(Screen.Settings.route)
         },
-        gameViewModel = gameViewModel
+        gameViewModel = gameViewModel,
     )
 }

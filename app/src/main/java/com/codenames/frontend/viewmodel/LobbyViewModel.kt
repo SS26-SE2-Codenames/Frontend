@@ -171,14 +171,14 @@ class LobbyViewModel
             }
         }
 
-        fun getIsHost(username: String) : Boolean {
+        fun getIsHost(username: String): Boolean {
             val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return false
             return player.isHost
         }
 
         fun sendStartGame(username: String) {
             val lobbyCode = _state.value.lobbyCode.orEmpty()
-            if(!username.isBlank() && !lobbyCode.isEmpty() && getIsHost(username)) {
+            if (!username.isBlank() && !lobbyCode.isEmpty() && getIsHost(username)) {
                 viewModelScope.launch {
                     try {
                         setLoading(true)
@@ -188,7 +188,7 @@ class LobbyViewModel
                         }
                         updateUiState(_state.value.players)
                     } catch (e: Exception) {
-                       setError(e.message)
+                        setError(e.message)
                     } finally {
                         Log.d("LobbyViewModel", "Game start sent. Current state: ${_state.value}")
                         setLoading(false)

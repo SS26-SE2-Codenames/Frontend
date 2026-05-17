@@ -79,7 +79,7 @@ fun GameboardScreen(
     onSendChatMessage: (String) -> Unit = {},
     onSettingsClick: (() -> Unit)? = null,
     chatViewModel: ChatViewModel = viewModel(),
-    gameViewModel: GameViewModel
+    gameViewModel: GameViewModel,
 ) {
     val currentHint = gameState.currentHint
     val cards = gameState.cards
@@ -667,15 +667,12 @@ fun getColor(type: CardType): Color =
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun OfflineGameStateTestScreen(
-    gameViewModel: GameViewModel
-) {
+fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
     var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
     var currentTurn by rememberSaveable { mutableStateOf("BLUE") }
     var remainingGuesses by rememberSaveable { mutableIntStateOf(3) }
     var currentBlueFound by rememberSaveable { mutableIntStateOf(0) }
     var currentRedFound by rememberSaveable { mutableIntStateOf(0) }
-
 
     val cards =
         remember {
@@ -753,6 +750,6 @@ fun OfflineGameStateTestScreen(
         onHintChange = { /* not necessary for offline test screen */ },
         onReveal = { index -> revealCard(index) },
         onSendChatMessage = {},
-        gameViewModel = gameViewModel
+        gameViewModel = gameViewModel,
     )
 }

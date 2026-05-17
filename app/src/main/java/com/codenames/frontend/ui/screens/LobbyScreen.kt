@@ -69,8 +69,7 @@ fun LobbyScreen(
     }
 
     LaunchedEffect(lobbyUiState.isGameStarted) {
-        if(lobbyUiState.isGameStarted) {
-
+        if (lobbyUiState.isGameStarted) {
             val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
             val teamAndRole = currentRole.toTeamAndRole()
 
@@ -84,14 +83,14 @@ fun LobbyScreen(
                     lobbyCode = lobbyCode,
                     team = team.name,
                     role = role.name,
-                    isHost = viewModel.getIsHost(usernameState.username)
+                    isHost = viewModel.getIsHost(usernameState.username),
                 )
             }
         }
     }
 
     LaunchedEffect(connectionState) {
-        if(connectionState == ConnectionState.CONNECTED) {
+        if (connectionState == ConnectionState.CONNECTED) {
             navController.navigate(Screen.Gameboard.route)
         }
     }
@@ -280,7 +279,7 @@ fun GameSettingsColumn(
         usernameState.username.isNotBlank() &&
             lobbyCode.isNotBlank() &&
             currentRole != PlayerRoles.NONE &&
-                viewModel.getIsHost(usernameState.username)
+            viewModel.getIsHost(usernameState.username)
 
     Column(
         modifier = modifier,
