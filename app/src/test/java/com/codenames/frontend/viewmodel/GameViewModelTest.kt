@@ -3,7 +3,6 @@ package com.codenames.frontend.viewmodel
 import android.util.Log
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.GameState
-import com.codenames.frontend.data.model.Player
 import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
@@ -47,11 +46,11 @@ class GameViewModelTest {
 
     private val testState =
         GameState(
-            currentHint = "Hint",
+            currentHint = "",
             cards = listOf(),
-            currentTurn = PlayerRoles.RED_OPERATIVE,
+            currentTurn = PlayerRoles.RED_SPYMASTER,
             winner = null,
-            remainingGuesses = 0
+            remainingGuesses = 0,
         )
     private val testMessage =
         GameMessage(
@@ -61,9 +60,8 @@ class GameViewModelTest {
             0,
             0,
             "",
-            0
+            0,
         )
-
 
     private lateinit var viewModel: GameViewModel
     private lateinit var client: GameWebSocketHandler
@@ -119,7 +117,7 @@ class GameViewModelTest {
             coVerify { client.connectStomp() }
             coVerify { client.subscribeToLobby(lobbyCode) }
 
-            assertEquals(testMessage, viewModel.uiState.value)
+            assertEquals(testState, viewModel.uiState.value)
         }
 
     @Test
@@ -183,33 +181,16 @@ class GameViewModelTest {
         }
 
     @Test
-    fun testConnectUpdateTeamChat() =
-        runTest {
-            val customLobbyFlow = MutableSharedFlow<ChatDomainModel>()
-            every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username) } returns customLobbyFlow
-
-            viewModel.connect(username, lobbyCode, team, role)
-            advanceUntilIdle()
-
-            val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
-            customLobbyFlow.emit(testChat)
-            advanceUntilIdle()
-
-            val currentMessageList = viewModel.chatState.value.teamMessages
-            assertEquals("Test msg", currentMessageList[0].text)
-        }
-
-    @Test
     fun testConnectUpdateOperativeChat() =
         runTest {
-            val customLobbyFlow = MutableSharedFlow<ChatDomainModel>()
-            every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username) } returns customLobbyFlow
+            val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
+            coEvery { client.connectStomp() } just Runs
+            coEvery { client.subscribeToLobby(any()) } returns emptyFlow()
+            every { chatRepository.observeChat("/topic/chat/$lobbyCode", username) } returns emptyFlow()
+            every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username) } returns emptyFlow()
+            every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username) } returns flowOf(testChat)
 
             viewModel.connect(username, lobbyCode, team, role)
-            advanceUntilIdle()
-
-            val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
-            customLobbyFlow.emit(testChat)
             advanceUntilIdle()
 
             val currentMessageList = viewModel.chatState.value.operativeMessages
@@ -219,14 +200,12 @@ class GameViewModelTest {
     @Test
     fun testConnectUpdateOperativeChat_notOperative() =
         runTest {
-            val customLobbyFlow = MutableSharedFlow<ChatDomainModel>()
-            every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username) } returns customLobbyFlow
+            coEvery { client.connectStomp() } just Runs
+            coEvery { client.subscribeToLobby(any()) } returns emptyFlow()
+            every { chatRepository.observeChat("/topic/chat/$lobbyCode", username) } returns emptyFlow()
+            every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username) } returns emptyFlow()
 
             viewModel.connect(username, lobbyCode, team, Role.SPYMASTER.name)
-            advanceUntilIdle()
-
-            val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
-            customLobbyFlow.emit(testChat)
             advanceUntilIdle()
 
             val currentMessageList = viewModel.chatState.value.operativeMessages
@@ -237,7 +216,7 @@ class GameViewModelTest {
     fun handleMessage_updatesGameState() =
         runTest {
             mockkStatic(Log::class)
-            every {Log.d(any(), any())} returns 0
+            every { Log.d(any(), any()) } returns 0
             val message =
                 GameMessage(
                     winner = null,

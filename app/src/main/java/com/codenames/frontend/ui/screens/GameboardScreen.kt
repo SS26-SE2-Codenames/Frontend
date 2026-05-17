@@ -729,7 +729,9 @@ fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
         when (card.type) {
             CardType.BLUE -> currentBlueFound++
             CardType.RED -> currentRedFound++
-            CardType.NEUTRAL -> currentTurn = if (currentTurn == PlayerRoles.BLUE_SPYMASTER) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_SPYMASTER
+            CardType.NEUTRAL ->
+                currentTurn =
+                    if (currentTurn == PlayerRoles.BLUE_SPYMASTER) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_SPYMASTER
             CardType.ASSASSIN -> currentTurn = PlayerRoles.NONE
         }
 

@@ -40,11 +40,11 @@ fun CardDto.toGameCard(): GameCard =
         revealed = isGuessed,
     )
 
-fun GameMessage.getCurrentTurn() : PlayerRoles {
-    if(currentTurn == Team.RED) {
+fun GameMessage.getCurrentTurn(): PlayerRoles {
+    if (currentTurn == Team.RED) {
         if (currentPhase == Role.SPYMASTER) return PlayerRoles.RED_SPYMASTER
         return PlayerRoles.RED_OPERATIVE
     }
-    if(currentPhase == Role.SPYMASTER) return PlayerRoles.BLUE_SPYMASTER
+    if (currentPhase == Role.SPYMASTER) return PlayerRoles.BLUE_SPYMASTER
     return PlayerRoles.BLUE_OPERATIVE
 }

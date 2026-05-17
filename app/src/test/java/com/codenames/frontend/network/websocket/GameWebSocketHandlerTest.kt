@@ -5,14 +5,11 @@ import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
-import io.mockk.awaits
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.mockk.runs
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.hildan.krossbow.stomp.StompClient
@@ -47,7 +44,7 @@ class GameWebSocketHandlerTest {
             mockkStatic(Log::class)
 
             coEvery { client.connect(BASE_URL) } returns session
-            every { Log.d(any(), any())} returns 0
+            every { Log.d(any(), any()) } returns 0
 
             coEvery {
                 sessionWithJson.subscribe<GameMessage>(any(), any())

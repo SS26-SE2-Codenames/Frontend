@@ -33,7 +33,7 @@ class LobbyRepositoryTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = emptyList(),
-                    isStarted = false
+                    isStarted = false,
                 )
 
             coEvery { api.createLobby(username) } returns response
