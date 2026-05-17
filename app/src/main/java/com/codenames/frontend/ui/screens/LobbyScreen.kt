@@ -1,5 +1,6 @@
 package com.codenames.frontend.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,6 +74,8 @@ fun LobbyScreen(
             val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
             val teamAndRole = currentRole.toTeamAndRole()
 
+            Log.d("LobbyScreen", "Lobby UI state is started, recomposing")
+
             if (lobbyCode.isNotBlank() && teamAndRole != null) {
                 val (team, role) = teamAndRole
 
@@ -81,16 +84,15 @@ fun LobbyScreen(
                     lobbyCode = lobbyCode,
                     team = team.name,
                     role = role.name,
+                    isHost = viewModel.getIsHost(usernameState.username)
                 )
-
-
             }
         }
     }
 
     LaunchedEffect(connectionState) {
         if(connectionState == ConnectionState.CONNECTED) {
-            navController.navigate("${Screen.Gameboard.route}/${currentRole.name}")
+            navController.navigate(Screen.Gameboard.route)
         }
     }
 

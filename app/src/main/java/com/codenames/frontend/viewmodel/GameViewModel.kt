@@ -1,13 +1,14 @@
 package com.codenames.frontend.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.repository.ChatRepository
+import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -23,6 +24,7 @@ class GameViewModel
     constructor(
         private val client: GameWebSocketHandler,
         private val chatRepository: ChatRepository,
+        private val gameRepository: GameRepository
     ) : ViewModel() {
         private var job: Job? = null
 
@@ -43,6 +45,7 @@ class GameViewModel
             lobbyCode: String,
             team: String,
             role: String,
+            isHost: Boolean = false
         ) {
             job?.cancel()
 
@@ -53,6 +56,8 @@ class GameViewModel
                     try {
                         client.connectStomp()
 
+                        Log.d("GameViewModel", "Connection successful")
+
                         _connectionState.value = ConnectionState.CONNECTED
 
                         launch {
@@ -60,6 +65,8 @@ class GameViewModel
                                 .subscribeToLobby(lobbyCode)
                                 .collect { handleMessage(it) }
                         }
+
+                        Log.d("GameViewModel", "Subscribed to Lobby")
 
                         launch {
                             // msg is the domain model chat we emit in the ChatRepository
@@ -88,11 +95,24 @@ class GameViewModel
                             }
                         }
 
-                        client.registerWebSocketSession(WebSocketJoinMessage(username, lobbyCode))
+                        if(isHost) {
+                            gameRepository.startGame(lobbyCode)
+                        }
+
                     } catch (e: Exception) {
                         _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
                     }
                 }
+        }
+
+        fun sendGameStart(lobbyCode: String) {
+            if(lobbyCode.isBlank()){
+                setError("Could not send game start, lobby Code is blank")
+                return
+            }
+            viewModelScope.launch {
+                gameRepository.startGame(lobbyCode)
+            }
         }
 
         fun sendLobbyMessage(
@@ -130,5 +150,11 @@ class GameViewModel
         fun handleMessage(message: GameMessage) {
             _uiState.value = message
             // Add logic to handle incoming messages
+        }
+
+        private fun setError(msg: String) {
+            _uiState.update {
+                it.copy(error = msg)
+            }
         }
     }

@@ -1,5 +1,6 @@
 package com.codenames.frontend.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.LobbyUiState
@@ -189,6 +190,7 @@ class LobbyViewModel
                     } catch (e: Exception) {
                        setError(e.message)
                     } finally {
+                        Log.d("LobbyViewModel", "Game start sent. Current state: ${_state.value}")
                         setLoading(false)
                     }
                 }

@@ -111,13 +111,13 @@ class GameViewModelTest {
 
             coEvery { client.connectStomp() } just Runs
             coEvery { client.subscribeToLobby(lobbyCode) } returns flow
-            coEvery { client.registerWebSocketSession(any()) } just Runs
+            coEvery { client.sendReconnectMessage(any()) } just Runs
 
             viewModel.connect(username, lobbyCode, team, role)
 
             advanceUntilIdle()
 
-            coVerify { client.registerWebSocketSession(WebSocketJoinMessage(username, lobbyCode)) }
+            coVerify { client.sendReconnectMessage(WebSocketJoinMessage(username, lobbyCode)) }
         }
 
     @Test

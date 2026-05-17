@@ -7,6 +7,7 @@ fun LobbyResponse.toLobbyState(): LobbyUiState =
     LobbyUiState(
         lobbyCode = lobbyCode,
         players = playerList.map { it.toUi() },
+        isGameStarted = isStarted
     )
 
 fun PlayerDto.toUi(): Player =
