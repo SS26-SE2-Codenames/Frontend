@@ -2,7 +2,6 @@ package com.codenames.frontend.ui
 
 import com.codenames.frontend.data.model.GameCard
 import com.codenames.frontend.data.model.Player
-import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.CardDto

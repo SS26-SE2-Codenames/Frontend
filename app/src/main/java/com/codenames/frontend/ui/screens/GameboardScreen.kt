@@ -750,7 +750,7 @@ fun OfflineGameStateTestScreen(
                 remainingGuesses = remainingGuesses,
                 cards = cards,
             ),
-        onHintChange = { currentHint = it },
+        onHintChange = { /* not necessary for offline test screen */ },
         onReveal = { index -> revealCard(index) },
         onSendChatMessage = {},
         gameViewModel = gameViewModel

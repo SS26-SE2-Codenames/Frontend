@@ -1,7 +1,6 @@
 package com.codenames.frontend.viewmodel
 
 import android.util.Log
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.ChatLists
@@ -9,7 +8,6 @@ import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
-import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toGameState
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository

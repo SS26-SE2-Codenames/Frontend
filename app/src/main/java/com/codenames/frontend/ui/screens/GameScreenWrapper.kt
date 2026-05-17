@@ -3,11 +3,9 @@ package com.codenames.frontend.ui.screens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.ui.navigation.Screen
-import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
@@ -16,24 +14,22 @@ import com.codenames.frontend.viewmodel.SessionViewModel
 @Suppress("ktlint:standard:function-naming")
 fun GameScreenWrapper(
     navController: NavHostController,
-    userRole: PlayerRoles,
     lobbyViewModel: LobbyViewModel,
     gameViewModel: GameViewModel,
     sessionViewModel: SessionViewModel,
 ) {
     val lobbyState by lobbyViewModel.state.collectAsState()
     val gameState by gameViewModel.uiState.collectAsState()
-    val chatState by gameViewModel.chatState.collectAsState()
     val usernameState by sessionViewModel.username.collectAsState()
+    val userRole = lobbyViewModel.getRoleForUser(usernameState.username)
 
     val currentPlayer = lobbyState.players.firstOrNull { it.name == usernameState.username }
-    val effectiveRole = lobbyViewModel.getRoleForUser(usernameState.username)
     val team = currentPlayer?.team
     val lobbyCode = lobbyState.lobbyCode.orEmpty()
     val cards = gameState.cards
 
     GameboardScreen(
-        userRole = effectiveRole,
+        userRole = userRole,
         gameState =
             GameState(
                 currentHint = gameState.currentHint,

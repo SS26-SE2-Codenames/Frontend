@@ -1,8 +1,6 @@
 package com.codenames.frontend.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,7 +25,6 @@ fun NavGraph(
     gameViewModel: GameViewModel = hiltViewModel(),
 ) {
     val navController = rememberNavController()
-    val usernameState by sessionViewModel.username.collectAsState()
 
     NavHost(
         navController = navController,
@@ -63,11 +60,8 @@ fun NavGraph(
         composable(
             route = Screen.Gameboard.route,
         ) {
-            val currentRole = lobbyViewModel.getRoleForUser(usernameState.username)
-
             GameScreenWrapper(
                 navController = navController,
-                userRole = currentRole,
                 lobbyViewModel = lobbyViewModel,
                 gameViewModel = gameViewModel,
                 sessionViewModel = sessionViewModel,
