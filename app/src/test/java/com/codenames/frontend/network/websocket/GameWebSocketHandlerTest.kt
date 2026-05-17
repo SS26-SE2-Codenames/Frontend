@@ -4,6 +4,7 @@ import android.util.Log
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
+import com.codenames.frontend.network.dto.StartGameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -143,5 +144,16 @@ class GameWebSocketHandlerTest {
             wsClient.sendChatMessage(destination, msg)
 
             coVerify { session.convertAndSend(destination, msg, ChatMessageDto.serializer()) }
+        }
+
+    @Test
+    fun testStartGame() =
+        runTest {
+            val destination = "/app/start-game"
+            val msg = StartGameMessage(lobbyCode = "ABCDE")
+
+            wsClient.startGame(msg)
+
+            coVerify { session.convertAndSend(destination, msg, StartGameMessage.serializer()) }
         }
 }

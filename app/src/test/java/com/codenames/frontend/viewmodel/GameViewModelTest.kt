@@ -243,4 +243,154 @@ class GameViewModelTest {
             assertEquals(2, state.cards.size)
             assertEquals("BERLIN", state.cards[0].word)
         }
+
+    @Test
+    fun connect_shouldUpdateConnectionStateOnError() =
+        runTest {
+            coEvery {
+                client.connectStomp()
+            } throws RuntimeException("Connection failed")
+
+            viewModel.connect(username, lobbyCode, team, role)
+
+            advanceUntilIdle()
+
+            val state = viewModel.connectionState.value
+
+            assertTrue(state is com.codenames.frontend.data.model.enums.ConnectionState.Error)
+
+            assertEquals(
+                "Connection failed",
+                (state as com.codenames.frontend.data.model.enums.ConnectionState.Error).message,
+            )
+        }
+
+    @Test
+    fun getCurrentFound_returnsCorrectCount() {
+        val message =
+            GameMessage(
+                winner = null,
+                currentTurn = Team.RED,
+                currentPhase = Role.OPERATIVE,
+                currentRedFound = 0,
+                currentBlueFound = 0,
+                currentClue = "",
+                remainingGuesses = 0,
+                cardList =
+                    listOf(
+                        CardDto("A", CardType.RED, true),
+                        CardDto("B", CardType.RED, false),
+                        CardDto("C", CardType.RED, true),
+                        CardDto("D", CardType.BLUE, true),
+                    ),
+            )
+
+        viewModel.handleMessage(message)
+
+        val result = viewModel.getCurrentFound(CardType.RED)
+
+        assertEquals(2, result)
+    }
+
+    @Test
+    fun getCurrentFound_returnsZeroWhenNoCardsFound() {
+        val message =
+            GameMessage(
+                winner = null,
+                currentTurn = Team.RED,
+                currentPhase = Role.OPERATIVE,
+                currentRedFound = 0,
+                currentBlueFound = 0,
+                currentClue = "",
+                remainingGuesses = 0,
+                cardList =
+                    listOf(
+                        CardDto("A", CardType.RED, false),
+                        CardDto("B", CardType.BLUE, false),
+                    ),
+            )
+
+        viewModel.handleMessage(message)
+
+        val result = viewModel.getCurrentFound(CardType.RED)
+
+        assertEquals(0, result)
+    }
+
+    @Test
+    fun connect_asHost_shouldStartGame() =
+        runTest {
+            coEvery { client.connectStomp() } just Runs
+            coEvery { client.subscribeToLobby(any()) } returns emptyFlow()
+
+            every {
+                chatRepository.observeChat(any(), any())
+            } returns emptyFlow()
+
+            coEvery {
+                gameRepository.startGame(lobbyCode)
+            } just Runs
+
+            viewModel.connect(
+                username,
+                lobbyCode,
+                team,
+                role,
+                isHost = true,
+            )
+
+            advanceUntilIdle()
+
+            coVerify {
+                gameRepository.startGame(lobbyCode)
+            }
+        }
+
+    @Test
+    fun connect_asHost_blankLobbyCode_shouldNotStartGame() =
+        runTest {
+            coEvery { client.connectStomp() } just Runs
+            coEvery { client.subscribeToLobby(any()) } returns emptyFlow()
+
+            every {
+                chatRepository.observeChat(any(), any())
+            } returns emptyFlow()
+
+            viewModel.connect(
+                username,
+                "",
+                team,
+                role,
+                isHost = true,
+            )
+
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.startGame(any())
+            }
+        }
+
+    @Test
+    fun handleMessage_withNullClue_setsEmptyHint() =
+        runTest {
+            mockkStatic(Log::class)
+            every { Log.d(any(), any()) } returns 0
+
+            val message =
+                GameMessage(
+                    winner = null,
+                    currentTurn = Team.RED,
+                    currentPhase = Role.OPERATIVE,
+                    currentRedFound = 0,
+                    currentBlueFound = 0,
+                    currentClue = null,
+                    remainingGuesses = 1,
+                    cardList = emptyList(),
+                )
+
+            viewModel.handleMessage(message)
+
+            assertEquals("", viewModel.uiState.value.currentHint)
+        }
 }
