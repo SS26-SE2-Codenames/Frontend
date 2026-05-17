@@ -47,6 +47,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatMessage
+import com.codenames.frontend.data.model.GameCard
+import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
@@ -63,30 +66,6 @@ import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.viewmodel.ChatViewModel
-
-enum class CardType {
-    BLUE,
-    RED,
-    NEUTRAL,
-    ASSASSIN,
-}
-
-data class GameCard(
-    val word: String,
-    val type: CardType,
-    val revealed: Boolean = false,
-)
-
-data class GameState(
-    val currentHint: String,
-    val cards: List<GameCard>,
-    val currentTurn: String = "",
-    val winner: String? = null,
-    val remainingGuesses: Int = 0,
-    val currentRedFound: Int = 0,
-    val currentBlueFound: Int = 0,
-    val chatMessages: List<ChatDomainModel> = emptyList(),
-)
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
