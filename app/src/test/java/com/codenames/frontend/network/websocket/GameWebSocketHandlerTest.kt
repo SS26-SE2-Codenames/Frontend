@@ -1,6 +1,8 @@
 package com.codenames.frontend.network.websocket
 
+import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.ChatMessageDto
+import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
@@ -137,5 +139,32 @@ class GameWebSocketHandlerTest {
             wsClient.sendChatMessage(destination, msg)
 
             coVerify { session.convertAndSend(destination, msg, ChatMessageDto.serializer()) }
+        }
+
+    @Test
+    fun testSendClue() =
+        runTest {
+            val lobbyCode = "LOBBY123"
+            val word = "clueWord"
+            val guessAmount = 2
+            val currentTurn = Team.RED
+
+            wsClient.sendClue(lobbyCode, word, guessAmount, currentTurn)
+
+            val expectedMsg =
+                ClueMessageDto(
+                    lobbyCode = lobbyCode,
+                    word = word,
+                    guessAmount = guessAmount,
+                    currentTurn = currentTurn,
+                )
+
+            coVerify {
+                session.convertAndSend(
+                    "/app/submit-clue",
+                    expectedMsg,
+                    ClueMessageDto.serializer(),
+                )
+            }
         }
 }
