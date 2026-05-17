@@ -1,7 +1,5 @@
 package com.codenames.frontend.data.model
 
-import com.codenames.frontend.ui.screens.GameCard
-
 data class GameState(
     val currentHint: String,
     val cards: List<GameCard>,

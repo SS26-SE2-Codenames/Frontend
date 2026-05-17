@@ -170,10 +170,30 @@ class LobbyViewModel
             }
         }
 
-    fun getIsHost(username: String) : Boolean {
-        val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return false
-        return player.isHost
-    }
+        fun getIsHost(username: String) : Boolean {
+            val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return false
+            return player.isHost
+        }
+
+        fun sendStartGame(username: String) {
+            val lobbyCode = _state.value.lobbyCode.orEmpty()
+            if(!username.isBlank() && !lobbyCode.isEmpty() && getIsHost(username)) {
+                viewModelScope.launch {
+                    try {
+                        setLoading(true)
+                        val response = repository.sendStartGame(lobbyCode, username)
+                        _state.update {
+                            response.toLobbyState()
+                        }
+                        updateUiState(_state.value.players)
+                    } catch (e: Exception) {
+                       setError(e.message)
+                    } finally {
+                        setLoading(false)
+                    }
+                }
+            }
+        }
 
         private fun cleanup() {
             _state.update {

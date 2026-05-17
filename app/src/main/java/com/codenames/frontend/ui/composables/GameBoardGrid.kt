@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.codenames.frontend.data.model.GameCard
 import com.codenames.frontend.ui.screens.CodenamesCard
-import com.codenames.frontend.ui.screens.GameCard
 
 const val BOARD_COLUMNS = 5
 
