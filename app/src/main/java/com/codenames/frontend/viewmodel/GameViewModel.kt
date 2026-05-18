@@ -156,7 +156,7 @@ class GameViewModel
             word: String,
             count: Int,
         ) {
-            val turn = uiState.value.currentTurn ?: return
+            val turn = uiState.value.currentTurn
             val turnString = turn.toString()
             val teamString = turnString.split("_").first()
             val team = Team.valueOf(teamString)
