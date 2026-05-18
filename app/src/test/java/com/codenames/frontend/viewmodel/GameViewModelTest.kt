@@ -59,10 +59,8 @@ class GameViewModelTest {
             winner = null,
             Team.RED,
             Role.SPYMASTER,
-            0,
-            0,
             null,
-            0,
+            listOf(),
         )
 
     private lateinit var viewModel: GameViewModel
@@ -224,10 +222,7 @@ class GameViewModelTest {
                     winner = null,
                     currentTurn = Team.BLUE,
                     currentPhase = Role.OPERATIVE,
-                    currentRedFound = 1,
-                    currentBlueFound = 2,
                     currentClue = ClueDto("EAGLE", 3),
-                    remainingGuesses = 3,
                     cardList =
                         listOf(
                             CardDto("BERLIN", CardType.BLUE, false),
@@ -259,11 +254,11 @@ class GameViewModelTest {
 
             val state = viewModel.connectionState.value
 
-            assertTrue(state is com.codenames.frontend.data.model.enums.ConnectionState.Error)
+            assertTrue(state is ConnectionState.Error)
 
             assertEquals(
                 "Connection failed",
-                (state as com.codenames.frontend.data.model.enums.ConnectionState.Error).message,
+                (state as ConnectionState.Error).message,
             )
         }
 
@@ -274,10 +269,7 @@ class GameViewModelTest {
                 winner = null,
                 currentTurn = Team.RED,
                 currentPhase = Role.OPERATIVE,
-                currentRedFound = 0,
-                currentBlueFound = 0,
                 currentClue = ClueDto(word = "Animal", guessAmount = 3),
-                remainingGuesses = 0,
                 cardList =
                     listOf(
                         CardDto("A", CardType.RED, true),
@@ -301,10 +293,7 @@ class GameViewModelTest {
                 winner = null,
                 currentTurn = Team.RED,
                 currentPhase = Role.OPERATIVE,
-                currentRedFound = 0,
-                currentBlueFound = 0,
                 currentClue = ClueDto(word = "Animal", guessAmount = 3),
-                remainingGuesses = 0,
                 cardList =
                     listOf(
                         CardDto("A", CardType.RED, false),
@@ -384,10 +373,7 @@ class GameViewModelTest {
                     winner = null,
                     currentTurn = Team.RED,
                     currentPhase = Role.OPERATIVE,
-                    currentRedFound = 0,
-                    currentBlueFound = 0,
                     currentClue = null,
-                    remainingGuesses = 1,
                     cardList = emptyList(),
                 )
 

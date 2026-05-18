@@ -68,7 +68,7 @@ class MapperTest {
     fun toGameState_withCurrentClue_mapsCorrectly() {
         val gameMessage =
             GameMessage(
-                currentClue = ClueDto(word = "Animal", guessAmount = 3),
+                currentClue = ClueDto(word = "Animal", guessAmount = 2),
                 cardList =
                     listOf(
                         CardDto(
@@ -80,7 +80,6 @@ class MapperTest {
                 currentTurn = Team.RED,
                 currentPhase = Role.OPERATIVE,
                 winner = null,
-                remainingGuesses = 2,
             )
 
         val result = gameMessage.toGameState()
@@ -103,7 +102,6 @@ class MapperTest {
                 currentTurn = Team.BLUE,
                 currentPhase = Role.SPYMASTER,
                 winner = null,
-                remainingGuesses = 0,
             )
 
         val result = gameMessage.toGameState()
