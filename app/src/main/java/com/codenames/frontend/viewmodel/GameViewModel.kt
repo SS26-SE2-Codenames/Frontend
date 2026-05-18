@@ -13,6 +13,7 @@ import com.codenames.frontend.data.model.toGameState
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
+import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
 import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,10 +38,7 @@ class GameViewModel
         private val _uiState = MutableStateFlow(GameState())
         val uiState: StateFlow<GameState> = _uiState
 
-        // _chatState is mutable and should only be used by view model
         private val _chatState = MutableStateFlow(ChatLists())
-
-        // chatState is not mutable and is meant for the UI
         val chatState: StateFlow<ChatLists> = _chatState
 
         private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.IDLE)
@@ -54,6 +52,7 @@ class GameViewModel
             isHost: Boolean = false,
         ) {
             job?.cancel()
+            _chatState.value = ChatLists()
 
             job =
                 viewModelScope.launch {
@@ -61,6 +60,7 @@ class GameViewModel
 
                     try {
                         client.connectStomp()
+                        client.sendReconnectMessage(WebSocketJoinMessage(username, lobbyCode))
 
                         Log.d("GameViewModel", "Connection successful")
 
@@ -75,7 +75,6 @@ class GameViewModel
                         Log.d("GameViewModel", "Subscribed to Lobby")
 
                         launch {
-                            // msg is the domain model chat we emit in the ChatRepository
                             chatRepository.observeChat("/topic/chat/$lobbyCode", username).collect { msg ->
                                 _chatState.update { currentState ->
                                     currentState.copy(lobbyMessages = currentState.lobbyMessages + msg)

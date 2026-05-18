@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
-import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
@@ -20,26 +20,18 @@ fun GameScreenWrapper(
 ) {
     val lobbyState by lobbyViewModel.state.collectAsState()
     val gameState by gameViewModel.uiState.collectAsState()
+    val chatState by gameViewModel.chatState.collectAsState()
     val usernameState by sessionViewModel.username.collectAsState()
     val userRole = lobbyViewModel.getRoleForUser(usernameState.username)
 
     val currentPlayer = lobbyState.players.firstOrNull { it.name == usernameState.username }
     val team = currentPlayer?.team
     val lobbyCode = lobbyState.lobbyCode.orEmpty()
-    val cards = gameState.cards
 
     GameboardScreen(
         userRole = userRole,
-        gameState =
-            GameState(
-                currentHint = gameState.currentHint,
-                currentTurn = gameState.currentTurn,
-                winner = gameState.winner,
-                remainingGuesses = gameState.remainingGuesses,
-                cards = cards,
-            ),
+        gameState = gameState.copy(chatLists = chatState),
         onHintChange = { word, count ->
-
             if (lobbyCode.isNotBlank()) {
                 gameViewModel.submitClue(lobbyCode, word, count)
             }
@@ -47,19 +39,45 @@ fun GameScreenWrapper(
         onReveal = {
             // TODO: Send guess through GameViewModel once backend endpoint exists.
         },
-        onSendChatMessage = { message ->
-            if (lobbyCode.isNotBlank() && team != null) {
-                gameViewModel.sendTeamMessage(
-                    lobbyCode = lobbyCode,
-                    team = team.name,
-                    username = usernameState.username,
-                    content = message,
-                )
+        onSendChatMessage = { tab, message ->
+            if (lobbyCode.isBlank()) {
+                return@GameboardScreen
+            }
+
+            when (tab) {
+                ChatTab.GLOBAL -> {
+                    gameViewModel.sendLobbyMessage(
+                        lobbyCode = lobbyCode,
+                        username = usernameState.username,
+                        content = message,
+                    )
+                }
+
+                ChatTab.TEAM -> {
+                    if (team != null) {
+                        gameViewModel.sendTeamMessage(
+                            lobbyCode = lobbyCode,
+                            team = team.name,
+                            username = usernameState.username,
+                            content = message,
+                        )
+                    }
+                }
+
+                ChatTab.OPERATIVES -> {
+                    if (team != null) {
+                        gameViewModel.sendOperativeMessage(
+                            lobbyCode = lobbyCode,
+                            team = team.name,
+                            username = usernameState.username,
+                            content = message,
+                        )
+                    }
+                }
             }
         },
         onSettingsClick = {
             navController.navigate(Screen.Settings.route)
         },
-        gameViewModel = gameViewModel,
     )
 }

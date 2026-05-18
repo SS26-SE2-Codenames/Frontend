@@ -9,4 +9,5 @@ data class GameState(
     val currentTurn: PlayerRoles = PlayerRoles.NONE,
     val winner: Team? = null,
     val remainingGuesses: Int = 0,
+    val chatLists: ChatLists = ChatLists(),
 )
