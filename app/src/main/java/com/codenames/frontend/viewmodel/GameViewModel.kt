@@ -8,6 +8,7 @@ import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
+import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toGameState
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
@@ -156,9 +157,12 @@ class GameViewModel
             count: Int,
         ) {
             val turn = uiState.value.currentTurn ?: return
+            val turnString = turn.toString()
+            val teamString = turnString.split("_").first()
+            val team = Team.valueOf(teamString)
             viewModelScope.launch {
                 try {
-                    client.sendClue(lobbyCode, word, count, turn)
+                    client.sendClue(lobbyCode, word, count, team)
                 } catch (e: Exception) {
                     _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
                 }
