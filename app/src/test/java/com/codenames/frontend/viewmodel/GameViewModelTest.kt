@@ -397,45 +397,49 @@ class GameViewModelTest {
         }
 
     @Test
-    fun testSubmitClue_RedSpymaster_Success() = runTest {
-        coEvery {
-            client.sendClue(any(), any(), any(), any())
-        } just Runs
+    fun testSubmitClue_RedSpymaster_Success() =
+        runTest {
+            coEvery {
+                client.sendClue(any(), any(), any(), any())
+            } just Runs
 
-        viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
 
-        viewModel.submitClue(lobbyCode, "EAGLE", 2)
-        advanceUntilIdle()
+            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            advanceUntilIdle()
 
-        coVerify { client.sendClue(lobbyCode, "EAGLE", 2, Team.RED) }
-    }
-
-    @Test
-    fun testSubmitClue_NetworkError_UpdatesConnectionState() = runTest {
-        coEvery {
-            client.sendClue(any(), any(), any(), any())
-        } throws Exception("Network connection failed")
-
-        viewModel.handleMessage(testMessage.copy(
-            currentTurn = Team.RED,
-            currentPhase = Role.SPYMASTER
-        ))
-
-        viewModel.submitClue(lobbyCode, "EAGLE", 2)
-        advanceUntilIdle()
-
-        val state = viewModel.connectionState.value
-        assertTrue(state is ConnectionState.Error)
-    }
+            coVerify { client.sendClue(lobbyCode, "EAGLE", 2, Team.RED) }
+        }
 
     @Test
-    fun testSubmitClue_whenTurnIsNone_doesNotSendClue() = runTest {
-        // never call handleMessage so turn is NONE
+    fun testSubmitClue_NetworkError_UpdatesConnectionState() =
+        runTest {
+            coEvery {
+                client.sendClue(any(), any(), any(), any())
+            } throws Exception("Network connection failed")
 
-        viewModel.submitClue(lobbyCode, "EAGLE", 2)
-        advanceUntilIdle()
+            viewModel.handleMessage(
+                testMessage.copy(
+                    currentTurn = Team.RED,
+                    currentPhase = Role.SPYMASTER,
+                ),
+            )
 
-        coVerify(exactly = 0) { client.sendClue(any(), any(), any(), any()) }
-    }
+            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            advanceUntilIdle()
 
+            val state = viewModel.connectionState.value
+            assertTrue(state is ConnectionState.Error)
+        }
+
+    @Test
+    fun testSubmitClue_whenTurnIsNone_doesNotSendClue() =
+        runTest {
+            // never call handleMessage so turn is NONE
+
+            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) { client.sendClue(any(), any(), any(), any()) }
+        }
 }
