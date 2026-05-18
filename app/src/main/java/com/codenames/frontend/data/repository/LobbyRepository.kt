@@ -35,4 +35,9 @@ class LobbyRepository
             val player = PlayerDto(username, role, team, false)
             return api.changeRole(lobbyCode, player)
         }
+
+        suspend fun sendStartGame(
+            lobbyCode: String,
+            username: String,
+        ): LobbyResponse = api.startGame(lobbyCode, username)
     }

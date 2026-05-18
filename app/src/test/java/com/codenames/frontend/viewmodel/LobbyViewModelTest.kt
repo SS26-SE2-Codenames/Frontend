@@ -1,5 +1,6 @@
 package com.codenames.frontend.viewmodel
 
+import android.util.Log
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.LobbyRepository
@@ -8,7 +9,9 @@ import com.codenames.frontend.network.dto.PlayerDto
 import com.codenames.frontend.ui.roles.PlayerRoles
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +53,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    isStarted = false,
                 )
 
             coEvery { repository.createLobby("User") } returns response
@@ -100,6 +104,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -107,6 +112,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             val viewModel = LobbyViewModel(repository)
@@ -154,12 +160,14 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             val response2 =
                 LobbyResponse(
                     lobbyCode = "",
                     playerList = emptyList(),
+                    false,
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -192,6 +200,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -227,12 +236,14 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             val response2 =
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", newRole, newTeam, true)),
+                    false,
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -268,6 +279,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             coEvery { repository.joinLobby("User", "1234") } returns response
@@ -350,6 +362,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             val viewModel = LobbyViewModel(repository)
@@ -373,8 +386,8 @@ class LobbyViewModelTest {
 
             coEvery { repository.getLobbyInfo(any()) } returnsMany
                 listOf(
-                    LobbyResponse("1", emptyList()),
-                    LobbyResponse("2", emptyList()),
+                    LobbyResponse("1", emptyList(), false),
+                    LobbyResponse("2", emptyList(), false),
                 )
 
             val viewModel = LobbyViewModel(repository)
@@ -398,6 +411,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             val viewModel = LobbyViewModel(repository)
@@ -428,6 +442,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             coEvery { repository.createLobby("User") } returns response
@@ -458,6 +473,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
                 )
 
             coEvery { repository.createLobby("User") } returns response
@@ -558,6 +574,7 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "ABCD",
                     playerList = players,
+                    false,
                 )
 
             coEvery {
@@ -614,12 +631,14 @@ class LobbyViewModelTest {
                 LobbyResponse(
                     lobbyCode = "ABCD",
                     playerList = initialPlayers,
+                    false,
                 )
 
             val changeRoleResponse =
                 LobbyResponse(
                     lobbyCode = "ABCD",
                     playerList = updatedPlayers,
+                    false,
                 )
 
             coEvery {
@@ -677,6 +696,338 @@ class LobbyViewModelTest {
             assertTrue(
                 viewModel.state.value.error
                     ?.contains("Not in a Lobby") == true,
+            )
+        }
+
+    @Test
+    fun changeRole_DelegatesCorrectly_redSpymaster() {
+        val repository = mockk<LobbyRepository>()
+        val viewModel = spyk<LobbyViewModel>(LobbyViewModel(repository))
+
+        viewModel.changeRole(PlayerRoles.RED_SPYMASTER, "Alice")
+
+        verify {
+            viewModel.changeRole(Role.SPYMASTER, Team.RED, "Alice")
+        }
+    }
+
+    @Test
+    fun changeRole_DelegatesCorrectly_blueOperative() {
+        val repository = mockk<LobbyRepository>()
+        val viewModel = spyk<LobbyViewModel>(LobbyViewModel(repository))
+
+        viewModel.changeRole(PlayerRoles.BLUE_OPERATIVE, "Bob")
+
+        verify {
+            viewModel.changeRole(Role.OPERATIVE, Team.BLUE, "Bob")
+        }
+    }
+
+    @Test
+    fun changeRole_invalidRole_setsError() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.changeRole(PlayerRoles.NONE, "User")
+
+            advanceUntilIdle()
+
+            assertEquals(
+                "Invalid role",
+                viewModel.state.value.error,
+            )
+        }
+
+    @Test
+    fun getRoleForUser_userNotFound_returnsNone() {
+        val repository = mockk<LobbyRepository>()
+        val viewModel = LobbyViewModel(repository)
+
+        val result = viewModel.getRoleForUser("Unknown")
+
+        assertEquals(PlayerRoles.NONE, result)
+    }
+
+    @Test
+    fun sendStartGame_blankUsername_doesNothing() =
+        runTest {
+            val repository = mockk<LobbyRepository>(relaxed = true)
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.sendStartGame("")
+
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                repository.sendStartGame(any(), any())
+            }
+        }
+
+    @Test
+    fun getRoleForUser_blueOperative_returnsCorrectRole() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto(
+                                username = "Alice",
+                                role = Role.OPERATIVE,
+                                team = Team.BLUE,
+                                isHost = false,
+                            ),
+                        ),
+                    isStarted = false,
+                )
+
+            coEvery {
+                repository.joinLobby("Alice", "12345")
+            } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Alice", "12345")
+
+            advanceUntilIdle()
+
+            val result = viewModel.getRoleForUser("Alice")
+
+            assertEquals(PlayerRoles.BLUE_OPERATIVE, result)
+        }
+
+    @Test
+    fun getRoleForUser_redSpymaster_returnsCorrectRole() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto(
+                                username = "Bob",
+                                role = Role.SPYMASTER,
+                                team = Team.RED,
+                                isHost = false,
+                            ),
+                        ),
+                    false,
+                )
+
+            coEvery {
+                repository.joinLobby("Bob", "12345")
+            } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Bob", "12345")
+
+            advanceUntilIdle()
+
+            val result = viewModel.getRoleForUser("Bob")
+
+            assertEquals(PlayerRoles.RED_SPYMASTER, result)
+        }
+
+    @Test
+    fun getRoleForUser_nullRole_returnsNone() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto(
+                                username = "Bob",
+                                role = null,
+                                team = Team.RED,
+                                isHost = false,
+                            ),
+                        ),
+                    isStarted = false,
+                )
+
+            coEvery {
+                repository.joinLobby("Bob", "12345")
+            } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Bob", "12345")
+
+            advanceUntilIdle()
+
+            val result = viewModel.getRoleForUser("Bob")
+
+            assertEquals(PlayerRoles.NONE, result)
+        }
+
+    @Test
+    fun getIsHost_returnsTrueForHost() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto(
+                                username = "Host",
+                                role = null,
+                                team = null,
+                                isHost = true,
+                            ),
+                        ),
+                    isStarted = false,
+                )
+
+            coEvery {
+                repository.joinLobby("Host", "12345")
+            } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Host", "12345")
+
+            advanceUntilIdle()
+
+            assertTrue(viewModel.getIsHost("Host"))
+        }
+
+    @Test
+    fun getIsHost_returnsFalseForNonHost() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto(
+                                username = "User",
+                                isHost = false,
+                            ),
+                        ),
+                    isStarted = false,
+                )
+
+            coEvery {
+                repository.joinLobby("User", "12345")
+            } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("User", "12345")
+
+            advanceUntilIdle()
+
+            assertFalse(viewModel.getIsHost("User"))
+        }
+
+    @Test
+    fun sendStartGame_callsRepository() =
+        runTest {
+            mockkStatic(Log::class)
+            every { Log.d(any(), any()) } returns 0
+
+            val repository = mockk<LobbyRepository>()
+
+            val joinResponse =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto(
+                                username = "Host",
+                                isHost = true,
+                            ),
+                        ),
+                    isStarted = false,
+                )
+
+            val startResponse =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList = joinResponse.playerList,
+                    isStarted = true,
+                )
+
+            coEvery {
+                repository.joinLobby("Host", "12345")
+            } returns joinResponse
+
+            coEvery {
+                repository.sendStartGame("12345", "Host")
+            } returns startResponse
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Host", "12345")
+
+            advanceUntilIdle()
+
+            viewModel.sendStartGame("Host")
+
+            advanceUntilIdle()
+
+            coVerify {
+                repository.sendStartGame("12345", "Host")
+            }
+        }
+
+    @Test
+    fun sendStartGame_exception_setsError() =
+        runTest {
+            mockkStatic(Log::class)
+            every { Log.d(any(), any()) } returns 0
+
+            val repository = mockk<LobbyRepository>()
+
+            val joinResponse =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto(
+                                username = "Host",
+                                isHost = true,
+                            ),
+                        ),
+                    isStarted = false,
+                )
+
+            coEvery {
+                repository.joinLobby("Host", "12345")
+            } returns joinResponse
+
+            coEvery {
+                repository.sendStartGame(any(), any())
+            } throws RuntimeException("Start failed")
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Host", "12345")
+
+            advanceUntilIdle()
+
+            viewModel.sendStartGame("Host")
+
+            advanceUntilIdle()
+
+            assertEquals(
+                "Start failed",
+                viewModel.state.value.error,
             )
         }
 }
