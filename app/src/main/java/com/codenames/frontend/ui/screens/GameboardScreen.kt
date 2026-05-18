@@ -51,7 +51,6 @@ import com.codenames.frontend.data.model.GameCard
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ChatTab
-import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -767,8 +766,10 @@ fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
                 remainingGuesses = remainingGuesses,
                 cards = cards,
             ),
-        onHintChange = {word, count -> currentHint = word
-            remainingGuesses = count},
+        onHintChange = { word, count ->
+            currentHint = word
+            remainingGuesses = count
+        },
         onReveal = { index -> revealCard(index) },
         onSendChatMessage = {},
         gameViewModel = gameViewModel,
