@@ -26,7 +26,7 @@ fun PlayerDto.toUi(): Player =
 
 fun GameMessage.toGameState(): GameState =
     GameState(
-        currentHint = currentClue ?: "",
+        currentHint = currentClue?.word ?: "",
         cards = cardList.map { it.toGameCard() },
         currentTurn = getCurrentTurn(),
         winner = winner,
