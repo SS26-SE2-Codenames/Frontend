@@ -14,6 +14,7 @@ import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -157,9 +158,9 @@ class GameViewModel
             count: Int,
         ) {
             val turn = uiState.value.currentTurn
-            val turnString = turn.toString()
-            val teamString = turnString.split("_").first()
-            val team = Team.valueOf(teamString)
+            if (turn != PlayerRoles.BLUE_SPYMASTER && turn != PlayerRoles.RED_SPYMASTER) return
+
+            val team = if (turn == PlayerRoles.BLUE_SPYMASTER) Team.BLUE else Team.RED
             viewModelScope.launch {
                 try {
                     client.sendClue(lobbyCode, word, count, team)
