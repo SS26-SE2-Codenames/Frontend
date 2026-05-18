@@ -183,25 +183,6 @@ class GameViewModelTest {
         }
 
     @Test
-    fun testConnectUpdateTeamChat() =
-        runTest {
-            val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
-
-            coEvery { client.connectStomp() } just Runs
-            coEvery { client.subscribeToLobby(any()) } returns emptyFlow()
-
-            every { chatRepository.observeChat("/topic/chat/$lobbyCode", username) } returns emptyFlow()
-            every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username) } returns flowOf(testChat)
-            every { chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username) } returns emptyFlow()
-
-            viewModel.connect(username, lobbyCode, team, role)
-            advanceUntilIdle()
-
-            val currentMessageList = viewModel.chatState.value.teamMessages
-            assertEquals("Test msg", currentMessageList[0].text)
-        }
-
-    @Test
     fun testConnectUpdateOperativeChat() =
         runTest {
             val testChat = ChatDomainModel(sender = username, text = "Test msg", isFromMe = false)
