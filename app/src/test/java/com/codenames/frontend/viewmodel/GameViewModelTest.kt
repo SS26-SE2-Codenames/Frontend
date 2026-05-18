@@ -222,7 +222,7 @@ class GameViewModelTest {
                 GameMessage(
                     winner = null,
                     currentTurn = Team.BLUE,
-                    currentPhase = Role.SPYMASTER,
+                    currentPhase = Role.OPERATIVE,
                     currentRedFound = 1,
                     currentBlueFound = 2,
                     currentClue = ClueDto("EAGLE", 3),
@@ -238,9 +238,8 @@ class GameViewModelTest {
 
             val state = viewModel.uiState.value
 
-            assertEquals(Team.BLUE, state.currentTurn)
-            assertEquals(Role.OPERATIVE, state.currentPhase)
-            assertEquals("EAGLE", state.currentClue?.word)
+            assertEquals(PlayerRoles.BLUE_OPERATIVE, state.currentTurn)
+            assertEquals("EAGLE", state.currentHint)
             assertEquals(3, state.remainingGuesses)
             assertEquals(2, state.cards.size)
             assertEquals("BERLIN", state.cards[0].word)
@@ -276,7 +275,7 @@ class GameViewModelTest {
                 currentPhase = Role.OPERATIVE,
                 currentRedFound = 0,
                 currentBlueFound = 0,
-                currentClue = "",
+                currentClue = ClueDto(word = "Animal", guessAmount = 3),
                 remainingGuesses = 0,
                 cardList =
                     listOf(
@@ -303,7 +302,7 @@ class GameViewModelTest {
                 currentPhase = Role.OPERATIVE,
                 currentRedFound = 0,
                 currentBlueFound = 0,
-                currentClue = "",
+                currentClue = ClueDto(word = "Animal", guessAmount = 3),
                 remainingGuesses = 0,
                 cardList =
                     listOf(
