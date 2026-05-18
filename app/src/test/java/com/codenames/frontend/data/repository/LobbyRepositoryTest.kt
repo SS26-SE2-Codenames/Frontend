@@ -4,6 +4,7 @@ import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.api.LobbyApi
 import com.codenames.frontend.network.dto.LobbyResponse
+import com.codenames.frontend.network.dto.PlayerDto
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -33,6 +34,7 @@ class LobbyRepositoryTest {
                 LobbyResponse(
                     lobbyCode = "1234",
                     playerList = emptyList(),
+                    isStarted = false,
                 )
 
             coEvery { api.createLobby(username) } returns response
@@ -49,7 +51,7 @@ class LobbyRepositoryTest {
             val username = "Max"
             val lobbyCode = "1234"
 
-            val response = LobbyResponse(lobbyCode, emptyList())
+            val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.joinLobby(lobbyCode, username) } returns response
 
@@ -65,7 +67,7 @@ class LobbyRepositoryTest {
             val username = "Max"
             val lobbyCode = "1234"
 
-            val response = LobbyResponse(lobbyCode, emptyList())
+            val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.leaveLobby(username, lobbyCode) } returns response
 
@@ -80,7 +82,7 @@ class LobbyRepositoryTest {
         runTest {
             val lobbyCode = "1234"
 
-            val response = LobbyResponse(lobbyCode, emptyList())
+            val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.getLobbyInfo(lobbyCode) } returns response
 
@@ -96,7 +98,7 @@ class LobbyRepositoryTest {
             val role = Role.OPERATIVE
             val team = Team.RED
 
-            val response = LobbyResponse(lobbyCode, emptyList())
+            val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.changeRole(eq(lobbyCode), any()) } returns response
 
@@ -124,5 +126,28 @@ class LobbyRepositoryTest {
             assertFailsWith<RuntimeException> {
                 repository.createLobby(username)
             }
+        }
+
+    @Test
+    fun sendStartGame_callsApi() =
+        runTest {
+            val lobbyCode = "ABCDE"
+            val username = "Test"
+            val list =
+                listOf(
+                    PlayerDto(
+                        username,
+                        null,
+                        null,
+                        true,
+                    ),
+                )
+
+            coEvery { api.startGame(any(), any()) } returns LobbyResponse(lobbyCode, list, false)
+
+            val response = repository.sendStartGame(lobbyCode, username)
+
+            coVerify { api.startGame(any(), any()) }
+            assertEquals(response.lobbyCode, lobbyCode)
         }
 }

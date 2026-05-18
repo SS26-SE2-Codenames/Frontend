@@ -47,6 +47,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatMessage
+import com.codenames.frontend.data.model.GameCard
+import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
@@ -63,53 +66,32 @@ import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.viewmodel.ChatViewModel
-
-enum class CardType {
-    BLUE,
-    RED,
-    NEUTRAL,
-    ASSASSIN,
-}
-
-data class GameCard(
-    val word: String,
-    val type: CardType,
-    val revealed: Boolean = false,
-)
-
-data class GameState(
-    val currentHint: String,
-    val cards: List<GameCard>,
-    val currentTurn: String = "",
-    val winner: String? = null,
-    val remainingGuesses: Int = 0,
-    val currentRedFound: Int = 0,
-    val currentBlueFound: Int = 0,
-    val chatMessages: List<ChatDomainModel> = emptyList(),
-)
+import com.codenames.frontend.viewmodel.GameViewModel
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameboardScreen(
     userRole: PlayerRoles,
     gameState: GameState,
-    onHintChange: (String) -> Unit,
+    onHintChange: (String, Int) -> Unit,
     onReveal: (Int) -> Unit,
     modifier: Modifier = Modifier,
     onSendChatMessage: (String) -> Unit = {},
     onSettingsClick: (() -> Unit)? = null,
     chatViewModel: ChatViewModel = viewModel(),
+    gameViewModel: GameViewModel,
 ) {
     val currentHint = gameState.currentHint
     val cards = gameState.cards
     val currentTurn = gameState.currentTurn
     val winner = gameState.winner
     val remainingGuesses = gameState.remainingGuesses
-    val currentRedFound = gameState.currentRedFound
-    val currentBlueFound = gameState.currentBlueFound
+    val currentRedFound = gameViewModel.getCurrentFound(CardType.RED)
+    val currentBlueFound = gameViewModel.getCurrentFound(CardType.BLUE)
     val chatUiState by chatViewModel.uiState.collectAsState()
 
     var hintInput by rememberSaveable { mutableStateOf("") }
+    var countInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
     var selectedChatTab by rememberSaveable { mutableStateOf(ChatTab.GLOBAL) }
 
@@ -206,8 +188,10 @@ fun GameboardScreen(
                 isSpymaster,
                 currentHint,
                 hintInput,
-                onHintChange,
+                countInput,
+                onHintChange = onHintChange,
                 onInputChange,
+                onCountChange = { countInput = it },
                 keyboardController,
                 focusManager,
             )
@@ -257,8 +241,8 @@ fun GameboardScreen(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameStatusBar(
-    currentTurn: String,
-    winner: String?,
+    currentTurn: PlayerRoles?,
+    winner: Team?,
     remainingGuesses: Int,
 ) {
     Row(
@@ -271,8 +255,8 @@ fun GameStatusBar(
     ) {
         val statusText =
             when {
-                !winner.isNullOrBlank() -> "Winner: $winner"
-                currentTurn.isNotBlank() -> "Turn: $currentTurn | Guesses: $remainingGuesses"
+                winner != null -> "Winner: $winner"
+                currentTurn != null -> "Turn: ${currentTurn.name} | Guesses: $remainingGuesses"
                 else -> "Waiting for turn..."
             }
 
@@ -553,8 +537,10 @@ fun HintSection(
     isSpymaster: Boolean,
     currentHint: String,
     hintInput: String,
-    onHintChange: (String) -> Unit,
+    countInput: String,
+    onHintChange: (String, Int) -> Unit,
     onInputChange: (String) -> Unit,
+    onCountChange: (String) -> Unit,
     keyboardController: SoftwareKeyboardController?,
     focusManager: FocusManager,
 ) {
@@ -574,9 +560,11 @@ fun HintSection(
                         actions =
                             KeyboardActions(
                                 onSend = {
+                                    val count = countInput.toIntOrNull() ?: 0
                                     if (hintInput.isNotBlank()) {
-                                        onHintChange(hintInput.uppercase())
+                                        onHintChange(hintInput.uppercase(), count)
                                         onInputChange("")
+                                        onCountChange("")
                                         focusManager.clearFocus()
                                         keyboardController?.hide()
                                     }
@@ -584,13 +572,23 @@ fun HintSection(
                             ),
                     ),
             )
+            AppTextField(
+                value = countInput,
+                onValueChange = onCountChange,
+                modifier = Modifier.width(80.dp),
+                state = AppTextFieldState(label = "COUNT", placeholder = "0"),
+            )
 
             AppButton(
                 text = "SEND",
                 onClick = {
+                    val count = countInput.toIntOrNull() ?: 0
                     if (hintInput.isNotBlank()) {
-                        onHintChange(hintInput.uppercase())
+                        onHintChange(hintInput.uppercase(), count)
                         onInputChange("")
+                        onCountChange("")
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
                     }
                 },
             )
@@ -686,9 +684,9 @@ fun getColor(type: CardType): Color =
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun OfflineGameStateTestScreen() {
+fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
     var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
-    var currentTurn by rememberSaveable { mutableStateOf("BLUE") }
+    var currentTurn by rememberSaveable { mutableStateOf(PlayerRoles.RED_OPERATIVE) }
     var remainingGuesses by rememberSaveable { mutableIntStateOf(3) }
     var currentBlueFound by rememberSaveable { mutableIntStateOf(0) }
     var currentRedFound by rememberSaveable { mutableIntStateOf(0) }
@@ -748,8 +746,10 @@ fun OfflineGameStateTestScreen() {
         when (card.type) {
             CardType.BLUE -> currentBlueFound++
             CardType.RED -> currentRedFound++
-            CardType.NEUTRAL -> currentTurn = if (currentTurn == "BLUE") "RED" else "BLUE"
-            CardType.ASSASSIN -> currentTurn = "GAME OVER"
+            CardType.NEUTRAL ->
+                currentTurn =
+                    if (currentTurn == PlayerRoles.BLUE_SPYMASTER) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_SPYMASTER
+            CardType.ASSASSIN -> currentTurn = PlayerRoles.NONE
         }
 
         if (remainingGuesses > 0) {
@@ -764,13 +764,14 @@ fun OfflineGameStateTestScreen() {
                 currentHint = currentHint,
                 currentTurn = currentTurn,
                 remainingGuesses = remainingGuesses,
-                currentBlueFound = currentBlueFound,
-                currentRedFound = currentRedFound,
                 cards = cards,
-                chatMessages = chatMessages,
             ),
-        onHintChange = { currentHint = it },
+        onHintChange = { word, count ->
+            currentHint = word
+            remainingGuesses = count
+        },
         onReveal = { index -> revealCard(index) },
         onSendChatMessage = {},
+        gameViewModel = gameViewModel,
     )
 }

@@ -1,5 +1,6 @@
 package com.codenames.frontend.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.LobbyUiState
+import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -59,22 +62,36 @@ fun LobbyScreen(
     val lobbyUiState by viewModel.state.collectAsState()
     val currentPlayer = lobbyUiState.players.firstOrNull { it.name == usernameState.username }
     val currentRole = currentPlayer?.toPlayerRole() ?: PlayerRoles.NONE
+    val connectionState by gameViewModel.connectionState.collectAsState()
 
     val onStartGame = {
-        val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
-        val teamAndRole = currentRole.toTeamAndRole()
+        viewModel.sendStartGame(usernameState.username)
+    }
 
-        if (lobbyCode.isNotBlank() && teamAndRole != null) {
-            val (team, role) = teamAndRole
+    LaunchedEffect(lobbyUiState.isGameStarted) {
+        if (lobbyUiState.isGameStarted) {
+            val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
+            val teamAndRole = currentRole.toTeamAndRole()
 
-            gameViewModel.connect(
-                username = usernameState.username,
-                lobbyCode = lobbyCode,
-                team = team.name,
-                role = role.name,
-            )
+            Log.d("LobbyScreen", "Lobby UI state is started, recomposing")
 
-            navController.navigate("${Screen.Gameboard.route}/${usernameState.username}/${currentRole.name}")
+            if (lobbyCode.isNotBlank() && teamAndRole != null) {
+                val (team, role) = teamAndRole
+
+                gameViewModel.connect(
+                    username = usernameState.username,
+                    lobbyCode = lobbyCode,
+                    team = team.name,
+                    role = role.name,
+                    isHost = viewModel.getIsHost(usernameState.username),
+                )
+            }
+        }
+    }
+
+    LaunchedEffect(connectionState) {
+        if (connectionState == ConnectionState.CONNECTED) {
+            navController.navigate(Screen.Gameboard.route)
         }
     }
 
@@ -261,7 +278,8 @@ fun GameSettingsColumn(
     val canStart =
         usernameState.username.isNotBlank() &&
             lobbyCode.isNotBlank() &&
-            currentRole != PlayerRoles.NONE
+            currentRole != PlayerRoles.NONE &&
+            viewModel.getIsHost(usernameState.username)
 
     Column(
         modifier = modifier,
