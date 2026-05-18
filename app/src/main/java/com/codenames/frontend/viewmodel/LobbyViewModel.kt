@@ -1,5 +1,6 @@
 package com.codenames.frontend.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.LobbyUiState
@@ -167,6 +168,32 @@ class LobbyViewModel
                 Role.OPERATIVE -> if (player.team == Team.BLUE) PlayerRoles.BLUE_OPERATIVE else PlayerRoles.RED_OPERATIVE
                 Role.SPYMASTER -> if (player.team == Team.BLUE) PlayerRoles.BLUE_SPYMASTER else PlayerRoles.RED_SPYMASTER
                 null -> PlayerRoles.NONE
+            }
+        }
+
+        fun getIsHost(username: String): Boolean {
+            val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return false
+            return player.isHost
+        }
+
+        fun sendStartGame(username: String) {
+            val lobbyCode = _state.value.lobbyCode.orEmpty()
+            if (!username.isBlank() && !lobbyCode.isEmpty() && getIsHost(username)) {
+                viewModelScope.launch {
+                    try {
+                        setLoading(true)
+                        val response = repository.sendStartGame(lobbyCode, username)
+                        _state.update {
+                            response.toLobbyState()
+                        }
+                        updateUiState(_state.value.players)
+                    } catch (e: Exception) {
+                        setError(e.message)
+                    } finally {
+                        Log.d("LobbyViewModel", "Game start sent. Current state: ${_state.value}")
+                        setLoading(false)
+                    }
+                }
             }
         }
 

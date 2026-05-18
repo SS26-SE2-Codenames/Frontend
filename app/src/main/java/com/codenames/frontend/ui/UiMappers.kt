@@ -1,26 +1,16 @@
 package com.codenames.frontend.ui
 
+import com.codenames.frontend.data.model.GameCard
 import com.codenames.frontend.data.model.Player
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.CardDto
 import com.codenames.frontend.ui.roles.PlayerRoles
-import com.codenames.frontend.ui.screens.CardType
-import com.codenames.frontend.ui.screens.GameCard
 
 fun CardDto.toGameCard(): GameCard =
     GameCard(
         word = word,
-        type =
-            when (color.uppercase()) {
-                "BLUE" -> CardType.BLUE
-                "RED" -> CardType.RED
-                "BLACK" -> CardType.ASSASSIN
-                "ASSASSIN" -> CardType.ASSASSIN
-                "WHITE" -> CardType.NEUTRAL
-                "NEUTRAL" -> CardType.NEUTRAL
-                else -> CardType.NEUTRAL
-            },
+        type = color,
         revealed = isGuessed,
     )
 

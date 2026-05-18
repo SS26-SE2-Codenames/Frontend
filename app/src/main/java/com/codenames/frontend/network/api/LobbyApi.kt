@@ -37,4 +37,10 @@ interface LobbyApi {
         @Path("lobbyCode") lobbyCode: String,
         @Body playerDto: PlayerDto,
     ): LobbyResponse
+
+    @GET("lobby/{lobbyCode}/start-game")
+    suspend fun startGame(
+        @Path("lobbyCode") lobbyCode: String,
+        @Query("username") username: String,
+    ): LobbyResponse
 }

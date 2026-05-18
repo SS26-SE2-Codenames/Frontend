@@ -1,12 +1,16 @@
 package com.codenames.frontend.network.websocket
 
+import android.util.Log
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
+import com.codenames.frontend.network.dto.StartGameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.hildan.krossbow.stomp.StompClient
@@ -38,7 +42,10 @@ class GameWebSocketHandlerTest {
             val session = mockk<StompSession>()
             val sessionWithJson = mockk<StompSessionWithKxSerialization>()
 
+            mockkStatic(Log::class)
+
             coEvery { client.connect(BASE_URL) } returns session
+            every { Log.d(any(), any()) } returns 0
 
             coEvery {
                 sessionWithJson.subscribe<GameMessage>(any(), any())
@@ -96,7 +103,7 @@ class GameWebSocketHandlerTest {
         }
 
     @Test
-    fun testRegisterWebSocketSessionSendsMessage() =
+    fun testSendReconnectMessageSendsMessage() =
         runTest {
             val session = mockk<StompSessionWithKxSerialization>(relaxed = true)
             val client = mockk<StompClient>()
@@ -106,7 +113,7 @@ class GameWebSocketHandlerTest {
 
             val msg = WebSocketJoinMessage("name", "1234")
 
-            wsClient.registerWebSocketSession(msg)
+            wsClient.sendReconnectMessage(msg)
 
             coVerify {
                 session.convertAndSend("/app/join", msg, WebSocketJoinMessage.serializer())
@@ -137,5 +144,16 @@ class GameWebSocketHandlerTest {
             wsClient.sendChatMessage(destination, msg)
 
             coVerify { session.convertAndSend(destination, msg, ChatMessageDto.serializer()) }
+        }
+
+    @Test
+    fun testStartGame() =
+        runTest {
+            val destination = "/app/start-game"
+            val msg = StartGameMessage(lobbyCode = "ABCDE")
+
+            wsClient.startGame(msg)
+
+            coVerify { session.convertAndSend(destination, msg, StartGameMessage.serializer()) }
         }
 }
