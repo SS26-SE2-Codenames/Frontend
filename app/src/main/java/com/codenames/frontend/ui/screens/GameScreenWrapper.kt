@@ -38,8 +38,11 @@ fun GameScreenWrapper(
                 remainingGuesses = gameState.remainingGuesses,
                 cards = cards,
             ),
-        onHintChange = {
-            // TODO: Send clue through GameViewModel once backend endpoint exists.
+        onHintChange = { word, count ->
+
+            if (lobbyCode.isNotBlank()) {
+                gameViewModel.submitClue(lobbyCode, word, count)
+            }
         },
         onReveal = {
             // TODO: Send guess through GameViewModel once backend endpoint exists.

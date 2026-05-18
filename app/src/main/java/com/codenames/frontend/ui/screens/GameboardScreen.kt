@@ -73,7 +73,7 @@ import com.codenames.frontend.viewmodel.GameViewModel
 fun GameboardScreen(
     userRole: PlayerRoles,
     gameState: GameState,
-    onHintChange: (String) -> Unit,
+    onHintChange: (String, Int) -> Unit,
     onReveal: (Int) -> Unit,
     modifier: Modifier = Modifier,
     onSendChatMessage: (String) -> Unit = {},
@@ -91,6 +91,7 @@ fun GameboardScreen(
     val chatUiState by chatViewModel.uiState.collectAsState()
 
     var hintInput by rememberSaveable { mutableStateOf("") }
+    var countInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
     var selectedChatTab by rememberSaveable { mutableStateOf(ChatTab.GLOBAL) }
 
@@ -187,8 +188,10 @@ fun GameboardScreen(
                 isSpymaster,
                 currentHint,
                 hintInput,
-                onHintChange,
+                countInput,
+                onHintChange = onHintChange,
                 onInputChange,
+                onCountChange = { countInput = it },
                 keyboardController,
                 focusManager,
             )
@@ -534,8 +537,10 @@ fun HintSection(
     isSpymaster: Boolean,
     currentHint: String,
     hintInput: String,
-    onHintChange: (String) -> Unit,
+    countInput: String,
+    onHintChange: (String, Int) -> Unit,
     onInputChange: (String) -> Unit,
+    onCountChange: (String) -> Unit,
     keyboardController: SoftwareKeyboardController?,
     focusManager: FocusManager,
 ) {
@@ -555,9 +560,11 @@ fun HintSection(
                         actions =
                             KeyboardActions(
                                 onSend = {
+                                    val count = countInput.toIntOrNull() ?: 0
                                     if (hintInput.isNotBlank()) {
-                                        onHintChange(hintInput.uppercase())
+                                        onHintChange(hintInput.uppercase(), count)
                                         onInputChange("")
+                                        onCountChange("")
                                         focusManager.clearFocus()
                                         keyboardController?.hide()
                                     }
@@ -565,13 +572,23 @@ fun HintSection(
                             ),
                     ),
             )
+            AppTextField(
+                value = countInput,
+                onValueChange = onCountChange,
+                modifier = Modifier.width(80.dp),
+                state = AppTextFieldState(label = "COUNT", placeholder = "0"),
+            )
 
             AppButton(
                 text = "SEND",
                 onClick = {
+                    val count = countInput.toIntOrNull() ?: 0
                     if (hintInput.isNotBlank()) {
-                        onHintChange(hintInput.uppercase())
+                        onHintChange(hintInput.uppercase(), count)
                         onInputChange("")
+                        onCountChange("")
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
                     }
                 },
             )
@@ -749,7 +766,10 @@ fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
                 remainingGuesses = remainingGuesses,
                 cards = cards,
             ),
-        onHintChange = { /* not necessary for offline test screen */ },
+        onHintChange = { word, count ->
+            currentHint = word
+            remainingGuesses = count
+        },
         onReveal = { index -> revealCard(index) },
         onSendChatMessage = {},
         gameViewModel = gameViewModel,

@@ -4,11 +4,13 @@ import android.util.Log
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
+import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.CardDto
+import com.codenames.frontend.network.dto.ClueDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
 import com.codenames.frontend.ui.roles.PlayerRoles
@@ -57,10 +59,8 @@ class GameViewModelTest {
             winner = null,
             Team.RED,
             Role.SPYMASTER,
-            0,
-            0,
-            "",
-            0,
+            null,
+            listOf(),
         )
 
     private lateinit var viewModel: GameViewModel
@@ -221,11 +221,8 @@ class GameViewModelTest {
                 GameMessage(
                     winner = null,
                     currentTurn = Team.BLUE,
-                    currentPhase = Role.SPYMASTER,
-                    currentRedFound = 1,
-                    currentBlueFound = 2,
-                    currentClue = "EAGLE",
-                    remainingGuesses = 3,
+                    currentPhase = Role.OPERATIVE,
+                    currentClue = ClueDto("EAGLE", 3),
                     cardList =
                         listOf(
                             CardDto("BERLIN", CardType.BLUE, false),
@@ -237,7 +234,7 @@ class GameViewModelTest {
 
             val state = viewModel.uiState.value
 
-            assertEquals(PlayerRoles.BLUE_SPYMASTER, state.currentTurn)
+            assertEquals(PlayerRoles.BLUE_OPERATIVE, state.currentTurn)
             assertEquals("EAGLE", state.currentHint)
             assertEquals(3, state.remainingGuesses)
             assertEquals(2, state.cards.size)
@@ -257,11 +254,11 @@ class GameViewModelTest {
 
             val state = viewModel.connectionState.value
 
-            assertTrue(state is com.codenames.frontend.data.model.enums.ConnectionState.Error)
+            assertTrue(state is ConnectionState.Error)
 
             assertEquals(
                 "Connection failed",
-                (state as com.codenames.frontend.data.model.enums.ConnectionState.Error).message,
+                (state as ConnectionState.Error).message,
             )
         }
 
@@ -272,10 +269,7 @@ class GameViewModelTest {
                 winner = null,
                 currentTurn = Team.RED,
                 currentPhase = Role.OPERATIVE,
-                currentRedFound = 0,
-                currentBlueFound = 0,
-                currentClue = "",
-                remainingGuesses = 0,
+                currentClue = ClueDto(word = "Animal", guessAmount = 3),
                 cardList =
                     listOf(
                         CardDto("A", CardType.RED, true),
@@ -299,10 +293,7 @@ class GameViewModelTest {
                 winner = null,
                 currentTurn = Team.RED,
                 currentPhase = Role.OPERATIVE,
-                currentRedFound = 0,
-                currentBlueFound = 0,
-                currentClue = "",
-                remainingGuesses = 0,
+                currentClue = ClueDto(word = "Animal", guessAmount = 3),
                 cardList =
                     listOf(
                         CardDto("A", CardType.RED, false),
@@ -382,15 +373,59 @@ class GameViewModelTest {
                     winner = null,
                     currentTurn = Team.RED,
                     currentPhase = Role.OPERATIVE,
-                    currentRedFound = 0,
-                    currentBlueFound = 0,
                     currentClue = null,
-                    remainingGuesses = 1,
                     cardList = emptyList(),
                 )
 
             viewModel.handleMessage(message)
 
             assertEquals("", viewModel.uiState.value.currentHint)
+        }
+
+    @Test
+    fun testSubmitClue_RedSpymaster_Success() =
+        runTest {
+            coEvery {
+                client.sendClue(any(), any(), any(), any())
+            } just Runs
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            advanceUntilIdle()
+
+            coVerify { client.sendClue(lobbyCode, "EAGLE", 2, Team.RED) }
+        }
+
+    @Test
+    fun testSubmitClue_NetworkError_UpdatesConnectionState() =
+        runTest {
+            coEvery {
+                client.sendClue(any(), any(), any(), any())
+            } throws Exception("Network connection failed")
+
+            viewModel.handleMessage(
+                testMessage.copy(
+                    currentTurn = Team.RED,
+                    currentPhase = Role.SPYMASTER,
+                ),
+            )
+
+            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            advanceUntilIdle()
+
+            val state = viewModel.connectionState.value
+            assertTrue(state is ConnectionState.Error)
+        }
+
+    @Test
+    fun testSubmitClue_whenTurnIsNone_doesNotSendClue() =
+        runTest {
+            // never call handleMessage so turn is NONE
+
+            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) { client.sendClue(any(), any(), any(), any()) }
         }
 }

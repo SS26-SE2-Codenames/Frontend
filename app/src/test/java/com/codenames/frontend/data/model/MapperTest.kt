@@ -4,6 +4,7 @@ import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.CardDto
+import com.codenames.frontend.network.dto.ClueDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.ui.roles.PlayerRoles
 import org.junit.Assert.assertEquals
@@ -67,7 +68,7 @@ class MapperTest {
     fun toGameState_withCurrentClue_mapsCorrectly() {
         val gameMessage =
             GameMessage(
-                currentClue = "Animal 3",
+                currentClue = ClueDto(word = "Animal", guessAmount = 2),
                 cardList =
                     listOf(
                         CardDto(
@@ -79,12 +80,11 @@ class MapperTest {
                 currentTurn = Team.RED,
                 currentPhase = Role.OPERATIVE,
                 winner = null,
-                remainingGuesses = 2,
             )
 
         val result = gameMessage.toGameState()
 
-        assertEquals("Animal 3", result.currentHint)
+        assertEquals("Animal", result.currentHint)
         assertEquals(PlayerRoles.RED_OPERATIVE, result.currentTurn)
         assertEquals(2, result.remainingGuesses)
         assertNull(result.winner)
@@ -102,7 +102,6 @@ class MapperTest {
                 currentTurn = Team.BLUE,
                 currentPhase = Role.SPYMASTER,
                 winner = null,
-                remainingGuesses = 0,
             )
 
         val result = gameMessage.toGameState()

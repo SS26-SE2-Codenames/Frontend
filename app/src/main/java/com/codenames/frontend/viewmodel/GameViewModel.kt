@@ -8,11 +8,13 @@ import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
+import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toGameState
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -147,6 +149,24 @@ class GameViewModel
         ) {
             viewModelScope.launch {
                 chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
+            }
+        }
+
+        fun submitClue(
+            lobbyCode: String,
+            word: String,
+            count: Int,
+        ) {
+            val turn = uiState.value.currentTurn
+            if (turn != PlayerRoles.BLUE_SPYMASTER && turn != PlayerRoles.RED_SPYMASTER) return
+
+            val team = if (turn == PlayerRoles.BLUE_SPYMASTER) Team.BLUE else Team.RED
+            viewModelScope.launch {
+                try {
+                    client.sendClue(lobbyCode, word, count, team)
+                } catch (e: Exception) {
+                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                }
             }
         }
 
