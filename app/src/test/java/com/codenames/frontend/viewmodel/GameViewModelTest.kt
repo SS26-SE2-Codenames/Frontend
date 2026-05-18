@@ -396,17 +396,45 @@ class GameViewModelTest {
         }
 
     @Test
-    fun testSubmitClue() =
-        runTest {
-            val word = "EAGLE"
-            val count = 2
-            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED))
+    fun testSubmitClue_RedSpymaster_Success() = runTest {
+        coEvery {
+            client.sendClue(any(), any(), any(), any())
+        } just Runs
 
-            viewModel.submitClue(lobbyCode, word, count)
-            advanceUntilIdle()
+        viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
 
-            coVerify {
-                client.sendClue(lobbyCode, word, count, Team.RED)
-            }
-        }
+        viewModel.submitClue(lobbyCode, "EAGLE", 2)
+        advanceUntilIdle()
+
+        coVerify { client.sendClue(lobbyCode, "EAGLE", 2, Team.RED) }
+    }
+
+    @Test
+    fun testSubmitClue_NetworkError_UpdatesConnectionState() = runTest {
+        coEvery {
+            client.sendClue(any(), any(), any(), any())
+        } throws Exception("Network connection failed")
+
+        viewModel.handleMessage(testMessage.copy(
+            currentTurn = Team.RED,
+            currentPhase = Role.SPYMASTER
+        ))
+
+        viewModel.submitClue(lobbyCode, "EAGLE", 2)
+        advanceUntilIdle()
+
+        val state = viewModel.connectionState.value
+        assertTrue(state is ConnectionState.Error)
+    }
+
+    @Test
+    fun testSubmitClue_whenTurnIsNone_doesNotSendClue() = runTest {
+        // never call handleMessage so turn is NONE
+
+        viewModel.submitClue(lobbyCode, "EAGLE", 2)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { client.sendClue(any(), any(), any(), any()) }
+    }
+
 }
