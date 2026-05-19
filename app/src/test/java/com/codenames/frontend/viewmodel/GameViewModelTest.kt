@@ -74,6 +74,9 @@ class GameViewModelTest {
         client = mockk<GameWebSocketHandler>()
         chatRepository = mockk(relaxed = true)
         gameRepository = mockk(relaxed = true)
+
+        every { chatRepository.observeChat(any(), any()) } returns emptyFlow()
+
         viewModel = GameViewModel(client, chatRepository, gameRepository)
     }
 

@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,9 +43,8 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.codenames.frontend.data.model.ChatDomainModel
-import com.codenames.frontend.data.model.ChatMessage
+import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.GameCard
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
@@ -65,8 +63,6 @@ import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
-import com.codenames.frontend.viewmodel.ChatViewModel
-import com.codenames.frontend.viewmodel.GameViewModel
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -76,24 +72,31 @@ fun GameboardScreen(
     onHintChange: (String, Int) -> Unit,
     onReveal: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    onSendChatMessage: (String) -> Unit = {},
+    onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
-    chatViewModel: ChatViewModel = viewModel(),
-    gameViewModel: GameViewModel,
 ) {
     val currentHint = gameState.currentHint
     val cards = gameState.cards
     val currentTurn = gameState.currentTurn
     val winner = gameState.winner
     val remainingGuesses = gameState.remainingGuesses
-    val currentRedFound = gameViewModel.getCurrentFound(CardType.RED)
-    val currentBlueFound = gameViewModel.getCurrentFound(CardType.BLUE)
-    val chatUiState by chatViewModel.uiState.collectAsState()
+    val chatLists = gameState.chatLists
+    val currentRedFound = gameState.currentRedFound
+    val currentBlueFound = gameState.currentBlueFound
+    val availableChatTabs = gameState.availableChatTabs
 
     var hintInput by rememberSaveable { mutableStateOf("") }
     var countInput by rememberSaveable { mutableStateOf("") }
+    var chatInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
     var selectedChatTab by rememberSaveable { mutableStateOf(ChatTab.GLOBAL) }
+
+    val activeChatTab =
+        if (selectedChatTab in availableChatTabs) {
+            selectedChatTab
+        } else {
+            availableChatTabs.firstOrNull() ?: ChatTab.GLOBAL
+        }
 
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
@@ -197,19 +200,15 @@ fun GameboardScreen(
             )
         }
 
-        if (!isSpymaster && isChatOpen) {
+        if (availableChatTabs.isNotEmpty() && isChatOpen) {
             ChatWindow(
-                chatInput = chatUiState.currentInput,
-                messages = chatUiState.messages,
-                selectedTab = selectedChatTab,
+                chatInput = chatInput,
+                messages = chatLists,
+                selectedTab = activeChatTab,
+                availableTabs = availableChatTabs,
                 onTabSelected = { selectedChatTab = it },
-                onChatInputChange = { chatViewModel.updateInput(it) },
-                onSendClick = { tab ->
-                    chatViewModel.sendMessage(
-                        username = "Player1",
-                        tab = tab,
-                    )
-                },
+                onChatInputChange = { chatInput = it },
+                onSendClick = { tab, message -> onSendChatMessage(tab, message) },
                 modifier =
                     Modifier
                         .align(Alignment.Center)
@@ -219,7 +218,7 @@ fun GameboardScreen(
             )
         }
 
-        if (!isSpymaster) {
+        if (availableChatTabs.isNotEmpty()) {
             ChatToggleButton(
                 isChatOpen = isChatOpen,
                 onClick = { isChatOpen = !isChatOpen },
@@ -297,11 +296,12 @@ fun ChatToggleButton(
 @Composable
 fun ChatWindow(
     chatInput: String,
-    messages: List<ChatMessage>,
+    messages: ChatLists,
     selectedTab: ChatTab,
+    availableTabs: List<ChatTab>,
     onTabSelected: (ChatTab) -> Unit,
     onChatInputChange: (String) -> Unit,
-    onSendClick: (ChatTab) -> Unit,
+    onSendClick: (ChatTab, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -317,7 +317,7 @@ fun ChatWindow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ChatTab.entries.forEach { tab ->
+            availableTabs.forEach { tab ->
                 AppButton(
                     text = tab.title,
                     onClick = { onTabSelected(tab) },
@@ -379,7 +379,13 @@ fun ChatWindow(
 
             AppButton(
                 text = "Send",
-                onClick = { onSendClick(selectedTab) },
+                onClick = {
+                    val trimmedMessage = chatInput.trim()
+                    if (trimmedMessage.isNotBlank()) {
+                        onSendClick(selectedTab, trimmedMessage)
+                        onChatInputChange("")
+                    }
+                },
                 modifier =
                     Modifier
                         .width(92.dp)
@@ -398,10 +404,17 @@ fun ChatWindow(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun ChatMessagesArea(
-    messages: List<ChatMessage>,
-    modifier: Modifier = Modifier,
+    messages: ChatLists,
     selectedTab: ChatTab,
+    modifier: Modifier = Modifier,
 ) {
+    val visibleMessages =
+        when (selectedTab) {
+            ChatTab.GLOBAL -> messages.lobbyMessages
+            ChatTab.TEAM -> messages.teamMessages
+            ChatTab.OPERATIVES -> messages.operativeMessages
+        }
+
     Column(
         modifier =
             modifier
@@ -420,7 +433,7 @@ fun ChatMessagesArea(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (messages.isEmpty()) {
+        if (visibleMessages.isEmpty()) {
             Text(
                 text = "No messages yet.",
                 color = Color(0xFF383330),
@@ -430,11 +443,7 @@ fun ChatMessagesArea(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                items(
-                    messages.filter {
-                        it.chatTab == selectedTab
-                    },
-                ) { message ->
+                items(visibleMessages) { message ->
                     ChatMessageBubble(message = message)
                 }
             }
@@ -444,7 +453,7 @@ fun ChatMessagesArea(
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun ChatMessageBubble(message: ChatMessage) {
+fun ChatMessageBubble(message: ChatDomainModel) {
     val alignment = if (message.isFromMe) Alignment.End else Alignment.Start
     val bubbleColor = if (message.isFromMe) Color(0xFF4CAF50) else Color(0xFFE0D8C8)
     val textColor = if (message.isFromMe) Color.White else Color(0xFF383330)
@@ -468,7 +477,7 @@ fun ChatMessageBubble(message: ChatMessage) {
                     .padding(8.dp),
         ) {
             Text(
-                text = message.message,
+                text = message.text,
                 color = textColor,
                 fontSize = 13.sp,
             )
@@ -684,12 +693,10 @@ fun getColor(type: CardType): Color =
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
+fun OfflineGameStateTestScreen() {
     var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
     var currentTurn by rememberSaveable { mutableStateOf(PlayerRoles.RED_OPERATIVE) }
     var remainingGuesses by rememberSaveable { mutableIntStateOf(3) }
-    var currentBlueFound by rememberSaveable { mutableIntStateOf(0) }
-    var currentRedFound by rememberSaveable { mutableIntStateOf(0) }
 
     val cards =
         remember {
@@ -722,18 +729,37 @@ fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
             )
         }
 
-    val chatMessages =
-        listOf(
-            ChatDomainModel(
-                sender = "Max",
-                text = "I think BERLIN fits the hint.",
-                isFromMe = false,
-            ),
-            ChatDomainModel(
-                sender = "You",
-                text = "Maybe RIVER too.",
-                isFromMe = true,
-            ),
+    val chatLists =
+        ChatLists(
+            lobbyMessages =
+                listOf(
+                    ChatDomainModel(
+                        sender = "Anna",
+                        text = "Welcome to the lobby chat.",
+                        isFromMe = false,
+                    ),
+                ),
+            teamMessages =
+                listOf(
+                    ChatDomainModel(
+                        sender = "Max",
+                        text = "I think BERLIN fits the hint.",
+                        isFromMe = false,
+                    ),
+                    ChatDomainModel(
+                        sender = "You",
+                        text = "Maybe RIVER too.",
+                        isFromMe = true,
+                    ),
+                ),
+            operativeMessages =
+                listOf(
+                    ChatDomainModel(
+                        sender = "Operative",
+                        text = "Let's avoid VIPER.",
+                        isFromMe = false,
+                    ),
+                ),
         )
 
     fun revealCard(index: Int) {
@@ -744,12 +770,11 @@ fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
         cards[index] = card.copy(revealed = true)
 
         when (card.type) {
-            CardType.BLUE -> currentBlueFound++
-            CardType.RED -> currentRedFound++
             CardType.NEUTRAL ->
                 currentTurn =
                     if (currentTurn == PlayerRoles.BLUE_SPYMASTER) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_SPYMASTER
             CardType.ASSASSIN -> currentTurn = PlayerRoles.NONE
+            else -> Unit
         }
 
         if (remainingGuesses > 0) {
@@ -765,13 +790,16 @@ fun OfflineGameStateTestScreen(gameViewModel: GameViewModel) {
                 currentTurn = currentTurn,
                 remainingGuesses = remainingGuesses,
                 cards = cards,
+                currentRedFound = cards.count { it.type == CardType.RED && it.revealed },
+                currentBlueFound = cards.count { it.type == CardType.BLUE && it.revealed },
+                chatLists = chatLists,
+                availableChatTabs = ChatTab.entries,
             ),
         onHintChange = { word, count ->
             currentHint = word
             remainingGuesses = count
         },
         onReveal = { index -> revealCard(index) },
-        onSendChatMessage = {},
-        gameViewModel = gameViewModel,
+        onSendChatMessage = { _, _ -> },
     )
 }

@@ -7,10 +7,12 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.codenames.frontend.data.model.ChatDomainModel
+import com.codenames.frontend.data.model.ChatLists
+import com.codenames.frontend.data.model.GameCard
+import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.enums.CardType
+import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.ui.roles.PlayerRoles
-import com.codenames.frontend.ui.screens.CardType
-import com.codenames.frontend.ui.screens.GameCard
-import com.codenames.frontend.ui.screens.GameState
 import com.codenames.frontend.ui.screens.GameboardScreen
 import org.junit.Rule
 import org.junit.Test
@@ -35,21 +37,21 @@ class GameboardScreenTest {
                 gameState =
                     GameState(
                         currentHint = "EAGLE",
-                        currentTurn = "BLUE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
                         remainingGuesses = 3,
-                        currentBlueFound = 2,
+                        currentBlueFound = 0,
                         currentRedFound = 1,
                         cards = cards,
                     ),
-                onHintChange = {},
+                onHintChange = { _, _ -> },
                 onReveal = {},
             )
         }
 
         composeRule.onNodeWithText("BERLIN").assertIsDisplayed()
         composeRule.onNodeWithText("ROME").assertIsDisplayed()
-        composeRule.onNodeWithText("Turn: BLUE | Guesses: 3").assertIsDisplayed()
-        composeRule.onNodeWithText("2 FOUND").assertIsDisplayed()
+        composeRule.onNodeWithText("Turn: BLUE_OPERATIVE | Guesses: 3").assertIsDisplayed()
+        composeRule.onNodeWithText("0 FOUND").assertIsDisplayed()
         composeRule.onNodeWithText("1 FOUND").assertIsDisplayed()
         composeRule.onAllNodesWithText("Hint: EAGLE").assertCountEquals(0)
     }
@@ -64,12 +66,45 @@ class GameboardScreenTest {
                         currentHint = "EAGLE",
                         cards = listOf(GameCard("BERLIN", CardType.BLUE)),
                     ),
-                onHintChange = {},
+                onHintChange = { _, _ -> },
                 onReveal = {},
             )
         }
 
         composeRule.onNodeWithText("Hint: EAGLE").assertIsDisplayed()
+    }
+
+    @Test
+    fun spymasterCanOpenLobbyChat() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_SPYMASTER,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                        chatLists =
+                            ChatLists(
+                                lobbyMessages =
+                                    listOf(
+                                        ChatDomainModel(
+                                            sender = "Anna",
+                                            text = "Lobby message",
+                                            isFromMe = false,
+                                        ),
+                                    ),
+                            ),
+                        availableChatTabs = listOf(ChatTab.GLOBAL),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onNodeWithText("Chat").performClick()
+        composeRule.onNodeWithText("Global Chat").assertIsDisplayed()
+        composeRule.onNodeWithText("Anna").assertIsDisplayed()
+        composeRule.onNodeWithText("Lobby message").assertIsDisplayed()
     }
 
     @Test
@@ -81,22 +116,47 @@ class GameboardScreenTest {
                     GameState(
                         currentHint = "EAGLE",
                         cards = listOf(GameCard("BERLIN", CardType.BLUE)),
-                        chatMessages =
-                            listOf(
-                                ChatDomainModel(
-                                    sender = "Max",
-                                    text = "Take Berlin",
-                                    isFromMe = false,
-                                ),
+                        chatLists =
+                            ChatLists(
+                                teamMessages =
+                                    listOf(
+                                        ChatDomainModel(
+                                            sender = "Max",
+                                            text = "Take Berlin",
+                                            isFromMe = false,
+                                        ),
+                                    ),
                             ),
+                        availableChatTabs = listOf(ChatTab.GLOBAL, ChatTab.TEAM),
                     ),
-                onHintChange = {},
+                onHintChange = { _, _ -> },
                 onReveal = {},
             )
         }
 
         composeRule.onNodeWithText("Chat").performClick()
+        composeRule.onNodeWithText("Team").performClick()
         composeRule.onNodeWithText("Max").assertIsDisplayed()
         composeRule.onNodeWithText("Take Berlin").assertIsDisplayed()
+    }
+
+    @Test
+    fun operativeChatTabIsHiddenWhenNotAvailable() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                        availableChatTabs = listOf(ChatTab.GLOBAL, ChatTab.TEAM),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onNodeWithText("Chat").performClick()
+        composeRule.onAllNodesWithText("Operatives").assertCountEquals(0)
     }
 }

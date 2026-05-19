@@ -1,5 +1,6 @@
 package com.codenames.frontend.data.model
 
+import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.CardDto
@@ -21,17 +22,22 @@ fun PlayerDto.toUi(): Player =
         role = role,
         team = team,
         isHost = isHost,
-        isReady = false, // if we add this functionality
+        isReady = false,
     )
 
-fun GameMessage.toGameState(): GameState =
-    GameState(
+fun GameMessage.toGameState(): GameState {
+    val cards = cardList.map { it.toGameCard() }
+
+    return GameState(
         currentHint = currentClue?.word ?: "",
-        cards = cardList.map { it.toGameCard() },
+        cards = cards,
         currentTurn = getCurrentTurn(),
         winner = winner,
         remainingGuesses = currentClue?.guessAmount ?: 0,
+        currentRedFound = cards.count { it.type == CardType.RED && it.revealed },
+        currentBlueFound = cards.count { it.type == CardType.BLUE && it.revealed },
     )
+}
 
 fun CardDto.toGameCard(): GameCard =
     GameCard(
