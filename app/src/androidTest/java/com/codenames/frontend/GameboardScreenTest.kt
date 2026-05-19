@@ -11,6 +11,7 @@ import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.GameCard
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
+import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.screens.GameboardScreen
 import org.junit.Rule
@@ -38,6 +39,8 @@ class GameboardScreenTest {
                         currentHint = "EAGLE",
                         currentTurn = PlayerRoles.BLUE_OPERATIVE,
                         remainingGuesses = 3,
+                        currentBlueFound = 0,
+                        currentRedFound = 1,
                         cards = cards,
                     ),
                 onHintChange = { _, _ -> },
@@ -72,6 +75,39 @@ class GameboardScreenTest {
     }
 
     @Test
+    fun spymasterCanOpenLobbyChat() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_SPYMASTER,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                        chatLists =
+                            ChatLists(
+                                lobbyMessages =
+                                    listOf(
+                                        ChatDomainModel(
+                                            sender = "Anna",
+                                            text = "Lobby message",
+                                            isFromMe = false,
+                                        ),
+                                    ),
+                            ),
+                        availableChatTabs = listOf(ChatTab.GLOBAL),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onNodeWithText("Chat").performClick()
+        composeRule.onNodeWithText("Global Chat").assertIsDisplayed()
+        composeRule.onNodeWithText("Anna").assertIsDisplayed()
+        composeRule.onNodeWithText("Lobby message").assertIsDisplayed()
+    }
+
+    @Test
     fun gameboardDisplaysTeamChatMessages() {
         composeRule.setContent {
             GameboardScreen(
@@ -91,6 +127,7 @@ class GameboardScreenTest {
                                         ),
                                     ),
                             ),
+                        availableChatTabs = listOf(ChatTab.GLOBAL, ChatTab.TEAM),
                     ),
                 onHintChange = { _, _ -> },
                 onReveal = {},
@@ -101,5 +138,25 @@ class GameboardScreenTest {
         composeRule.onNodeWithText("Team").performClick()
         composeRule.onNodeWithText("Max").assertIsDisplayed()
         composeRule.onNodeWithText("Take Berlin").assertIsDisplayed()
+    }
+
+    @Test
+    fun operativeChatTabIsHiddenWhenNotAvailable() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                        availableChatTabs = listOf(ChatTab.GLOBAL, ChatTab.TEAM),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onNodeWithText("Chat").performClick()
+        composeRule.onAllNodesWithText("Operatives").assertCountEquals(0)
     }
 }

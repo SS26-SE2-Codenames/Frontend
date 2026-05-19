@@ -13,7 +13,6 @@ import com.codenames.frontend.data.model.toGameState
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
 import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,7 +51,6 @@ class GameViewModel
             isHost: Boolean = false,
         ) {
             job?.cancel()
-            _chatState.value = ChatLists()
 
             job =
                 viewModelScope.launch {
@@ -60,7 +58,6 @@ class GameViewModel
 
                     try {
                         client.connectStomp()
-                        client.sendReconnectMessage(WebSocketJoinMessage(username, lobbyCode))
 
                         Log.d("GameViewModel", "Connection successful")
 

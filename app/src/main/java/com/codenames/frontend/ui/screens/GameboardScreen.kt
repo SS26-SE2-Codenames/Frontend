@@ -81,14 +81,22 @@ fun GameboardScreen(
     val winner = gameState.winner
     val remainingGuesses = gameState.remainingGuesses
     val chatLists = gameState.chatLists
-    val currentRedFound = cards.count { it.type == CardType.RED && it.revealed }
-    val currentBlueFound = cards.count { it.type == CardType.BLUE && it.revealed }
+    val currentRedFound = gameState.currentRedFound
+    val currentBlueFound = gameState.currentBlueFound
+    val availableChatTabs = gameState.availableChatTabs
 
     var hintInput by rememberSaveable { mutableStateOf("") }
     var countInput by rememberSaveable { mutableStateOf("") }
     var chatInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
     var selectedChatTab by rememberSaveable { mutableStateOf(ChatTab.GLOBAL) }
+
+    val activeChatTab =
+        if (selectedChatTab in availableChatTabs) {
+            selectedChatTab
+        } else {
+            availableChatTabs.firstOrNull() ?: ChatTab.GLOBAL
+        }
 
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
@@ -192,20 +200,15 @@ fun GameboardScreen(
             )
         }
 
-        if (!isSpymaster && isChatOpen) {
+        if (availableChatTabs.isNotEmpty() && isChatOpen) {
             ChatWindow(
                 chatInput = chatInput,
                 messages = chatLists,
-                selectedTab = selectedChatTab,
+                selectedTab = activeChatTab,
+                availableTabs = availableChatTabs,
                 onTabSelected = { selectedChatTab = it },
                 onChatInputChange = { chatInput = it },
-                onSendClick = { tab ->
-                    val trimmedMessage = chatInput.trim()
-                    if (trimmedMessage.isNotBlank()) {
-                        onSendChatMessage(tab, trimmedMessage)
-                        chatInput = ""
-                    }
-                },
+                onSendClick = { tab, message -> onSendChatMessage(tab, message) },
                 modifier =
                     Modifier
                         .align(Alignment.Center)
@@ -215,7 +218,7 @@ fun GameboardScreen(
             )
         }
 
-        if (!isSpymaster) {
+        if (availableChatTabs.isNotEmpty()) {
             ChatToggleButton(
                 isChatOpen = isChatOpen,
                 onClick = { isChatOpen = !isChatOpen },
@@ -295,9 +298,10 @@ fun ChatWindow(
     chatInput: String,
     messages: ChatLists,
     selectedTab: ChatTab,
+    availableTabs: List<ChatTab>,
     onTabSelected: (ChatTab) -> Unit,
     onChatInputChange: (String) -> Unit,
-    onSendClick: (ChatTab) -> Unit,
+    onSendClick: (ChatTab, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -313,7 +317,7 @@ fun ChatWindow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ChatTab.entries.forEach { tab ->
+            availableTabs.forEach { tab ->
                 AppButton(
                     text = tab.title,
                     onClick = { onTabSelected(tab) },
@@ -375,7 +379,13 @@ fun ChatWindow(
 
             AppButton(
                 text = "Send",
-                onClick = { onSendClick(selectedTab) },
+                onClick = {
+                    val trimmedMessage = chatInput.trim()
+                    if (trimmedMessage.isNotBlank()) {
+                        onSendClick(selectedTab, trimmedMessage)
+                        onChatInputChange("")
+                    }
+                },
                 modifier =
                     Modifier
                         .width(92.dp)
@@ -780,7 +790,10 @@ fun OfflineGameStateTestScreen() {
                 currentTurn = currentTurn,
                 remainingGuesses = remainingGuesses,
                 cards = cards,
+                currentRedFound = cards.count { it.type == CardType.RED && it.revealed },
+                currentBlueFound = cards.count { it.type == CardType.BLUE && it.revealed },
                 chatLists = chatLists,
+                availableChatTabs = ChatTab.entries,
             ),
         onHintChange = { word, count ->
             currentHint = word

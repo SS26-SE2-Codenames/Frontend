@@ -5,7 +5,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.enums.ChatTab
+import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
@@ -27,10 +29,33 @@ fun GameScreenWrapper(
     val currentPlayer = lobbyState.players.firstOrNull { it.name == usernameState.username }
     val team = currentPlayer?.team
     val lobbyCode = lobbyState.lobbyCode.orEmpty()
+    val isOperative =
+        userRole == PlayerRoles.BLUE_OPERATIVE || userRole == PlayerRoles.RED_OPERATIVE
+    val sameTeamOperativeCount =
+        lobbyState.players.count { player ->
+            player.team == team && player.role == Role.OPERATIVE
+        }
+
+    val availableChatTabs =
+        buildList {
+            add(ChatTab.GLOBAL)
+
+            if (team != null) {
+                add(ChatTab.TEAM)
+            }
+
+            if (isOperative && sameTeamOperativeCount > 1) {
+                add(ChatTab.OPERATIVES)
+            }
+        }
 
     GameboardScreen(
         userRole = userRole,
-        gameState = gameState.copy(chatLists = chatState),
+        gameState =
+            gameState.copy(
+                chatLists = chatState,
+                availableChatTabs = availableChatTabs,
+            ),
         onHintChange = { word, count ->
             if (lobbyCode.isNotBlank()) {
                 gameViewModel.submitClue(lobbyCode, word, count)
@@ -65,7 +90,7 @@ fun GameScreenWrapper(
                 }
 
                 ChatTab.OPERATIVES -> {
-                    if (team != null) {
+                    if (team != null && ChatTab.OPERATIVES in availableChatTabs) {
                         gameViewModel.sendOperativeMessage(
                             lobbyCode = lobbyCode,
                             team = team.name,
