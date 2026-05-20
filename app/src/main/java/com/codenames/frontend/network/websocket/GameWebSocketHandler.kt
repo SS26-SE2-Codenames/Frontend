@@ -17,7 +17,7 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import javax.inject.Inject
 import javax.inject.Singleton
 
-const val BASE_URL = "ws://10.0.2.2:8080/ws-fallback"
+const val BASE_URL = "ws://localhost:8080/ws-fallback"
 
 @Singleton
 class GameWebSocketHandler

@@ -121,6 +121,16 @@ fun GameboardScreen(
                 remainingGuesses = remainingGuesses,
             )
 
+            if (availableChatTabs.isNotEmpty()) {
+                ChatToggleButton(
+                    isChatOpen = isChatOpen,
+                    onClick = { isChatOpen = !isChatOpen },
+                    modifier =
+                        Modifier
+                            .padding(end = 24.dp, bottom = 24.dp),
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
@@ -215,17 +225,6 @@ fun GameboardScreen(
                         .padding(end = 24.dp, bottom = 12.dp)
                         .width(420.dp)
                         .fillMaxHeight(0.90f),
-            )
-        }
-
-        if (availableChatTabs.isNotEmpty()) {
-            ChatToggleButton(
-                isChatOpen = isChatOpen,
-                onClick = { isChatOpen = !isChatOpen },
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 24.dp, bottom = 24.dp),
             )
         }
 
@@ -558,7 +557,7 @@ fun HintSection(
             AppTextField(
                 value = hintInput,
                 onValueChange = onInputChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(0.8f),
                 state =
                     AppTextFieldState(
                         label = "HINT",
