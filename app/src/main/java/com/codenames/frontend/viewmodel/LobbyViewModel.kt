@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.LobbyUiState
 import com.codenames.frontend.data.model.Player
+import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toLobbyState
@@ -169,6 +170,40 @@ class LobbyViewModel
                 Role.SPYMASTER -> if (player.team == Team.BLUE) PlayerRoles.BLUE_SPYMASTER else PlayerRoles.RED_SPYMASTER
                 null -> PlayerRoles.NONE
             }
+        }
+
+        fun getAvailableChatTabsForUser(username: String): List<ChatTab> {
+            val player = _state.value.players.firstOrNull { it.name == username }
+            val team = player?.team
+            val role = player?.role
+
+            val tabs = mutableListOf(ChatTab.GLOBAL)
+
+            if (team != null) {
+                tabs.add(ChatTab.TEAM)
+            }
+
+            if (canUseOperativesChat(team = team, role = role)) {
+                tabs.add(ChatTab.OPERATIVES)
+            }
+
+            return tabs
+        }
+
+        private fun canUseOperativesChat(
+            team: Team?,
+            role: Role?,
+        ): Boolean {
+            if (team == null || role != Role.OPERATIVE) {
+                return false
+            }
+
+            val sameTeamOperativeCount =
+                _state.value.players.count { player ->
+                    player.team == team && player.role == Role.OPERATIVE
+                }
+
+            return sameTeamOperativeCount > 1
         }
 
         fun getIsHost(username: String): Boolean {

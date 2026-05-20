@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
+import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
@@ -153,6 +154,10 @@ class GameViewModel
             word: String,
             count: Int,
         ) {
+            if (lobbyCode.isBlank()) {
+                return
+            }
+
             val turn = uiState.value.currentTurn
             if (turn != PlayerRoles.BLUE_SPYMASTER && turn != PlayerRoles.RED_SPYMASTER) return
 
@@ -163,6 +168,48 @@ class GameViewModel
                 } catch (e: Exception) {
                     _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
                 }
+            }
+        }
+
+        fun sendChatMessage(
+            tab: ChatTab,
+            lobbyCode: String,
+            username: String,
+            team: Team?,
+            content: String,
+            availableChatTabs: List<ChatTab>,
+        ) {
+            if (lobbyCode.isBlank()) {
+                return
+            }
+
+            when (tab) {
+                ChatTab.GLOBAL ->
+                    sendLobbyMessage(
+                        lobbyCode = lobbyCode,
+                        username = username,
+                        content = content,
+                    )
+
+                ChatTab.TEAM ->
+                    if (team != null) {
+                        sendTeamMessage(
+                            lobbyCode = lobbyCode,
+                            team = team.name,
+                            username = username,
+                            content = content,
+                        )
+                    }
+
+                ChatTab.OPERATIVES ->
+                    if (team != null && ChatTab.OPERATIVES in availableChatTabs) {
+                        sendOperativeMessage(
+                            lobbyCode = lobbyCode,
+                            team = team.name,
+                            username = username,
+                            content = content,
+                        )
+                    }
             }
         }
 
