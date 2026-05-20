@@ -1,6 +1,7 @@
 package com.codenames.frontend.viewmodel
 
 import android.util.Log
+import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.LobbyRepository
@@ -1028,6 +1029,119 @@ class LobbyViewModelTest {
             assertEquals(
                 "Start failed",
                 viewModel.state.value.error,
+            )
+        }
+
+    @Test
+    fun getAvailableChatTabsForUser_unknownUser_returnsGlobalOnly() {
+        val repository = mockk<LobbyRepository>()
+        val viewModel = LobbyViewModel(repository)
+
+        val result = viewModel.getAvailableChatTabsForUser("Unknown")
+
+        assertEquals(listOf(ChatTab.GLOBAL), result)
+    }
+
+    @Test
+    fun getAvailableChatTabsForUser_playerWithoutTeam_returnsGlobalOnly() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList = listOf(PlayerDto(username = "Alice", role = null, team = null, isHost = false)),
+                    isStarted = false,
+                )
+
+            coEvery { repository.joinLobby("Alice", "12345") } returns response
+            coEvery { repository.getLobbyInfo("12345") } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Alice", "12345")
+            advanceTimeBy(1)
+            viewModel.stopPollingForTest()
+
+            assertEquals(listOf(ChatTab.GLOBAL), viewModel.getAvailableChatTabsForUser("Alice"))
+        }
+
+    @Test
+    fun getAvailableChatTabsForUser_spymasterWithTeam_returnsGlobalAndTeam() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList = listOf(PlayerDto("Alice", Role.SPYMASTER, Team.BLUE, false)),
+                    isStarted = false,
+                )
+
+            coEvery { repository.joinLobby("Alice", "12345") } returns response
+            coEvery { repository.getLobbyInfo("12345") } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Alice", "12345")
+            advanceTimeBy(1)
+            viewModel.stopPollingForTest()
+
+            assertEquals(listOf(ChatTab.GLOBAL, ChatTab.TEAM), viewModel.getAvailableChatTabsForUser("Alice"))
+        }
+
+    @Test
+    fun getAvailableChatTabsForUser_singleOperative_returnsGlobalAndTeam() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto("Alice", Role.OPERATIVE, Team.BLUE, false),
+                            PlayerDto("Bob", Role.SPYMASTER, Team.BLUE, false),
+                        ),
+                    isStarted = false,
+                )
+
+            coEvery { repository.joinLobby("Alice", "12345") } returns response
+            coEvery { repository.getLobbyInfo("12345") } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Alice", "12345")
+            advanceTimeBy(1)
+            viewModel.stopPollingForTest()
+
+            assertEquals(listOf(ChatTab.GLOBAL, ChatTab.TEAM), viewModel.getAvailableChatTabsForUser("Alice"))
+        }
+
+    @Test
+    fun getAvailableChatTabsForUser_multipleSameTeamOperatives_returnsAllTabs() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+            val response =
+                LobbyResponse(
+                    lobbyCode = "12345",
+                    playerList =
+                        listOf(
+                            PlayerDto("Alice", Role.OPERATIVE, Team.BLUE, false),
+                            PlayerDto("Bob", Role.OPERATIVE, Team.BLUE, false),
+                        ),
+                    isStarted = false,
+                )
+
+            coEvery { repository.joinLobby("Alice", "12345") } returns response
+            coEvery { repository.getLobbyInfo("12345") } returns response
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.joinLobby("Alice", "12345")
+            advanceTimeBy(1)
+            viewModel.stopPollingForTest()
+
+            assertEquals(
+                listOf(ChatTab.GLOBAL, ChatTab.TEAM, ChatTab.OPERATIVES),
+                viewModel.getAvailableChatTabsForUser("Alice"),
             )
         }
 }
