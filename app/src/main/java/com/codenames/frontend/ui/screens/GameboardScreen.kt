@@ -212,9 +212,9 @@ fun GameboardScreen(
                 modifier =
                     Modifier
                         .align(Alignment.Center)
-                        .padding(end = 24.dp, bottom = 96.dp)
+                        .padding(end = 24.dp, bottom = 12.dp)
                         .width(420.dp)
-                        .fillMaxHeight(0.78f),
+                        .fillMaxHeight(0.90f),
             )
         }
 
