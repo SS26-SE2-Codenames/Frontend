@@ -228,8 +228,6 @@ fun GameboardScreen(
             )
         }
 
-
-
         onSettingsClick?.let { openSettings ->
             SettingsCornerButton(
                 onClick = openSettings,
