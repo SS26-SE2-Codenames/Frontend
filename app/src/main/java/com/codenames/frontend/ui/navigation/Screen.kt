@@ -14,4 +14,6 @@ sealed class Screen(
     object GameSettings : Screen("game_settings")
 
     object Settings : Screen("settings")
+
+    object Username : Screen("username")
 }

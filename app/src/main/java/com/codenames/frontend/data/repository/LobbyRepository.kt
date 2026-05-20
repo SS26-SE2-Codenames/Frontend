@@ -15,14 +15,14 @@ class LobbyRepository
         suspend fun createLobby(username: String): LobbyResponse = api.createLobby(username)
 
         suspend fun leaveLobby(
-            username: String,
             lobbyCode: String,
-        ): LobbyResponse = api.leaveLobby(username, lobbyCode)
+            username: String,
+        ): LobbyResponse = api.leaveLobby(lobbyCode, username)
 
         suspend fun joinLobby(
             username: String,
             lobbyCode: String,
-        ): LobbyResponse = api.joinLobby(username, lobbyCode)
+        ): LobbyResponse = api.joinLobby(lobbyCode, username)
 
         suspend fun getLobbyInfo(lobbyCode: String): LobbyResponse = api.getLobbyInfo(lobbyCode)
 
@@ -35,4 +35,9 @@ class LobbyRepository
             val player = PlayerDto(username, role, team, false)
             return api.changeRole(lobbyCode, player)
         }
+
+        suspend fun sendStartGame(
+            lobbyCode: String,
+            username: String,
+        ): LobbyResponse = api.startGame(lobbyCode, username)
     }

@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PlayerDto(
     val username: String,
-    val role: Role?,
-    val team: Team?,
+    val role: Role? = null,
+    val team: Team? = null,
     val isHost: Boolean,
 )

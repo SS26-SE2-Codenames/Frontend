@@ -1,65 +1,71 @@
 package com.codenames.frontend.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.navigation.NavType
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.codenames.frontend.ui.roles.PlayerRoles
-import com.codenames.frontend.ui.screens.CardType
-import com.codenames.frontend.ui.screens.GameCard
+import com.codenames.frontend.ui.screens.GameScreenWrapper
 import com.codenames.frontend.ui.screens.GameSettingsScreen
-import com.codenames.frontend.ui.screens.GameTestScreen
-import com.codenames.frontend.ui.screens.GameboardScreen
 import com.codenames.frontend.ui.screens.JoinlobbyScreen
 import com.codenames.frontend.ui.screens.LobbyScreen
+import com.codenames.frontend.ui.screens.OfflineGameStateTestScreen
 import com.codenames.frontend.ui.screens.SettingsScreen
 import com.codenames.frontend.ui.screens.StartScreen
+import com.codenames.frontend.ui.screens.UserNameScreen
+import com.codenames.frontend.viewmodel.GameViewModel
+import com.codenames.frontend.viewmodel.LobbyViewModel
+import com.codenames.frontend.viewmodel.SessionViewModel
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
-fun NavGraph() {
+fun NavGraph(
+    lobbyViewModel: LobbyViewModel = hiltViewModel(),
+    sessionViewModel: SessionViewModel = hiltViewModel(),
+    gameViewModel: GameViewModel = hiltViewModel(),
+) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Start.route,
+        startDestination = Screen.Username.route,
     ) {
-        composable(Screen.Start.route) {
-            StartScreen(navController)
+        composable(Screen.Username.route) {
+            UserNameScreen(navController, sessionViewModel)
+        }
+
+        composable(
+            Screen.Start.route,
+        ) {
+            StartScreen(
+                lobbyViewModel = lobbyViewModel,
+                navController = navController,
+                sessionViewModel = sessionViewModel,
+            )
         }
 
         composable(Screen.Lobby.route) {
-            LobbyScreen(navController)
+            LobbyScreen(
+                navController = navController,
+                viewModel = lobbyViewModel,
+                gameViewModel = gameViewModel,
+                sessionViewModel = sessionViewModel,
+            )
         }
 
         composable(Screen.JoinLobby.route) {
-            JoinlobbyScreen()
+            JoinlobbyScreen(viewModel = lobbyViewModel, navController = navController, sessionViewModel = sessionViewModel)
         }
 
-        // ---------------- GAME SCREEN ----------------
         composable(
-            route = "${Screen.Gameboard.route}/{role}",
-            arguments = listOf(navArgument("role") { type = NavType.StringType }),
-        ) { backStackEntry ->
-
-            val roleString =
-                backStackEntry.arguments?.getString("role") ?: PlayerRoles.NONE.name
-
-            val passedRole =
-                try {
-                    PlayerRoles.valueOf(roleString)
-                } catch (e: IllegalArgumentException) {
-                    PlayerRoles.NONE
-                }
-
-            GameScreenWrapper(userRole = passedRole)
+            route = Screen.Gameboard.route,
+        ) {
+            GameScreenWrapper(
+                navController = navController,
+                lobbyViewModel = lobbyViewModel,
+                gameViewModel = gameViewModel,
+                sessionViewModel = sessionViewModel,
+            )
         }
 
         composable(Screen.GameSettings.route) {
@@ -67,50 +73,11 @@ fun NavGraph() {
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen()
+            SettingsScreen(navController)
         }
 
         composable("game_test") {
-            GameTestScreen()
+            OfflineGameStateTestScreen()
         }
     }
-}
-
-@Composable
-@Suppress("ktlint:standard:function-naming")
-fun GameScreenWrapper(userRole: PlayerRoles) {
-    var currentHint by remember { mutableStateOf("Waiting for hint...") }
-
-    val cards =
-        remember {
-            mutableStateListOf(
-                *List(25) {
-                    GameCard(
-                        word = "Word ${it + 1}",
-                        type =
-                            when (it) {
-                                0 -> CardType.ASSASSIN
-                                in 1..8 -> CardType.BLUE
-                                in 9..15 -> CardType.RED
-                                else -> CardType.NEUTRAL
-                            },
-                    )
-                }.toTypedArray(),
-            )
-        }
-
-    fun revealCard(index: Int) {
-        val card = cards[index]
-        cards[index] = card.copy(revealed = true)
-    }
-
-    GameboardScreen(
-        userRole = userRole,
-        currentHint = currentHint,
-        onHintChange = { currentHint = it },
-        cards = cards,
-        onReveal = { index ->
-            revealCard(index)
-        },
-    )
 }
