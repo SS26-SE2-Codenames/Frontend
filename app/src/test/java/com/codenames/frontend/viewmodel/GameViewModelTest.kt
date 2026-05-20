@@ -4,6 +4,7 @@ import android.util.Log
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.enums.CardType
+import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
@@ -430,5 +431,97 @@ class GameViewModelTest {
             advanceUntilIdle()
 
             coVerify(exactly = 0) { client.sendClue(any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun sendChatMessage_globalTab_sendsLobbyMessage() =
+        runTest {
+            val content = "Test msg"
+
+            viewModel.sendChatMessage(ChatTab.GLOBAL, lobbyCode, username, Team.RED, content, listOf(ChatTab.GLOBAL))
+            advanceUntilIdle()
+
+            coVerify {
+                chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
+            }
+        }
+
+    @Test
+    fun sendChatMessage_blankLobbyCode_doesNotSendMessage() =
+        runTest {
+            viewModel.sendChatMessage(ChatTab.GLOBAL, "", username, Team.RED, "Test msg", listOf(ChatTab.GLOBAL))
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                chatRepository.sendMessage(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun sendChatMessage_teamTabWithoutTeam_doesNotSendMessage() =
+        runTest {
+            viewModel.sendChatMessage(ChatTab.TEAM, lobbyCode, username, null, "Test msg", listOf(ChatTab.GLOBAL, ChatTab.TEAM))
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                chatRepository.sendMessage(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun sendChatMessage_teamTabWithTeam_sendsTeamMessage() =
+        runTest {
+            val content = "Team msg"
+
+            viewModel.sendChatMessage(ChatTab.TEAM, lobbyCode, username, Team.RED, content, listOf(ChatTab.GLOBAL, ChatTab.TEAM))
+            advanceUntilIdle()
+
+            coVerify {
+                chatRepository.sendMessage("/app/chat/$lobbyCode/RED", username, content)
+            }
+        }
+
+    @Test
+    fun sendChatMessage_operativesTabNotAvailable_doesNotSendMessage() =
+        runTest {
+            viewModel.sendChatMessage(ChatTab.OPERATIVES, lobbyCode, username, Team.RED, "Ops msg", listOf(ChatTab.GLOBAL, ChatTab.TEAM))
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                chatRepository.sendMessage(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun sendChatMessage_operativesTabAvailable_sendsOperativeMessage() =
+        runTest {
+            val content = "Ops msg"
+
+            viewModel.sendChatMessage(
+                ChatTab.OPERATIVES,
+                lobbyCode,
+                username,
+                Team.RED,
+                content,
+                listOf(ChatTab.GLOBAL, ChatTab.TEAM, ChatTab.OPERATIVES),
+            )
+            advanceUntilIdle()
+
+            coVerify {
+                chatRepository.sendMessage("/app/chat/$lobbyCode/RED/operative", username, content)
+            }
+        }
+
+    @Test
+    fun testSubmitClue_blankLobbyCode_doesNotSendClue() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.submitClue("", "EAGLE", 2)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                client.sendClue(any(), any(), any(), any())
+            }
         }
 }
