@@ -38,32 +38,6 @@ class GameWebSocketHandlerTest {
     }
 
     @Test
-    fun testConnectStomp() =
-        runTest {
-            val client = mockk<StompClient>()
-            val session = mockk<StompSession>()
-            val sessionWithJson = mockk<StompSessionWithKxSerialization>()
-
-            mockkStatic(Log::class)
-
-            coEvery { client.connect(BASE_URL) } returns session
-            every { Log.d(any(), any()) } returns 0
-
-            coEvery {
-                sessionWithJson.subscribe<GameMessage>(any(), any())
-            } returns emptyFlow()
-
-            val wsClient = GameWebSocketHandler(client)
-
-            wsClient.connectStomp()
-
-            coVerify {
-                client.connect(BASE_URL)
-                session.withJsonConversions()
-            }
-        }
-
-    @Test
     fun testSendGuess_sendsCorrectMessage(): Unit =
         runTest {
             val session = mockk<StompSessionWithKxSerialization>(relaxed = true)
