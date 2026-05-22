@@ -1,7 +1,6 @@
 package com.codenames.frontend.network.websocket
 
 import android.util.Log
-import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GameMessage
@@ -58,19 +57,7 @@ class GameWebSocketHandler
             session.convertAndSend(destination, msg, ChatMessageDto.serializer())
         }
 
-        suspend fun sendClue(
-            lobbyCode: String,
-            word: String,
-            guessAmount: Int,
-            currentTurn: Team,
-        ) {
-            val msg =
-                ClueMessageDto(
-                    lobbyCode = lobbyCode,
-                    word = word,
-                    guessAmount = guessAmount,
-                    currentTurn = currentTurn,
-                )
+        suspend fun sendClue(msg: ClueMessageDto) {
             session.convertAndSend("/app/submit-clue", msg, ClueMessageDto.serializer())
         }
     }

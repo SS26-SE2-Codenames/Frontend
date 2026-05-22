@@ -167,7 +167,9 @@ class GameWebSocketHandlerTest {
             val guessAmount = 2
             val currentTurn = Team.RED
 
-            wsClient.sendClue(lobbyCode, word, guessAmount, currentTurn)
+            val clueMessage = ClueMessageDto(lobbyCode, word, guessAmount, currentTurn)
+
+            wsClient.sendClue(clueMessage)
 
             val expectedMsg =
                 ClueMessageDto(

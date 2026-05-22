@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.GameState
-import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
@@ -117,38 +116,6 @@ class GameViewModel
             }
         }
 
-        fun sendLobbyMessage(
-            lobbyCode: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
-            }
-        }
-
-        fun sendTeamMessage(
-            lobbyCode: String,
-            team: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
-            }
-        }
-
-        fun sendOperativeMessage(
-            lobbyCode: String,
-            team: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
-            }
-        }
-
         fun submitClue(
             lobbyCode: String,
             word: String,
@@ -164,10 +131,17 @@ class GameViewModel
             val team = if (turn == PlayerRoles.BLUE_SPYMASTER) Team.BLUE else Team.RED
             viewModelScope.launch {
                 try {
-                    client.sendClue(lobbyCode, word, count, team)
+                    gameRepository.submitClue(lobbyCode, word, count, team)
                 } catch (e: Exception) {
                     _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
                 }
+            }
+        }
+
+        fun handleMessage(message: GameMessage) {
+            val state = message.toGameState()
+            _uiState.update {
+                state
             }
         }
 
@@ -213,22 +187,35 @@ class GameViewModel
             }
         }
 
-        fun handleMessage(message: GameMessage) {
-            val state = message.toGameState()
-            _uiState.update {
-                state
+        fun sendLobbyMessage(
+            lobbyCode: String,
+            username: String,
+            content: String,
+        ) {
+            viewModelScope.launch {
+                chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
             }
-            Log.d("GameViewModel", "Updated game state: $state")
         }
 
-        fun getCurrentFound(team: CardType): Int {
-            val cards = _uiState.value.cards
-            var count = 0
-            for (card in cards) {
-                if (card.type == team && card.revealed) {
-                    count++
-                }
+        fun sendTeamMessage(
+            lobbyCode: String,
+            team: String,
+            username: String,
+            content: String,
+        ) {
+            viewModelScope.launch {
+                chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
             }
-            return count
+        }
+
+        fun sendOperativeMessage(
+            lobbyCode: String,
+            team: String,
+            username: String,
+            content: String,
+        ) {
+            viewModelScope.launch {
+                chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
+            }
         }
     }
