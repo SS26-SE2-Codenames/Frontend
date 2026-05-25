@@ -15,8 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-
-private val cornerButtonColor = Color(0xFF383330)
+import com.codenames.frontend.ui.theme.AppInk
+import com.codenames.frontend.ui.theme.AppWhite
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -36,13 +36,13 @@ fun BoxScope.SettingsCornerButton(onClick: () -> Unit) {
             colors =
                 androidx.compose.material3.IconButtonDefaults.iconButtonColors(
                     containerColor = Color.Transparent,
-                    contentColor = Color.White,
+                    contentColor = AppWhite,
                 ),
         ) {
             Icon(
                 imageVector = androidx.compose.material.icons.Icons.Default.Settings,
                 contentDescription = "Settings",
-                tint = Color.White,
+                tint = AppWhite,
             )
         }
     }
@@ -71,8 +71,8 @@ fun BoxScope.ReturnCornerButton(onClick: () -> Unit) {
 
 private fun cornerButtonStyle(): AppButtonStyle =
     AppButtonStyle(
-        containerColor = cornerButtonColor,
-        contentColor = Color.White,
+        containerColor = AppInk,
+        contentColor = AppWhite,
         fontSize = 16.sp,
         lineHeight = 18.sp,
     )

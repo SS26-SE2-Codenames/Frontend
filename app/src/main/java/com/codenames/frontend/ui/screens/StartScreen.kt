@@ -17,7 +17,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -25,6 +24,9 @@ import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.theme.AppBackground
+import com.codenames.frontend.ui.theme.AppInk
+import com.codenames.frontend.ui.theme.AppRed
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.viewmodel.LobbyViewModel
@@ -52,7 +54,7 @@ fun StartScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFFf0d8ce)),
+                .background(AppBackground),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -111,7 +113,7 @@ fun StartScreen(
             if (lobbyState.isLoading) {
                 Text(
                     text = "Loading...",
-                    color = Color(0xFF383330),
+                    color = AppInk,
                     fontSize = 22.sp,
                 )
             }
@@ -119,7 +121,7 @@ fun StartScreen(
             lobbyState.error?.let { error ->
                 Text(
                     text = error,
-                    color = Color(0xFFCF5530),
+                    color = AppRed,
                     fontSize = 18.sp,
                     modifier = Modifier.padding(top = 12.dp),
                 )

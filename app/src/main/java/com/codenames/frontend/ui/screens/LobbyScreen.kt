@@ -38,6 +38,13 @@ import com.codenames.frontend.ui.buttons.AppButtonType
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.theme.AppBackground
+import com.codenames.frontend.ui.theme.AppBlack
+import com.codenames.frontend.ui.theme.AppBlueLight
+import com.codenames.frontend.ui.theme.AppMutedDark
+import com.codenames.frontend.ui.theme.AppRed
+import com.codenames.frontend.ui.theme.AppRedLight
+import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.brownGradient
 import com.codenames.frontend.ui.theme.greenGradient
@@ -99,7 +106,7 @@ fun LobbyScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFFf0d8ce)),
+                .background(AppBackground),
     ) {
         Row(
             modifier =
@@ -113,7 +120,7 @@ fun LobbyScreen(
                 modifier = Modifier.weight(1f),
                 color = Team.BLUE,
                 gradient = blueGradient,
-                textColor = Color(0xFF42A5F5),
+                textColor = AppBlueLight,
                 title = "BLUE TEAM",
                 onRoleSelect = { viewModel.changeRole(it, usernameState.username) },
                 lobbyUiState = lobbyUiState,
@@ -136,7 +143,7 @@ fun LobbyScreen(
                 modifier = Modifier.weight(1f),
                 color = Team.RED,
                 gradient = redGradient,
-                textColor = Color(0xFFDE8468),
+                textColor = AppRedLight,
                 title = "RED TEAM",
                 onRoleSelect = { viewModel.changeRole(it, usernameState.username) },
                 lobbyUiState = lobbyUiState,
@@ -146,7 +153,7 @@ fun LobbyScreen(
         lobbyUiState.error?.let { error ->
             Text(
                 text = error,
-                color = Color(0xFFCF5530),
+                color = AppRed,
                 fontSize = 16.sp,
                 modifier =
                     Modifier
@@ -238,16 +245,16 @@ fun RoleCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(title, color = Color.White, fontWeight = FontWeight.Bold)
+        Text(title, color = AppWhite, fontWeight = FontWeight.Bold)
         if (players.isEmpty()) {
             Text(
                 text = "No players",
-                color = Color.White.copy(alpha = 0.7f),
+                color = AppWhite.copy(alpha = 0.7f),
                 fontSize = 12.sp,
             )
         } else {
             for (player in players) {
-                Text(player, color = Color.White)
+                Text(player, color = AppWhite)
             }
         }
 
@@ -310,7 +317,7 @@ fun GameSettingsColumn(
         ) {
             Text(
                 text = "GAME SETTINGS",
-                color = Color.White,
+                color = AppWhite,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp),
             )
@@ -324,8 +331,8 @@ fun GameSettingsColumn(
                         .padding(bottom = 8.dp),
                 style =
                     AppButtonStyle(
-                        containerColor = Color(0xFF555555),
-                        contentColor = Color.White,
+                        containerColor = AppMutedDark,
+                        contentColor = AppWhite,
                         fontSize = 18.sp,
                     ),
             )
@@ -373,7 +380,7 @@ fun GameSettingsColumn(
                 AppButtonStyle(
                     backgroundBrush = brownGradient,
                     fontSize = 20.sp,
-                    contentColor = Color.Black,
+                    contentColor = AppBlack,
                     type = AppButtonType.SECONDARY,
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp),
                 ),

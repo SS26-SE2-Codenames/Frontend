@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +27,7 @@ import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.viewmodel.SessionViewModel
 
@@ -43,7 +43,7 @@ fun UserNameScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFFf0d8ce)),
+                .background(AppBackground),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),

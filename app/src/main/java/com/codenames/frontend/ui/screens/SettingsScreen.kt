@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,6 +19,8 @@ import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.ReturnCornerButton
+import com.codenames.frontend.ui.theme.AppBackground
+import com.codenames.frontend.ui.theme.AppInk
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 
@@ -30,11 +31,11 @@ fun SettingsScreen(navController: NavHostController) {
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFFf0d8ce)),
+                .background(AppBackground),
     ) {
         Text(
             text = "SETTINGS",
-            color = Color(0xFF383330),
+            color = AppInk,
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
             modifier =

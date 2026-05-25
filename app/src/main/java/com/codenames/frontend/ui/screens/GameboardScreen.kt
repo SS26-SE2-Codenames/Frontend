@@ -58,6 +58,17 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.theme.AppBlack
+import com.codenames.frontend.ui.theme.AppBlue
+import com.codenames.frontend.ui.theme.AppGreen
+import com.codenames.frontend.ui.theme.AppInk
+import com.codenames.frontend.ui.theme.AppInkOverlay
+import com.codenames.frontend.ui.theme.AppLightGray
+import com.codenames.frontend.ui.theme.AppMutedDark
+import com.codenames.frontend.ui.theme.AppRed
+import com.codenames.frontend.ui.theme.AppSurface
+import com.codenames.frontend.ui.theme.AppSurfaceOverlay
+import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
@@ -141,7 +152,7 @@ fun GameboardScreen(
                     userRole,
                     color = Team.BLUE,
                     teamFound = currentBlueFound,
-                    textColor = Color(0xFF1565C0),
+                    textColor = AppBlue,
                     gradient = blueGradient,
                 )
 
@@ -152,12 +163,12 @@ fun GameboardScreen(
                                 .weight(1f)
                                 .fillMaxHeight()
                                 .padding(horizontal = 8.dp)
-                                .background(Color(0xFFE0D8C8), RoundedCornerShape(12.dp)),
+                                .background(AppSurface, RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = "Waiting for game state...",
-                            color = Color(0xFF383330),
+                            color = AppInk,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                         )
@@ -188,7 +199,7 @@ fun GameboardScreen(
                     userRole,
                     color = Team.RED,
                     teamFound = currentRedFound,
-                    textColor = Color(0xFFCF5530),
+                    textColor = AppRed,
                     gradient = redGradient,
                 )
             }
@@ -258,7 +269,7 @@ fun GameStatusBar(
 
         Text(
             text = statusText,
-            color = Color(0xFF383330),
+            color = AppInk,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -281,8 +292,8 @@ fun ChatToggleButton(
                 .height(56.dp),
         style =
             AppButtonStyle(
-                containerColor = if (isChatOpen) Color(0xFF555555) else Color(0xFF383330),
-                contentColor = Color.White,
+                containerColor = if (isChatOpen) AppMutedDark else AppInk,
+                contentColor = AppWhite,
                 fontSize = 18.sp,
                 lineHeight = 20.sp,
             ),
@@ -305,7 +316,7 @@ fun ChatWindow(
         modifier =
             modifier
                 .background(
-                    color = Color(0xE6383330),
+                    color = AppInkOverlay,
                     shape = RoundedCornerShape(12.dp),
                 ).padding(12.dp),
         verticalArrangement = Arrangement.SpaceBetween,
@@ -326,7 +337,7 @@ fun ChatWindow(
                         AppButtonStyle(
                             type = AppButtonType.PRIMARY,
                             containerColor = if (selectedTab == tab) Color.Unspecified else Color.Transparent,
-                            contentColor = if (selectedTab == tab) Color.Unspecified else Color.LightGray,
+                            contentColor = if (selectedTab == tab) Color.Unspecified else AppLightGray,
                             fontSize = 11.sp,
                             lineHeight = 12.sp,
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
@@ -367,8 +378,8 @@ fun ChatWindow(
                     ),
                 style =
                     AppTextFieldStyle(
-                        containerColor = Color(0xFFE0D8C8),
-                        contentColor = Color(0xFF383330),
+                        containerColor = AppSurface,
+                        contentColor = AppInk,
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
                     ),
@@ -416,14 +427,14 @@ fun ChatMessagesArea(
         modifier =
             modifier
                 .background(
-                    color = Color(0xB3E0D8C8),
+                    color = AppSurfaceOverlay,
                     shape = RoundedCornerShape(8.dp),
                 ).padding(12.dp),
         verticalArrangement = Arrangement.Top,
     ) {
         Text(
             text = "${selectedTab.title} Chat",
-            color = Color(0xFF383330),
+            color = AppInk,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -433,7 +444,7 @@ fun ChatMessagesArea(
         if (visibleMessages.isEmpty()) {
             Text(
                 text = "No messages yet.",
-                color = Color(0xFF383330),
+                color = AppInk,
                 fontSize = 14.sp,
             )
         } else {
@@ -452,8 +463,8 @@ fun ChatMessagesArea(
 @Composable
 fun ChatMessageBubble(message: ChatDomainModel) {
     val alignment = if (message.isFromMe) Alignment.End else Alignment.Start
-    val bubbleColor = if (message.isFromMe) Color(0xFF4CAF50) else Color(0xFFE0D8C8)
-    val textColor = if (message.isFromMe) Color.White else Color(0xFF383330)
+    val bubbleColor = if (message.isFromMe) AppGreen else AppSurface
+    val textColor = if (message.isFromMe) AppWhite else AppInk
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -461,7 +472,7 @@ fun ChatMessageBubble(message: ChatDomainModel) {
     ) {
         Text(
             text = message.sender,
-            color = Color(0xFF383330),
+            color = AppInk,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -629,7 +640,7 @@ fun TeamRoleBox(
     ) {
         Text(
             text = title,
-            color = Color.White,
+            color = AppWhite,
             fontWeight = FontWeight.Bold,
             fontSize = 10.sp,
         )
@@ -638,7 +649,7 @@ fun TeamRoleBox(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "You",
-                color = Color.White,
+                color = AppWhite,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -657,14 +668,14 @@ fun CodenamesCard(
         when {
             card.revealed -> getColor(card.type)
             isSpymaster -> getColor(card.type)
-            else -> Color(0xFFE0D8C8)
+            else -> AppSurface
         }
 
     val contentColor =
         if (!card.revealed && !isSpymaster) {
-            Color(0xFF383330)
+            AppInk
         } else {
-            Color.White
+            AppWhite
         }
 
     AppButton(
@@ -682,8 +693,8 @@ fun CodenamesCard(
 
 fun getColor(type: CardType): Color =
     when (type) {
-        CardType.BLUE -> Color(0xFF1565C0)
-        CardType.RED -> Color(0xFFCF5530)
-        CardType.NEUTRAL -> Color(0xFF383330)
-        CardType.ASSASSIN -> Color.Black
+        CardType.BLUE -> AppBlue
+        CardType.RED -> AppRed
+        CardType.NEUTRAL -> AppInk
+        CardType.ASSASSIN -> AppBlack
     }

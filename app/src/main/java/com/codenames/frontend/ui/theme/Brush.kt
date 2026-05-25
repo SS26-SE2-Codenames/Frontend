@@ -1,14 +1,13 @@
 package com.codenames.frontend.ui.theme
 
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 
 val greenGradient =
     Brush.verticalGradient(
         colors =
             listOf(
-                Color(0xFF4CAF50),
-                Color(0xFF2E7D32),
+                AppGreen,
+                AppGreenDark,
             ),
     )
 
@@ -16,8 +15,8 @@ val blueGradient =
     Brush.verticalGradient(
         colors =
             listOf(
-                Color(0xFF42A5F5),
-                Color(0xFF1565C0),
+                AppBlueLight,
+                AppBlue,
             ),
     )
 
@@ -25,8 +24,8 @@ val redGradient =
     Brush.verticalGradient(
         colors =
             listOf(
-                Color(0xFFCF5530),
-                Color(0xFFDE8468),
+                AppRed,
+                AppRedLight,
             ),
     )
 
@@ -34,7 +33,7 @@ val brownGradient =
     Brush.verticalGradient(
         colors =
             listOf(
-                Color(0xFF383330),
-                Color(0xFF1A1513),
+                AppInk,
+                AppInkDark,
             ),
     )
