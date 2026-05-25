@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.codenames.frontend.data.model.LobbyUiState
@@ -45,6 +44,7 @@ import com.codenames.frontend.ui.theme.AppMutedDark
 import com.codenames.frontend.ui.theme.AppRed
 import com.codenames.frontend.ui.theme.AppRedLight
 import com.codenames.frontend.ui.theme.AppWhite
+import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.brownGradient
 import com.codenames.frontend.ui.theme.greenGradient
@@ -65,6 +65,7 @@ fun LobbyScreen(
     sessionViewModel: SessionViewModel,
     gameViewModel: GameViewModel,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
     val usernameState by sessionViewModel.username.collectAsState()
     val lobbyUiState by viewModel.state.collectAsState()
     val currentPlayer = lobbyUiState.players.firstOrNull { it.name == usernameState.username }
@@ -112,7 +113,12 @@ fun LobbyScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    .padding(
+                        top = dimensions.gameTopPadding,
+                        start = dimensions.screenPadding,
+                        end = dimensions.screenPadding,
+                        bottom = dimensions.screenPadding,
+                    ),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -129,7 +135,7 @@ fun LobbyScreen(
             GameSettingsColumn(
                 modifier =
                     Modifier
-                        .padding(horizontal = 24.dp)
+                        .padding(horizontal = dimensions.sectionSpacing)
                         .fillMaxHeight(),
                 navController = navController,
                 lobbyCode = lobbyUiState.lobbyCode ?: "",
@@ -154,11 +160,11 @@ fun LobbyScreen(
             Text(
                 text = error,
                 color = AppRed,
-                fontSize = 16.sp,
+                fontSize = dimensions.bodyFontSize,
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = dimensions.screenPadding),
             )
         }
 
@@ -181,36 +187,33 @@ fun TeamColumn(
     onRoleSelect: (PlayerRoles) -> Unit,
     lobbyUiState: LobbyUiState,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
     val align = if (color == Team.RED) Alignment.End else Alignment.Start
 
     Column(
-        modifier =
-            modifier
-                .fillMaxWidth(0.5f),
+        modifier = modifier.fillMaxWidth(0.5f),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val cardModifier =
             Modifier
                 .align(align)
-                .width(200.dp)
-                .height(150.dp)
-                .fillMaxWidth(0.5f)
-                .padding(start = 6.dp, bottom = 12.dp)
+                .width(dimensions.lobbyRoleCardWidth)
+                .height(dimensions.lobbyRoleCardHeight)
+                .padding(start = dimensions.smallSpacing, bottom = dimensions.itemSpacing)
                 .background(gradient, RoundedCornerShape(12.dp))
-                .padding(12.dp)
+                .padding(dimensions.itemSpacing)
 
         Text(
             text = title,
             color = textColor,
-            fontSize = 24.sp,
+            fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
             modifier =
                 Modifier
                     .align(align)
-                    .padding(start = 6.dp)
-                    .padding(end = 6.dp)
-                    .padding(bottom = 6.dp),
+                    .padding(horizontal = dimensions.smallSpacing)
+                    .padding(bottom = dimensions.smallSpacing),
         )
 
         RoleCard(
@@ -240,21 +243,33 @@ fun RoleCard(
     title: String,
     players: List<String> = emptyList(),
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(title, color = AppWhite, fontWeight = FontWeight.Bold)
+        Text(
+            text = title,
+            color = AppWhite,
+            fontWeight = FontWeight.Bold,
+            fontSize = dimensions.smallFontSize,
+        )
+
         if (players.isEmpty()) {
             Text(
                 text = "No players",
                 color = AppWhite.copy(alpha = 0.7f),
-                fontSize = 12.sp,
+                fontSize = dimensions.smallFontSize,
             )
         } else {
             for (player in players) {
-                Text(player, color = AppWhite)
+                Text(
+                    text = player,
+                    color = AppWhite,
+                    fontSize = dimensions.smallFontSize,
+                )
             }
         }
 
@@ -264,7 +279,13 @@ fun RoleCard(
             style =
                 AppButtonStyle(
                     backgroundBrush = greenGradient,
-                    fontSize = 16.sp,
+                    fontSize = dimensions.smallFontSize,
+                    lineHeight = dimensions.bodyFontSize,
+                    contentPadding =
+                        PaddingValues(
+                            horizontal = dimensions.itemSpacing,
+                            vertical = dimensions.smallSpacing,
+                        ),
                 ),
         )
     }
@@ -281,6 +302,7 @@ fun GameSettingsColumn(
     currentRole: PlayerRoles,
     onStartGame: () -> Unit,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
     val usernameState by sessionViewModel.username.collectAsState()
     val canStart =
         usernameState.username.isNotBlank() &&
@@ -295,12 +317,12 @@ fun GameSettingsColumn(
     ) {
         Text(
             text = "LOBBY CODE: $lobbyCode",
-            fontSize = 24.sp,
+            fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(top = 8.dp),
+                    .padding(top = dimensions.smallSpacing),
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -309,9 +331,9 @@ fun GameSettingsColumn(
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
-                    .fillMaxWidth(0.5f)
+                    .fillMaxWidth(dimensions.lobbyCenterColumnWidthFraction)
                     .background(brownGradient, RoundedCornerShape(12.dp))
-                    .padding(16.dp),
+                    .padding(dimensions.itemSpacing),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
@@ -319,7 +341,8 @@ fun GameSettingsColumn(
                 text = "GAME SETTINGS",
                 color = AppWhite,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp),
+                fontSize = dimensions.smallFontSize,
+                modifier = Modifier.padding(bottom = dimensions.itemSpacing),
             )
 
             AppButton(
@@ -328,12 +351,14 @@ fun GameSettingsColumn(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                        .height(dimensions.secondaryButtonHeight)
+                        .padding(bottom = dimensions.smallSpacing),
                 style =
                     AppButtonStyle(
                         containerColor = AppMutedDark,
                         contentColor = AppWhite,
-                        fontSize = 18.sp,
+                        fontSize = dimensions.smallFontSize,
+                        lineHeight = dimensions.bodyFontSize,
                     ),
             )
         }
@@ -346,15 +371,21 @@ fun GameSettingsColumn(
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
-                    .fillMaxWidth(0.5f)
-                    .padding(top = 16.dp),
+                    .fillMaxWidth(dimensions.lobbyCenterColumnWidthFraction)
+                    .height(dimensions.secondaryButtonHeight)
+                    .padding(top = dimensions.itemSpacing),
             style =
                 AppButtonStyle(
                     enabled = canStart,
                     backgroundBrush = greenGradient,
-                    fontSize = 20.sp,
+                    fontSize = dimensions.bodyFontSize,
+                    lineHeight = dimensions.buttonLineHeight,
                     type = AppButtonType.PRIMARY,
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp),
+                    contentPadding =
+                        PaddingValues(
+                            horizontal = dimensions.itemSpacing,
+                            vertical = dimensions.smallSpacing,
+                        ),
                 ),
         )
 
@@ -373,16 +404,22 @@ fun GameSettingsColumn(
             modifier =
                 Modifier
                     .align(Alignment.CenterHorizontally)
-                    .fillMaxWidth(0.5f)
-                    .padding(top = 16.dp)
-                    .padding(bottom = 16.dp),
+                    .fillMaxWidth(dimensions.lobbyCenterColumnWidthFraction)
+                    .height(dimensions.secondaryButtonHeight)
+                    .padding(top = dimensions.itemSpacing)
+                    .padding(bottom = dimensions.itemSpacing),
             style =
                 AppButtonStyle(
                     backgroundBrush = brownGradient,
-                    fontSize = 20.sp,
+                    fontSize = dimensions.bodyFontSize,
+                    lineHeight = dimensions.buttonLineHeight,
                     contentColor = AppBlack,
                     type = AppButtonType.SECONDARY,
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp),
+                    contentPadding =
+                        PaddingValues(
+                            horizontal = dimensions.itemSpacing,
+                            vertical = dimensions.smallSpacing,
+                        ),
                 ),
         )
     }

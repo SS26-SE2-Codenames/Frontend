@@ -13,20 +13,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.ReturnCornerButton
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppInk
+import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun SettingsScreen(navController: NavHostController) {
+    val dimensions = LocalResponsiveDimensions.current
+
     Box(
         modifier =
             Modifier
@@ -36,17 +37,17 @@ fun SettingsScreen(navController: NavHostController) {
         Text(
             text = "SETTINGS",
             color = AppInk,
-            fontSize = 36.sp,
+            fontSize = dimensions.titleFontSize,
             fontWeight = FontWeight.Bold,
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 48.dp),
+                    .padding(top = dimensions.sectionSpacing * 2),
         )
 
         Column(
             modifier = Modifier.align(Alignment.Center),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(dimensions.itemSpacing),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             AppButton(
@@ -54,13 +55,13 @@ fun SettingsScreen(navController: NavHostController) {
                 onClick = {},
                 modifier =
                     Modifier
-                        .width(240.dp)
-                        .height(80.dp),
+                        .width(dimensions.primaryButtonWidth)
+                        .height(dimensions.primaryButtonHeight),
                 style =
                     AppButtonStyle(
                         backgroundBrush = blueGradient,
-                        fontSize = 24.sp,
-                        lineHeight = 28.sp,
+                        fontSize = dimensions.buttonFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
                     ),
             )
 
@@ -69,13 +70,13 @@ fun SettingsScreen(navController: NavHostController) {
                 onClick = {},
                 modifier =
                     Modifier
-                        .width(240.dp)
-                        .height(80.dp),
+                        .width(dimensions.primaryButtonWidth)
+                        .height(dimensions.primaryButtonHeight),
                 style =
                     AppButtonStyle(
                         backgroundBrush = greenGradient,
-                        fontSize = 24.sp,
-                        lineHeight = 28.sp,
+                        fontSize = dimensions.buttonFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
                     ),
             )
         }

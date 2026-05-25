@@ -36,7 +36,7 @@ data class AppButtonStyle(
     val fontSize: TextUnit = TextUnit.Unspecified,
     val lineHeight: TextUnit = TextUnit.Unspecified,
     val shape: Shape = RoundedCornerShape(12.dp),
-    val contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+    val contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
 )
 
 @Suppress("ktlint:standard:function-naming")

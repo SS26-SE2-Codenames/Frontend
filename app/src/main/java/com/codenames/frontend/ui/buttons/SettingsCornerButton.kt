@@ -12,22 +12,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.codenames.frontend.ui.theme.AppInk
 import com.codenames.frontend.ui.theme.AppWhite
+import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun BoxScope.SettingsCornerButton(onClick: () -> Unit) {
+    val dimensions = LocalResponsiveDimensions.current
+
     Box(
         modifier =
             Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 8.dp, end = 8.dp)
-                .width(56.dp)
-                .height(56.dp)
+                .padding(top = dimensions.smallSpacing, end = dimensions.smallSpacing)
+                .width(dimensions.cornerButtonSize)
+                .height(dimensions.cornerButtonSize)
                 .zIndex(1f),
     ) {
         androidx.compose.material3.IconButton(
@@ -51,13 +53,15 @@ fun BoxScope.SettingsCornerButton(onClick: () -> Unit) {
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun BoxScope.ReturnCornerButton(onClick: () -> Unit) {
+    val dimensions = LocalResponsiveDimensions.current
+
     Box(
         modifier =
             Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 16.dp, end = 16.dp)
-                .width(140.dp)
-                .height(56.dp)
+                .padding(top = dimensions.screenPadding, end = dimensions.screenPadding)
+                .width(dimensions.returnButtonWidth)
+                .height(dimensions.secondaryButtonHeight)
                 .zIndex(1f),
     ) {
         AppButton(
@@ -69,10 +73,19 @@ fun BoxScope.ReturnCornerButton(onClick: () -> Unit) {
     }
 }
 
-private fun cornerButtonStyle(): AppButtonStyle =
-    AppButtonStyle(
+@Composable
+private fun cornerButtonStyle(): AppButtonStyle {
+    val dimensions = LocalResponsiveDimensions.current
+
+    return AppButtonStyle(
         containerColor = AppInk,
         contentColor = AppWhite,
         fontSize = 16.sp,
         lineHeight = 18.sp,
+        contentPadding =
+            androidx.compose.foundation.layout.PaddingValues(
+                horizontal = dimensions.itemSpacing,
+                vertical = dimensions.smallSpacing,
+            ),
     )
+}

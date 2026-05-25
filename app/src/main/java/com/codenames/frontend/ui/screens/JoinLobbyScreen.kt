@@ -27,8 +27,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -43,6 +41,7 @@ import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppInk
 import com.codenames.frontend.ui.theme.AppRed
 import com.codenames.frontend.ui.theme.AppWhite
+import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
@@ -71,6 +70,7 @@ fun JoinlobbyScreen(
 ) {
     ForceLandscape()
 
+    val dimensions = LocalResponsiveDimensions.current
     var lobbyId by rememberSaveable { mutableStateOf("") }
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -81,7 +81,6 @@ fun JoinlobbyScreen(
 
     val joinEnabled = isLobbyIdValid(lobbyId)
 
-    // Navigation wird ausgeführt, wenn alle notwendigen states im Lobby UI state gesetzt sind. Wird bei jeder rekomposition der UI durchlaufen
     LaunchedEffect(state.lobbyCode, state.error, state.isLoading) {
         if (!state.isLoading && state.error == null && state.lobbyCode != null) {
             navController.navigate(Screen.Lobby.route)
@@ -107,7 +106,7 @@ fun JoinlobbyScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(dimensions.screenPadding),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -118,8 +117,8 @@ fun JoinlobbyScreen(
                 },
                 modifier =
                     Modifier
-                        .fillMaxWidth(0.5f)
-                        .padding(bottom = 16.dp)
+                        .fillMaxWidth(if (dimensions.isNarrowWidth) 0.7f else 0.5f)
+                        .padding(bottom = dimensions.itemSpacing)
                         .testTag(JOIN_LOBBY_INPUT_TAG),
                 state =
                     AppTextFieldState(
@@ -130,8 +129,8 @@ fun JoinlobbyScreen(
                     AppTextFieldStyle(
                         type = AppTextFieldType.SECONDARY,
                         contentColor = AppWhite,
-                        fontSize = 20.sp,
-                        lineHeight = 24.sp,
+                        fontSize = dimensions.bodyFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
                     ),
                 keyboard =
                     AppTextFieldKeyboard(
@@ -153,15 +152,15 @@ fun JoinlobbyScreen(
                 onClick = { submitJoin() },
                 modifier =
                     Modifier
-                        .width(220.dp)
-                        .height(80.dp)
+                        .width(dimensions.primaryButtonWidth)
+                        .height(dimensions.primaryButtonHeight)
                         .testTag(JOIN_LOBBY_BUTTON_TAG),
                 style =
                     AppButtonStyle(
                         enabled = joinEnabled,
                         backgroundBrush = blueGradient,
-                        fontSize = 26.sp,
-                        lineHeight = 30.sp,
+                        fontSize = dimensions.buttonFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
                     ),
             )
 
@@ -169,8 +168,8 @@ fun JoinlobbyScreen(
                 Text(
                     text = "Joining...",
                     color = AppInk,
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(top = 12.dp),
+                    fontSize = dimensions.bodyFontSize,
+                    modifier = Modifier.padding(top = dimensions.itemSpacing),
                 )
             }
 
@@ -178,8 +177,8 @@ fun JoinlobbyScreen(
                 Text(
                     text = error,
                     color = AppRed,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(top = 12.dp),
+                    fontSize = dimensions.bodyFontSize,
+                    modifier = Modifier.padding(top = dimensions.itemSpacing),
                 )
             }
         }
