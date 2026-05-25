@@ -9,7 +9,6 @@ import com.codenames.frontend.ui.screens.GameScreenWrapper
 import com.codenames.frontend.ui.screens.GameSettingsScreen
 import com.codenames.frontend.ui.screens.JoinlobbyScreen
 import com.codenames.frontend.ui.screens.LobbyScreen
-import com.codenames.frontend.ui.screens.OfflineGameStateTestScreen
 import com.codenames.frontend.ui.screens.SettingsScreen
 import com.codenames.frontend.ui.screens.StartScreen
 import com.codenames.frontend.ui.screens.UserNameScreen
@@ -74,10 +73,6 @@ fun NavGraph(
 
         composable(Screen.Settings.route) {
             SettingsScreen(navController)
-        }
-
-        composable("game_test") {
-            OfflineGameStateTestScreen()
         }
     }
 }
