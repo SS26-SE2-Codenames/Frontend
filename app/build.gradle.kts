@@ -6,10 +6,11 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val serverUrl = localProperties.getProperty(
-    "SERVER_URL",
-    "http://10.0.2.2:8080"
-)
+val serverUrl =
+    localProperties.getProperty(
+        "SERVER_URL",
+        "http://10.0.2.2:8080",
+    )
 
 plugins {
     id("com.android.application")
@@ -118,7 +119,7 @@ android {
         buildConfigField(
             "String",
             "SERVER_URL",
-            "\"$serverUrl\""
+            "\"$serverUrl\"",
         )
     }
 
