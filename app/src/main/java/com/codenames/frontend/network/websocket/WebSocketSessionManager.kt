@@ -1,13 +1,12 @@
 package com.codenames.frontend.network.websocket
 
 import android.util.Log
+import com.codenames.frontend.network.provider.getWsUrl
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
 import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
-
-const val URL = "ws://192.168.0.134:8080/ws-fallback"
 
 @Singleton
 class WebSocketSessionManager
@@ -20,7 +19,7 @@ class WebSocketSessionManager
         suspend fun connectStomp() {
             if (isConnected()) return
             try {
-                session = client.connect(URL).withJsonConversions()
+                session = client.connect(getWsUrl()).withJsonConversions()
             } catch (e: Exception) {
                 Log.e("WebSocket", "Failed to connect to Websocket", e)
                 return
