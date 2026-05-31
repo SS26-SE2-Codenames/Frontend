@@ -23,8 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,7 +40,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.GameCard
@@ -60,6 +57,18 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.theme.AppBlack
+import com.codenames.frontend.ui.theme.AppBlue
+import com.codenames.frontend.ui.theme.AppGreen
+import com.codenames.frontend.ui.theme.AppInk
+import com.codenames.frontend.ui.theme.AppInkOverlay
+import com.codenames.frontend.ui.theme.AppLightGray
+import com.codenames.frontend.ui.theme.AppMutedDark
+import com.codenames.frontend.ui.theme.AppRed
+import com.codenames.frontend.ui.theme.AppSurface
+import com.codenames.frontend.ui.theme.AppSurfaceOverlay
+import com.codenames.frontend.ui.theme.AppWhite
+import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
@@ -75,6 +84,8 @@ fun GameboardScreen(
     onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     val currentHint = gameState.currentHint
     val cards = gameState.cards
     val currentTurn = gameState.currentTurn
@@ -113,7 +124,12 @@ fun GameboardScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(top = 72.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    .padding(
+                        top = dimensions.gameTopPadding,
+                        start = dimensions.screenPadding,
+                        end = dimensions.screenPadding,
+                        bottom = dimensions.screenPadding,
+                    ),
         ) {
             GameStatusBar(
                 currentTurn = currentTurn,
@@ -127,11 +143,11 @@ fun GameboardScreen(
                     onClick = { isChatOpen = !isChatOpen },
                     modifier =
                         Modifier
-                            .padding(end = 24.dp, bottom = 24.dp),
+                            .padding(end = dimensions.itemSpacing, bottom = dimensions.itemSpacing),
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dimensions.gameBoardTopSpacing))
 
             Row(
                 modifier =
@@ -143,7 +159,7 @@ fun GameboardScreen(
                     userRole,
                     color = Team.BLUE,
                     teamFound = currentBlueFound,
-                    textColor = Color(0xFF1565C0),
+                    textColor = AppBlue,
                     gradient = blueGradient,
                 )
 
@@ -153,14 +169,14 @@ fun GameboardScreen(
                             Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .padding(horizontal = 8.dp)
-                                .background(Color(0xFFE0D8C8), RoundedCornerShape(12.dp)),
+                                .padding(horizontal = dimensions.smallSpacing)
+                                .background(AppSurface, RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = "Waiting for game state...",
-                            color = Color(0xFF383330),
-                            fontSize = 20.sp,
+                            color = AppInk,
+                            fontSize = dimensions.bodyFontSize,
                             fontWeight = FontWeight.Bold,
                         )
                     }
@@ -175,7 +191,7 @@ fun GameboardScreen(
                             Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .padding(horizontal = 8.dp)
+                                .padding(horizontal = dimensions.smallSpacing)
                                 .clipToBounds()
                                 .pointerInput(Unit) {
                                     detectTransformGestures { _, pan, zoom, _ ->
@@ -190,12 +206,12 @@ fun GameboardScreen(
                     userRole,
                     color = Team.RED,
                     teamFound = currentRedFound,
-                    textColor = Color(0xFFCF5530),
+                    textColor = AppRed,
                     gradient = redGradient,
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(dimensions.itemSpacing))
 
             HintSection(
                 isSpymaster,
@@ -222,9 +238,9 @@ fun GameboardScreen(
                 modifier =
                     Modifier
                         .align(Alignment.Center)
-                        .padding(end = 24.dp, bottom = 12.dp)
-                        .width(420.dp)
-                        .fillMaxHeight(0.90f),
+                        .padding(end = dimensions.itemSpacing, bottom = dimensions.itemSpacing)
+                        .width(dimensions.gameChatWidth)
+                        .fillMaxHeight(dimensions.gameChatHeightFraction),
             )
         }
 
@@ -243,11 +259,13 @@ fun GameStatusBar(
     winner: Team?,
     remainingGuesses: Int,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(40.dp),
+                .height(dimensions.gameStatusBarHeight),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -260,8 +278,8 @@ fun GameStatusBar(
 
         Text(
             text = statusText,
-            color = Color(0xFF383330),
-            fontSize = 18.sp,
+            color = AppInk,
+            fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -274,19 +292,21 @@ fun ChatToggleButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     AppButton(
         text = "Chat",
         onClick = onClick,
         modifier =
             modifier
-                .width(140.dp)
-                .height(56.dp),
+                .width(dimensions.returnButtonWidth)
+                .height(dimensions.secondaryButtonHeight),
         style =
             AppButtonStyle(
-                containerColor = if (isChatOpen) Color(0xFF555555) else Color(0xFF383330),
-                contentColor = Color.White,
-                fontSize = 18.sp,
-                lineHeight = 20.sp,
+                containerColor = if (isChatOpen) AppMutedDark else AppInk,
+                contentColor = AppWhite,
+                fontSize = dimensions.bodyFontSize,
+                lineHeight = dimensions.buttonLineHeight,
             ),
     )
 }
@@ -303,18 +323,20 @@ fun ChatWindow(
     onSendClick: (ChatTab, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     Column(
         modifier =
             modifier
                 .background(
-                    color = Color(0xE6383330),
+                    color = AppInkOverlay,
                     shape = RoundedCornerShape(12.dp),
-                ).padding(12.dp),
+                ).padding(dimensions.itemSpacing),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.smallSpacing),
         ) {
             availableTabs.forEach { tab ->
                 AppButton(
@@ -323,21 +345,25 @@ fun ChatWindow(
                     modifier =
                         Modifier
                             .weight(1f)
-                            .height(36.dp),
+                            .height(dimensions.secondaryButtonHeight),
                     style =
                         AppButtonStyle(
                             type = AppButtonType.PRIMARY,
                             containerColor = if (selectedTab == tab) Color.Unspecified else Color.Transparent,
-                            contentColor = if (selectedTab == tab) Color.Unspecified else Color.LightGray,
-                            fontSize = 11.sp,
-                            lineHeight = 12.sp,
-                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                            contentColor = if (selectedTab == tab) Color.Unspecified else AppLightGray,
+                            fontSize = dimensions.smallFontSize,
+                            lineHeight = dimensions.bodyFontSize,
+                            contentPadding =
+                                PaddingValues(
+                                    horizontal = dimensions.smallSpacing,
+                                    vertical = dimensions.smallSpacing,
+                                ),
                         ),
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(dimensions.itemSpacing))
 
         ChatMessagesArea(
             messages = messages,
@@ -345,14 +371,14 @@ fun ChatWindow(
             modifier = Modifier.weight(1f).fillMaxWidth(),
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(dimensions.itemSpacing))
 
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(64.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .height(dimensions.primaryButtonHeight),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.smallSpacing),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AppTextField(
@@ -369,10 +395,10 @@ fun ChatWindow(
                     ),
                 style =
                     AppTextFieldStyle(
-                        containerColor = Color(0xFFE0D8C8),
-                        contentColor = Color(0xFF383330),
-                        fontSize = 14.sp,
-                        lineHeight = 16.sp,
+                        containerColor = AppSurface,
+                        contentColor = AppInk,
+                        fontSize = dimensions.smallFontSize,
+                        lineHeight = dimensions.bodyFontSize,
                     ),
             )
 
@@ -387,13 +413,13 @@ fun ChatWindow(
                 },
                 modifier =
                     Modifier
-                        .width(92.dp)
+                        .width(dimensions.returnButtonWidth)
                         .fillMaxHeight(),
                 style =
                     AppButtonStyle(
                         backgroundBrush = greenGradient,
-                        fontSize = 16.sp,
-                        lineHeight = 18.sp,
+                        fontSize = dimensions.smallFontSize,
+                        lineHeight = dimensions.bodyFontSize,
                     ),
             )
         }
@@ -407,6 +433,8 @@ fun ChatMessagesArea(
     selectedTab: ChatTab,
     modifier: Modifier = Modifier,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     val visibleMessages =
         when (selectedTab) {
             ChatTab.GLOBAL -> messages.lobbyMessages
@@ -418,29 +446,29 @@ fun ChatMessagesArea(
         modifier =
             modifier
                 .background(
-                    color = Color(0xB3E0D8C8),
+                    color = AppSurfaceOverlay,
                     shape = RoundedCornerShape(8.dp),
-                ).padding(12.dp),
+                ).padding(dimensions.itemSpacing),
         verticalArrangement = Arrangement.Top,
     ) {
         Text(
             text = "${selectedTab.title} Chat",
-            color = Color(0xFF383330),
-            fontSize = 16.sp,
+            color = AppInk,
+            fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(dimensions.smallSpacing))
 
         if (visibleMessages.isEmpty()) {
             Text(
                 text = "No messages yet.",
-                color = Color(0xFF383330),
-                fontSize = 14.sp,
+                color = AppInk,
+                fontSize = dimensions.smallFontSize,
             )
         } else {
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(dimensions.smallSpacing),
             ) {
                 items(visibleMessages) { message ->
                     ChatMessageBubble(message = message)
@@ -453,9 +481,11 @@ fun ChatMessagesArea(
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun ChatMessageBubble(message: ChatDomainModel) {
+    val dimensions = LocalResponsiveDimensions.current
+
     val alignment = if (message.isFromMe) Alignment.End else Alignment.Start
-    val bubbleColor = if (message.isFromMe) Color(0xFF4CAF50) else Color(0xFFE0D8C8)
-    val textColor = if (message.isFromMe) Color.White else Color(0xFF383330)
+    val bubbleColor = if (message.isFromMe) AppGreen else AppSurface
+    val textColor = if (message.isFromMe) AppWhite else AppInk
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -463,8 +493,8 @@ fun ChatMessageBubble(message: ChatDomainModel) {
     ) {
         Text(
             text = message.sender,
-            color = Color(0xFF383330),
-            fontSize = 11.sp,
+            color = AppInk,
+            fontSize = dimensions.smallFontSize,
             fontWeight = FontWeight.Bold,
         )
 
@@ -473,12 +503,12 @@ fun ChatMessageBubble(message: ChatDomainModel) {
                 Modifier
                     .fillMaxWidth(0.78f)
                     .background(bubbleColor, RoundedCornerShape(8.dp))
-                    .padding(8.dp),
+                    .padding(dimensions.smallSpacing),
         ) {
             Text(
                 text = message.text,
                 color = textColor,
-                fontSize = 13.sp,
+                fontSize = dimensions.smallFontSize,
             )
         }
     }
@@ -493,6 +523,8 @@ fun TeamSidebar(
     textColor: Color,
     gradient: Brush,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     val isRed = color == Team.RED
     val operative = if (isRed) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_OPERATIVE
     val spymaster = if (isRed) PlayerRoles.RED_SPYMASTER else PlayerRoles.BLUE_SPYMASTER
@@ -501,7 +533,7 @@ fun TeamSidebar(
     Column(
         modifier =
             Modifier
-                .width(90.dp)
+                .width(dimensions.gameSidebarWidth)
                 .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -509,10 +541,10 @@ fun TeamSidebar(
             title,
             fontWeight = FontWeight.Bold,
             color = textColor,
-            fontSize = 12.sp,
+            fontSize = dimensions.smallFontSize,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(dimensions.smallSpacing))
 
         TeamRoleBox(
             title = "OPERATIVES",
@@ -520,7 +552,7 @@ fun TeamSidebar(
             isCurrentUser = userRole == operative,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(dimensions.smallSpacing))
 
         TeamRoleBox(
             title = "SPYMASTERS",
@@ -528,13 +560,13 @@ fun TeamSidebar(
             isCurrentUser = userRole == spymaster,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(dimensions.itemSpacing))
 
         Text(
             text = "$teamFound FOUND",
             color = textColor,
             fontWeight = FontWeight.ExtraBold,
-            fontSize = 16.sp,
+            fontSize = dimensions.bodyFontSize,
         )
     }
 }
@@ -552,16 +584,29 @@ fun HintSection(
     keyboardController: SoftwareKeyboardController?,
     focusManager: FocusManager,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     if (isSpymaster) {
-        Row {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(dimensions.smallSpacing),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             AppTextField(
                 value = hintInput,
                 onValueChange = onInputChange,
-                modifier = Modifier.weight(0.8f),
+                modifier =
+                    Modifier
+                        .weight(dimensions.gameHintInputWeight)
+                        .height(dimensions.gameHintInputHeight),
                 state =
                     AppTextFieldState(
                         label = "HINT",
                         placeholder = "Enter word...",
+                    ),
+                style =
+                    AppTextFieldStyle(
+                        fontSize = dimensions.bodyFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
                     ),
                 keyboard =
                     AppTextFieldKeyboard(
@@ -580,11 +625,20 @@ fun HintSection(
                             ),
                     ),
             )
+
             AppTextField(
                 value = countInput,
                 onValueChange = onCountChange,
-                modifier = Modifier.width(80.dp),
+                modifier =
+                    Modifier
+                        .width(dimensions.gameHintCountWidth)
+                        .height(dimensions.gameHintInputHeight),
                 state = AppTextFieldState(label = "COUNT", placeholder = "0"),
+                style =
+                    AppTextFieldStyle(
+                        fontSize = dimensions.bodyFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
+                    ),
             )
 
             AppButton(
@@ -599,13 +653,22 @@ fun HintSection(
                         keyboardController?.hide()
                     }
                 },
+                modifier =
+                    Modifier
+                        .width(dimensions.gameHintSendButtonWidth)
+                        .height(dimensions.gameHintInputHeight),
+                style =
+                    AppButtonStyle(
+                        fontSize = dimensions.bodyFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
+                    ),
             )
         }
     } else {
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Text(
                 text = "Hint: $currentHint",
-                fontSize = 20.sp,
+                fontSize = dimensions.bodyFontSize,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -620,28 +683,30 @@ fun TeamRoleBox(
     isCurrentUser: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .background(gradient, RoundedCornerShape(8.dp))
-                .padding(8.dp),
+                .padding(dimensions.smallSpacing),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = title,
-            color = Color.White,
+            color = AppWhite,
             fontWeight = FontWeight.Bold,
-            fontSize = 10.sp,
+            fontSize = dimensions.smallFontSize,
         )
 
         if (isCurrentUser) {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(dimensions.smallSpacing))
             Text(
                 text = "You",
-                color = Color.White,
-                fontSize = 12.sp,
+                color = AppWhite,
+                fontSize = dimensions.smallFontSize,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -655,18 +720,20 @@ fun CodenamesCard(
     isSpymaster: Boolean,
     onClick: () -> Unit,
 ) {
+    val dimensions = LocalResponsiveDimensions.current
+
     val backgroundColor =
         when {
             card.revealed -> getColor(card.type)
             isSpymaster -> getColor(card.type)
-            else -> Color(0xFFE0D8C8)
+            else -> AppSurface
         }
 
     val contentColor =
         if (!card.revealed && !isSpymaster) {
-            Color(0xFF383330)
+            AppInk
         } else {
-            Color.White
+            AppWhite
         }
 
     AppButton(
@@ -677,128 +744,15 @@ fun CodenamesCard(
             AppButtonStyle(
                 containerColor = backgroundColor,
                 contentColor = contentColor,
-                fontSize = 10.sp,
+                fontSize = dimensions.smallFontSize,
             ),
     )
 }
 
 fun getColor(type: CardType): Color =
     when (type) {
-        CardType.BLUE -> Color(0xFF1565C0)
-        CardType.RED -> Color(0xFFCF5530)
-        CardType.NEUTRAL -> Color(0xFF383330)
-        CardType.ASSASSIN -> Color.Black
+        CardType.BLUE -> AppBlue
+        CardType.RED -> AppRed
+        CardType.NEUTRAL -> AppInk
+        CardType.ASSASSIN -> AppBlack
     }
-
-@Suppress("ktlint:standard:function-naming")
-@Composable
-fun OfflineGameStateTestScreen() {
-    var currentHint by rememberSaveable { mutableStateOf("EAGLE") }
-    var currentTurn by rememberSaveable { mutableStateOf(PlayerRoles.RED_OPERATIVE) }
-    var remainingGuesses by rememberSaveable { mutableIntStateOf(3) }
-
-    val cards =
-        remember {
-            mutableStateListOf(
-                GameCard("BERLIN", CardType.BLUE),
-                GameCard("RIVER", CardType.BLUE),
-                GameCard("MOON", CardType.BLUE),
-                GameCard("PIANO", CardType.BLUE),
-                GameCard("FOREST", CardType.BLUE),
-                GameCard("ROME", CardType.RED),
-                GameCard("APPLE", CardType.RED),
-                GameCard("TRAIN", CardType.RED),
-                GameCard("KING", CardType.RED),
-                GameCard("GLASS", CardType.RED),
-                GameCard("CHAIR", CardType.NEUTRAL),
-                GameCard("STONE", CardType.NEUTRAL),
-                GameCard("CLOUD", CardType.NEUTRAL),
-                GameCard("FIELD", CardType.NEUTRAL),
-                GameCard("WATCH", CardType.NEUTRAL),
-                GameCard("VIPER", CardType.ASSASSIN),
-                GameCard("BREAD", CardType.NEUTRAL),
-                GameCard("LASER", CardType.RED),
-                GameCard("BRIDGE", CardType.BLUE),
-                GameCard("QUEEN", CardType.RED),
-                GameCard("OCEAN", CardType.BLUE),
-                GameCard("MOUSE", CardType.NEUTRAL),
-                GameCard("PLANE", CardType.RED),
-                GameCard("SUN", CardType.BLUE),
-                GameCard("KEY", CardType.NEUTRAL),
-            )
-        }
-
-    val chatLists =
-        ChatLists(
-            lobbyMessages =
-                listOf(
-                    ChatDomainModel(
-                        sender = "Anna",
-                        text = "Welcome to the lobby chat.",
-                        isFromMe = false,
-                    ),
-                ),
-            teamMessages =
-                listOf(
-                    ChatDomainModel(
-                        sender = "Max",
-                        text = "I think BERLIN fits the hint.",
-                        isFromMe = false,
-                    ),
-                    ChatDomainModel(
-                        sender = "You",
-                        text = "Maybe RIVER too.",
-                        isFromMe = true,
-                    ),
-                ),
-            operativeMessages =
-                listOf(
-                    ChatDomainModel(
-                        sender = "Operative",
-                        text = "Let's avoid VIPER.",
-                        isFromMe = false,
-                    ),
-                ),
-        )
-
-    fun revealCard(index: Int) {
-        val card = cards[index]
-
-        if (card.revealed) return
-
-        cards[index] = card.copy(revealed = true)
-
-        when (card.type) {
-            CardType.NEUTRAL ->
-                currentTurn =
-                    if (currentTurn == PlayerRoles.BLUE_SPYMASTER) PlayerRoles.RED_OPERATIVE else PlayerRoles.BLUE_SPYMASTER
-            CardType.ASSASSIN -> currentTurn = PlayerRoles.NONE
-            else -> Unit
-        }
-
-        if (remainingGuesses > 0) {
-            remainingGuesses--
-        }
-    }
-
-    GameboardScreen(
-        userRole = PlayerRoles.BLUE_OPERATIVE,
-        gameState =
-            GameState(
-                currentHint = currentHint,
-                currentTurn = currentTurn,
-                remainingGuesses = remainingGuesses,
-                cards = cards,
-                currentRedFound = cards.count { it.type == CardType.RED && it.revealed },
-                currentBlueFound = cards.count { it.type == CardType.BLUE && it.revealed },
-                chatLists = chatLists,
-                availableChatTabs = ChatTab.entries,
-            ),
-        onHintChange = { word, count ->
-            currentHint = word
-            remainingGuesses = count
-        },
-        onReveal = { index -> revealCard(index) },
-        onSendChatMessage = { _, _ -> },
-    )
-}
