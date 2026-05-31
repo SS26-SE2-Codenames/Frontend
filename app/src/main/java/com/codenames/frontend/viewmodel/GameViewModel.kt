@@ -14,6 +14,7 @@ import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.WebSocketSessionManager
 import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -28,7 +29,7 @@ import javax.inject.Inject
 class GameViewModel
     @Inject
     constructor(
-        private val client: GameWebSocketHandler,
+        private val handler: GameWebSocketHandler,
         private val chatRepository: ChatRepository,
         private val gameRepository: GameRepository,
     ) : ViewModel() {
@@ -57,14 +58,14 @@ class GameViewModel
                     _connectionState.value = ConnectionState.CONNECTING
 
                     try {
-                        client.connectStomp()
+                        handler.connectStomp()
 
                         Log.d("GameViewModel", "Connection successful")
 
                         _connectionState.value = ConnectionState.CONNECTED
 
                         launch {
-                            client
+                            handler
                                 .subscribeToLobby(lobbyCode)
                                 .collect { handleMessage(it) }
                         }

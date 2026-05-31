@@ -12,7 +12,7 @@ import kotlinx.coroutines.test.runTest
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.StompSession
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
-import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
@@ -23,6 +23,8 @@ class WebSocketSessionManagerTest {
     private lateinit var client: StompClient
     private lateinit var session: StompSessionWithKxSerialization
     private lateinit var rawSession: StompSession
+
+    private val url = "ws://localhost:8080/ws-fallback"
 
     @Before
     fun setup() {
@@ -41,7 +43,7 @@ class WebSocketSessionManagerTest {
         runTest {
             val sessionWithJson = mockk<StompSessionWithKxSerialization>()
 
-            coEvery { client.connect(URL) } returns session
+            coEvery { client.connect(url) } returns session
 
             coEvery {
                 sessionWithJson.subscribe<GameMessage>(any(), any())
@@ -52,33 +54,32 @@ class WebSocketSessionManagerTest {
             wsClient.connectStomp()
 
             coVerify {
-                client.connect(BASE_URL)
-                session.withJsonConversions()
+                client.connect(url)
             }
         }
 
     @Test
     fun testConnectStomp_throwsExceptionWhenConnectionFails() =
         runTest {
-            coEvery { client.connect(URL) } throws Exception("Connection failed")
+            coEvery { client.connect(url) } throws Exception("Connection failed")
 
             val wsClient = WebSocketSessionManager(client)
 
-            assertThrows(Exception::class.java) {
-                runTest {
-                    wsClient.connectStomp()
-                }
-            }
+            wsClient.connectStomp()
+
+            coVerify(exactly = 1) { client.connect(url) }
+
+            assertFalse(wsClient.isConnected())
         }
 
     @Test
     fun testConnectStomp_DoesNotConnectWhenSessionExists() =
         runTest {
             val wsClient = WebSocketSessionManager(client)
-            coEvery { client.connect(URL) } returns session
+            coEvery { client.connect(url) } returns session
             wsClient.connectStomp()
             wsClient.connectStomp()
-            coVerify(exactly = 1) { client.connect(BASE_URL) }
+            coVerify(exactly = 1) { client.connect(url) }
         }
 
     @Test
@@ -86,7 +87,7 @@ class WebSocketSessionManagerTest {
         runTest {
             val wsClient = WebSocketSessionManager(client)
 
-            coEvery { client.connect(URL) } returns session
+            coEvery { client.connect(url) } returns session
 
             wsClient.connectStomp()
             wsClient.disconnect()
@@ -113,7 +114,7 @@ class WebSocketSessionManagerTest {
         runTest {
             val wsClient = WebSocketSessionManager(client)
 
-            coEvery { client.connect(URL) } returns session
+            coEvery { client.connect(url) } returns session
 
             wsClient.connectStomp()
 
@@ -132,7 +133,7 @@ class WebSocketSessionManagerTest {
     fun testGetSession_returnsSession() = runTest {
         val wsClient = WebSocketSessionManager(client)
 
-        coEvery { client.connect(URL) } returns session
+        coEvery { client.connect(url) } returns session
 
         wsClient.connectStomp()
 

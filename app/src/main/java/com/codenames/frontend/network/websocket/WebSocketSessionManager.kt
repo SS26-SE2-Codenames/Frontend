@@ -20,7 +20,7 @@ class WebSocketSessionManager @Inject constructor(val client: StompClient) {
             session = client.connect(URL).withJsonConversions()
         } catch (e: Exception) {
             Log.e("WebSocket", "Failed to connect to Websocket", e)
-            throw e
+            return
         }
         Log.d("WebSocket", "Connected to Websocket, session: $session")
     }
