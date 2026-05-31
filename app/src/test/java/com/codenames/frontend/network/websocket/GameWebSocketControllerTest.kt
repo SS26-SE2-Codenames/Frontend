@@ -18,8 +18,8 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import org.junit.Before
 import org.junit.Test
 
-class GameWebSocketHandlerTest {
-    private lateinit var wsClient: GameWebSocketHandler
+class GameWebSocketControllerTest {
+    private lateinit var wsClient: GameWebSocketController
     private lateinit var sessionManager: WebSocketSessionManager
     private lateinit var session: StompSessionWithKxSerialization
 
@@ -27,7 +27,7 @@ class GameWebSocketHandlerTest {
     fun setup() {
         sessionManager = mockk()
         session = mockk(relaxed = true)
-        wsClient = GameWebSocketHandler(sessionManager)
+        wsClient = GameWebSocketController(sessionManager)
 
         coEvery { sessionManager.getSession() } returns session
     }

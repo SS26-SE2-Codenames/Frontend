@@ -13,7 +13,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GameWebSocketHandler
+class GameWebSocketController
     @Inject
     constructor(
         private val webSocketSessionManager: WebSocketSessionManager,

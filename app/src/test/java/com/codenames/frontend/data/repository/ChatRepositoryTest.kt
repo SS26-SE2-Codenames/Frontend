@@ -1,7 +1,7 @@
 package com.codenames.frontend.data.repository
 
 import com.codenames.frontend.network.dto.ChatMessageDto
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -21,7 +21,7 @@ import org.junit.Test
 import kotlin.test.assertFailsWith
 
 class ChatRepositoryTest {
-    private lateinit var webSocketHandler: GameWebSocketHandler
+    private lateinit var webSocketHandler: GameWebSocketController
     private lateinit var repository: ChatRepository
 
     private val testTopic = "/topic/chat"

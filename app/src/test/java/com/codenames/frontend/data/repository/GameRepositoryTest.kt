@@ -1,7 +1,7 @@
 package com.codenames.frontend.data.repository
 
 import com.codenames.frontend.data.model.enums.Team
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -14,7 +14,7 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GameRepositoryTest {
-    private val webSocketHandler: GameWebSocketHandler = mockk()
+    private val webSocketHandler: GameWebSocketController = mockk()
     private lateinit var gameRepository: GameRepository
 
     @Before

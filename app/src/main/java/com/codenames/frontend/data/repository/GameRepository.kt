@@ -3,13 +3,13 @@ package com.codenames.frontend.data.repository
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.StartGameMessage
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import javax.inject.Inject
 
 class GameRepository
     @Inject
     constructor(
-        private val webSocketHandler: GameWebSocketHandler,
+        private val webSocketHandler: GameWebSocketController,
     ) {
         suspend fun startGame(lobbyCode: String) {
             val msg = StartGameMessage(lobbyCode)

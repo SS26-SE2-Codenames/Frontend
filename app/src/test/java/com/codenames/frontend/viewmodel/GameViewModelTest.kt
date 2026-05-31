@@ -13,7 +13,7 @@ import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.CardDto
 import com.codenames.frontend.network.dto.ClueDto
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import com.codenames.frontend.ui.roles.PlayerRoles
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -65,14 +65,14 @@ class GameViewModelTest {
         )
 
     private lateinit var viewModel: GameViewModel
-    private lateinit var client: GameWebSocketHandler
+    private lateinit var client: GameWebSocketController
     private lateinit var chatRepository: ChatRepository
     private lateinit var gameRepository: GameRepository
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        client = mockk<GameWebSocketHandler>()
+        client = mockk<GameWebSocketController>()
         chatRepository = mockk(relaxed = true)
         gameRepository = mockk(relaxed = true)
 

@@ -13,7 +13,7 @@ import com.codenames.frontend.data.model.toGameState
 import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -28,7 +28,7 @@ import javax.inject.Inject
 class GameViewModel
     @Inject
     constructor(
-        private val handler: GameWebSocketHandler,
+        private val handler: GameWebSocketController,
         private val chatRepository: ChatRepository,
         private val gameRepository: GameRepository,
     ) : ViewModel() {

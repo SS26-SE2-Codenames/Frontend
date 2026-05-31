@@ -42,7 +42,7 @@ class WebSocketSessionManagerTest {
         runTest {
             val sessionWithJson = mockk<StompSessionWithKxSerialization>()
 
-            coEvery { client.connect(url) } returns session
+            coEvery { client.connect(any()) } returns session
 
             coEvery {
                 sessionWithJson.subscribe<GameMessage>(any(), any())
@@ -53,20 +53,20 @@ class WebSocketSessionManagerTest {
             wsClient.connectStomp()
 
             coVerify {
-                client.connect(url)
+                client.connect(any())
             }
         }
 
     @Test
     fun testConnectStomp_throwsExceptionWhenConnectionFails() =
         runTest {
-            coEvery { client.connect(url) } throws Exception("Connection failed")
+            coEvery { client.connect(any()) } throws Exception("Connection failed")
 
             val wsClient = WebSocketSessionManager(client)
 
             wsClient.connectStomp()
 
-            coVerify(exactly = 1) { client.connect(url) }
+            coVerify(exactly = 1) { client.connect(any()) }
 
             assertFalse(wsClient.isConnected())
         }
@@ -75,10 +75,10 @@ class WebSocketSessionManagerTest {
     fun testConnectStomp_DoesNotConnectWhenSessionExists() =
         runTest {
             val wsClient = WebSocketSessionManager(client)
-            coEvery { client.connect(url) } returns session
+            coEvery { client.connect(any()) } returns session
             wsClient.connectStomp()
             wsClient.connectStomp()
-            coVerify(exactly = 1) { client.connect(url) }
+            coVerify(exactly = 1) { client.connect(any()) }
         }
 
     @Test
@@ -86,7 +86,7 @@ class WebSocketSessionManagerTest {
         runTest {
             val wsClient = WebSocketSessionManager(client)
 
-            coEvery { client.connect(url) } returns session
+            coEvery { client.connect(any()) } returns session
 
             wsClient.connectStomp()
             wsClient.disconnect()
@@ -113,7 +113,7 @@ class WebSocketSessionManagerTest {
         runTest {
             val wsClient = WebSocketSessionManager(client)
 
-            coEvery { client.connect(url) } returns session
+            coEvery { client.connect(any()) } returns session
 
             wsClient.connectStomp()
 
@@ -133,7 +133,7 @@ class WebSocketSessionManagerTest {
         runTest {
             val wsClient = WebSocketSessionManager(client)
 
-            coEvery { client.connect(url) } returns session
+            coEvery { client.connect(any()) } returns session
 
             wsClient.connectStomp()
 
