@@ -14,7 +14,6 @@ import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.websocket.GameWebSocketHandler
-import com.codenames.frontend.network.websocket.WebSocketSessionManager
 import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job

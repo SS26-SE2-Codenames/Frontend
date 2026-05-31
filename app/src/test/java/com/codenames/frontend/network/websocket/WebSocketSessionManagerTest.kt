@@ -19,7 +19,6 @@ import org.junit.Test
 import kotlin.test.assertNotNull
 
 class WebSocketSessionManagerTest {
-
     private lateinit var client: StompClient
     private lateinit var session: StompSessionWithKxSerialization
     private lateinit var rawSession: StompSession
@@ -130,15 +129,16 @@ class WebSocketSessionManagerTest {
         }
 
     @Test
-    fun testGetSession_returnsSession() = runTest {
-        val wsClient = WebSocketSessionManager(client)
+    fun testGetSession_returnsSession() =
+        runTest {
+            val wsClient = WebSocketSessionManager(client)
 
-        coEvery { client.connect(url) } returns session
+            coEvery { client.connect(url) } returns session
 
-        wsClient.connectStomp()
+            wsClient.connectStomp()
 
-        assertNotNull(wsClient.getSession())
-    }
+            assertNotNull(wsClient.getSession())
+        }
 
     @Test
     fun testGetSession_throwsWhenSessionIsNull() =

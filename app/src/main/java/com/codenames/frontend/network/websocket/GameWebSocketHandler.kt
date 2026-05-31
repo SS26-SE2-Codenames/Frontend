@@ -16,9 +16,8 @@ import javax.inject.Singleton
 class GameWebSocketHandler
     @Inject
     constructor(
-        private val webSocketSessionManager: WebSocketSessionManager
+        private val webSocketSessionManager: WebSocketSessionManager,
     ) {
-
         suspend fun connectStomp() {
             webSocketSessionManager.connectStomp()
         }
@@ -40,7 +39,8 @@ class GameWebSocketHandler
         }
 
         @Suppress("kotlin:S6309")
-        suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> = webSocketSessionManager.getSession().subscribe(topicPath, ChatMessageDto.serializer())
+        suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> =
+            webSocketSessionManager.getSession().subscribe(topicPath, ChatMessageDto.serializer())
 
         suspend fun sendChatMessage(
             destination: String,

@@ -9,16 +9,11 @@ import com.codenames.frontend.network.dto.StartGameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
-import org.hildan.krossbow.stomp.StompClient
-import org.hildan.krossbow.stomp.StompSession
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
 import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
-import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import org.junit.Before
 import org.junit.Test
@@ -45,13 +40,11 @@ class GameWebSocketHandlerTest {
             wsClient.connectStomp()
 
             coVerify { sessionManager.connectStomp() }
-
         }
 
     @Test
     fun testSendGuess_sendsCorrectMessage(): Unit =
         runTest {
-
             val msg = GuessMessage("name", "word", 1)
 
             wsClient.sendGuess(msg)
