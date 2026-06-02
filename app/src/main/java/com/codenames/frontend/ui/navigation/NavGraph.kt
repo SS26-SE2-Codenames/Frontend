@@ -19,6 +19,7 @@ import com.codenames.frontend.ui.theme.responsiveDimensionsFor
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
+import com.codenames.frontend.viewmodel.ChatViewModel
 
 @Composable
 @Suppress("ktlint:standard:function-naming")
@@ -26,9 +27,11 @@ fun NavGraph(
     lobbyViewModel: LobbyViewModel = hiltViewModel(),
     sessionViewModel: SessionViewModel = hiltViewModel(),
     gameViewModel: GameViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel(),
 ) {
     val navController = rememberNavController()
 
+    @Suppress("UnusedBoxWithConstraintsScope")
     BoxWithConstraints {
         val responsiveDimensions =
             responsiveDimensionsFor(
@@ -58,6 +61,7 @@ fun NavGraph(
                         navController = navController,
                         viewModel = lobbyViewModel,
                         gameViewModel = gameViewModel,
+                        chatViewModel = chatViewModel,
                         sessionViewModel = sessionViewModel,
                     )
                 }
@@ -75,6 +79,7 @@ fun NavGraph(
                         navController = navController,
                         lobbyViewModel = lobbyViewModel,
                         gameViewModel = gameViewModel,
+                        chatViewModel = chatViewModel,
                         sessionViewModel = sessionViewModel,
                     )
                 }

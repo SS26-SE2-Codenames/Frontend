@@ -54,6 +54,7 @@ import com.codenames.frontend.ui.toTeamAndRole
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
+import com.codenames.frontend.viewmodel.ChatViewModel
 
 private const val JOIN_TEAM: String = "JOIN TEAM"
 
@@ -64,6 +65,7 @@ fun LobbyScreen(
     viewModel: LobbyViewModel,
     sessionViewModel: SessionViewModel,
     gameViewModel: GameViewModel,
+    chatViewModel: ChatViewModel,
 ) {
     val dimensions = LocalResponsiveDimensions.current
     val usernameState by sessionViewModel.username.collectAsState()
@@ -92,6 +94,12 @@ fun LobbyScreen(
                     team = team.name,
                     role = role.name,
                     isHost = viewModel.getIsHost(usernameState.username),
+                )
+                chatViewModel.subscribeToChats(
+                    username = usernameState.username,
+                    lobbyCode = lobbyCode,
+                    team = team.name,
+                    role = role.name,
                 )
             }
         }

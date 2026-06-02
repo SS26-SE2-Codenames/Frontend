@@ -1,75 +1,151 @@
 package com.codenames.frontend.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.codenames.frontend.data.model.ChatMessage
-import com.codenames.frontend.data.model.ChatUiState
+import androidx.lifecycle.viewModelScope
+import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.enums.ChatTab
+import com.codenames.frontend.data.model.enums.Role
+import com.codenames.frontend.data.model.enums.Team
+import com.codenames.frontend.data.repository.ChatRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ChatViewModel : ViewModel() {
-    private val _uiState =
-        MutableStateFlow(
-            ChatUiState(
-                messages =
-                    listOf(
-                        ChatMessage(
-                            id = 1,
-                            sender = "SYSTEM",
-                            message = "Game started",
-                            timestamp = "12:00",
-                            chatTab = ChatTab.GLOBAL,
-                        ),
-                        ChatMessage(
-                            id = 2,
-                            sender = "Anna",
-                            message = "Hello team",
-                            timestamp = "12:01",
-                            chatTab = ChatTab.TEAM,
-                        ),
-                        ChatMessage(
-                            id = 3,
-                            sender = "Max",
-                            message = "Lets win this",
-                            timestamp = "12:02",
-                            chatTab = ChatTab.OPERATIVES,
-                        ),
-                    ),
-            ),
-        )
-    val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+@HiltViewModel
+class ChatViewModel
+@Inject
+constructor(
+    private val chatRepository: ChatRepository,
+) : ViewModel() {
 
-    fun updateInput(newInput: String) {
-        _uiState.value =
-            _uiState.value.copy(
-                currentInput = newInput,
-            )
+    private val _chatState = MutableStateFlow(ChatLists())
+    val chatState: StateFlow<ChatLists> = _chatState
+
+    fun subscribeToChats(
+        username: String,
+        lobbyCode: String,
+        team: String,
+        role: String,
+    ) {
+        viewModelScope.launch {
+            chatRepository.observeChat("/topic/chat/$lobbyCode", username).collect { msg ->
+                _chatState.update {
+                    it.copy(
+                        lobbyMessages = it.lobbyMessages + msg,
+                    )
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username).collect { msg ->
+                _chatState.update {
+                    it.copy(
+                        teamMessages = it.teamMessages + msg,
+                    )
+                }
+            }
+        }
+
+        if (role == Role.OPERATIVE.name) {
+            viewModelScope.launch {
+                chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username).collect { msg ->
+                    _chatState.update {
+                        it.copy(
+                            operativeMessages = it.operativeMessages + msg,
+                        )
+                    }
+                }
+            }
+        }
     }
 
-    fun sendMessage(
+    fun sendLobbyMessage(
+        lobbyCode: String,
         username: String,
-        tab: ChatTab,
+        content: String,
     ) {
-        val text = _uiState.value.currentInput.trim()
+        viewModelScope.launch {
+            chatRepository.sendMessage(
+                "/app/chat/$lobbyCode",
+                username,
+                content,
+            )
+        }
+    }
 
-        if (text.isBlank()) {
+    fun sendTeamMessage(
+        lobbyCode: String,
+        team: String,
+        username: String,
+        content: String,
+    ) {
+        viewModelScope.launch {
+            chatRepository.sendMessage(
+                "/app/chat/$lobbyCode/$team",
+                username,
+                content,
+            )
+        }
+    }
+
+    fun sendOperativeMessage(
+        lobbyCode: String,
+        team: String,
+        username: String,
+        content: String,
+    ) {
+        viewModelScope.launch {
+            chatRepository.sendMessage(
+                "/app/chat/$lobbyCode/$team/operative",
+                username,
+                content,
+            )
+        }
+    }
+
+    fun sendChatMessage(
+        tab: ChatTab,
+        lobbyCode: String,
+        username: String,
+        team: Team?,
+        content: String,
+        availableChatTabs: List<ChatTab>,
+    ) {
+        if (lobbyCode.isBlank()) {
             return
         }
 
-        val newMessage =
-            ChatMessage(
-                id = _uiState.value.messages.size + 1,
-                sender = username,
-                message = text,
-                timestamp = "NOW",
-                chatTab = tab,
-            )
+        when (tab) {
+            ChatTab.GLOBAL ->
+                sendLobbyMessage(
+                    lobbyCode,
+                    username,
+                    content,
+                )
 
-        _uiState.value =
-            _uiState.value.copy(
-                messages = _uiState.value.messages + newMessage,
-                currentInput = "",
-            )
+            ChatTab.TEAM ->
+                if (team != null) {
+                    sendTeamMessage(
+                        lobbyCode,
+                        team.name,
+                        username,
+                        content,
+                    )
+                }
+
+            ChatTab.OPERATIVES ->
+                if (team != null && ChatTab.OPERATIVES in availableChatTabs) {
+                    sendOperativeMessage(
+                        lobbyCode,
+                        team.name,
+                        username,
+                        content,
+                    )
+                }
+        }
     }
 }
