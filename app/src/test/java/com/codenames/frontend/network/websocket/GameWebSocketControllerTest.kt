@@ -4,7 +4,6 @@ import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.StartGameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import io.mockk.coEvery
