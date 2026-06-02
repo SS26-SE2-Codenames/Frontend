@@ -26,10 +26,6 @@ class GameWebSocketController
             webSocketSessionManager.getSession().convertAndSend("/app/start-game", msg, StartGameMessage.serializer())
         }
 
-        suspend fun sendGuess(msg: GuessMessage) {
-            webSocketSessionManager.getSession().convertAndSend("/app/game/guess", msg, GuessMessage.serializer())
-        }
-
         @Suppress("kotlin:S6309")
         suspend fun subscribeToLobby(lobbyCode: String): Flow<GameMessage> =
             webSocketSessionManager.getSession().subscribe("/topic/game/$lobbyCode", GameMessage.serializer())
