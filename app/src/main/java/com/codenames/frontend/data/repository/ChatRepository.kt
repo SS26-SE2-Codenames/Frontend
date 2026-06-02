@@ -2,7 +2,7 @@ package com.codenames.frontend.data.repository
 
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.network.dto.ChatMessageDto
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -10,7 +10,7 @@ import javax.inject.Inject
 class ChatRepository
     @Inject
     constructor(
-        private val webSocketHandler: GameWebSocketHandler,
+        private val webSocketHandler: GameWebSocketController,
     ) {
         fun observeChat(
             topic: String,

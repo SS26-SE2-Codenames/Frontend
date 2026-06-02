@@ -10,8 +10,6 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 
-const val BASE_URL = "http://localhost:8080/"
-
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitProvider {
@@ -25,7 +23,7 @@ object RetrofitProvider {
     fun provideRetrofit(json: Json): Retrofit =
         Retrofit
             .Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(getHttpUrl())
             .addConverterFactory(
                 json.asConverterFactory("application/json".toMediaType()),
             ).build()

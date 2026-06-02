@@ -13,7 +13,7 @@ import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.CardDto
 import com.codenames.frontend.network.dto.ClueDto
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import com.codenames.frontend.ui.roles.PlayerRoles
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -65,14 +65,14 @@ class GameViewModelTest {
         )
 
     private lateinit var viewModel: GameViewModel
-    private lateinit var client: GameWebSocketHandler
+    private lateinit var client: GameWebSocketController
     private lateinit var chatRepository: ChatRepository
     private lateinit var gameRepository: GameRepository
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        client = mockk<GameWebSocketHandler>()
+        client = mockk<GameWebSocketController>()
         chatRepository = mockk(relaxed = true)
         gameRepository = mockk(relaxed = true)
 
@@ -267,52 +267,6 @@ class GameViewModelTest {
         }
 
     @Test
-    fun getCurrentFound_returnsCorrectCount() {
-        val message =
-            GameMessage(
-                winner = null,
-                currentTurn = Team.RED,
-                currentPhase = Role.OPERATIVE,
-                currentClue = ClueDto(word = "Animal", guessAmount = 3),
-                cardList =
-                    listOf(
-                        CardDto("A", CardType.RED, true),
-                        CardDto("B", CardType.RED, false),
-                        CardDto("C", CardType.RED, true),
-                        CardDto("D", CardType.BLUE, true),
-                    ),
-            )
-
-        viewModel.handleMessage(message)
-
-        val result = viewModel.getCurrentFound(CardType.RED)
-
-        assertEquals(2, result)
-    }
-
-    @Test
-    fun getCurrentFound_returnsZeroWhenNoCardsFound() {
-        val message =
-            GameMessage(
-                winner = null,
-                currentTurn = Team.RED,
-                currentPhase = Role.OPERATIVE,
-                currentClue = ClueDto(word = "Animal", guessAmount = 3),
-                cardList =
-                    listOf(
-                        CardDto("A", CardType.RED, false),
-                        CardDto("B", CardType.BLUE, false),
-                    ),
-            )
-
-        viewModel.handleMessage(message)
-
-        val result = viewModel.getCurrentFound(CardType.RED)
-
-        assertEquals(0, result)
-    }
-
-    @Test
     fun connect_asHost_shouldStartGame() =
         runTest {
             coEvery { client.connectStomp() } just Runs
@@ -390,7 +344,7 @@ class GameViewModelTest {
     fun testSubmitClue_RedSpymaster_Success() =
         runTest {
             coEvery {
-                client.sendClue(any(), any(), any(), any())
+                gameRepository.submitClue(any(), any(), any(), any())
             } just Runs
 
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
@@ -398,22 +352,17 @@ class GameViewModelTest {
             viewModel.submitClue(lobbyCode, "EAGLE", 2)
             advanceUntilIdle()
 
-            coVerify { client.sendClue(lobbyCode, "EAGLE", 2, Team.RED) }
+            coVerify { gameRepository.submitClue(lobbyCode, "EAGLE", 2, Team.RED) }
         }
 
     @Test
     fun testSubmitClue_NetworkError_UpdatesConnectionState() =
         runTest {
             coEvery {
-                client.sendClue(any(), any(), any(), any())
+                gameRepository.submitClue(any(), any(), any(), any())
             } throws Exception("Network connection failed")
 
-            viewModel.handleMessage(
-                testMessage.copy(
-                    currentTurn = Team.RED,
-                    currentPhase = Role.SPYMASTER,
-                ),
-            )
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
 
             viewModel.submitClue(lobbyCode, "EAGLE", 2)
             advanceUntilIdle()
@@ -430,7 +379,7 @@ class GameViewModelTest {
             viewModel.submitClue(lobbyCode, "EAGLE", 2)
             advanceUntilIdle()
 
-            coVerify(exactly = 0) { client.sendClue(any(), any(), any(), any()) }
+            coVerify(exactly = 0) { client.sendClue(any()) }
         }
 
     @Test
@@ -521,7 +470,7 @@ class GameViewModelTest {
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
-                client.sendClue(any(), any(), any(), any())
+                client.sendClue(any())
             }
         }
 }

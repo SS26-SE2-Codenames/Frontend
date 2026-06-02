@@ -1,3 +1,17 @@
+import java.util.Properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val serverUrl =
+    localProperties.getProperty(
+        "SERVER_URL",
+        "http://10.0.2.2:8080",
+    )
+
 plugins {
     id("com.android.application")
     alias(libs.plugins.kotlin.compose)
@@ -102,11 +116,17 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "SERVER_URL",
+            "\"$serverUrl\"",
+        )
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -119,6 +139,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
