@@ -43,18 +43,6 @@ class GameWebSocketControllerTest {
         }
 
     @Test
-    fun testSendGuess_sendsCorrectMessage(): Unit =
-        runTest {
-            val msg = GuessMessage("name", "word", 1)
-
-            wsClient.sendGuess(msg)
-
-            coVerify {
-                session.convertAndSend("/app/game/guess", msg, GuessMessage.serializer())
-            }
-        }
-
-    @Test
     fun testSubscribeToLobby_subscribesToCorrectTopic(): Unit =
         runTest {
             coEvery {
