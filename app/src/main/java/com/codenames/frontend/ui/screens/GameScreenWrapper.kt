@@ -1,0 +1,59 @@
+package com.codenames.frontend.ui.screens
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.navigation.NavHostController
+import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.viewmodel.GameViewModel
+import com.codenames.frontend.viewmodel.LobbyViewModel
+import com.codenames.frontend.viewmodel.SessionViewModel
+
+@Composable
+@Suppress("ktlint:standard:function-naming")
+fun GameScreenWrapper(
+    navController: NavHostController,
+    lobbyViewModel: LobbyViewModel,
+    gameViewModel: GameViewModel,
+    sessionViewModel: SessionViewModel,
+) {
+    val lobbyState by lobbyViewModel.state.collectAsState()
+    val gameState by gameViewModel.uiState.collectAsState()
+    val chatState by gameViewModel.chatState.collectAsState()
+    val usernameState by sessionViewModel.username.collectAsState()
+
+    val username = usernameState.username
+    val lobbyCode = lobbyState.lobbyCode.orEmpty()
+    val currentPlayer = lobbyState.players.firstOrNull { it.name == username }
+    val team = currentPlayer?.team
+    val userRole = lobbyViewModel.getRoleForUser(username)
+    val availableChatTabs = lobbyViewModel.getAvailableChatTabsForUser(username)
+
+    GameboardScreen(
+        userRole = userRole,
+        gameState =
+            gameState.copy(
+                chatLists = chatState,
+                availableChatTabs = availableChatTabs,
+            ),
+        onHintChange = { word, count ->
+            gameViewModel.submitClue(lobbyCode, word, count)
+        },
+        onReveal = {
+            // TODO: Send guess through GameViewModel once backend endpoint exists.
+        },
+        onSendChatMessage = { tab, message ->
+            gameViewModel.sendChatMessage(
+                tab = tab,
+                lobbyCode = lobbyCode,
+                username = username,
+                team = team,
+                content = message,
+                availableChatTabs = availableChatTabs,
+            )
+        },
+        onSettingsClick = {
+            navController.navigate(Screen.Settings.route)
+        },
+    )
+}
