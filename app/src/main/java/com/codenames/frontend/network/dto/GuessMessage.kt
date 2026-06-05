@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GuessMessage(
-    val username: String,
-    val word: String,
-    val number: Int,
+    val lobbyCode: String,
+    val position: Int,
+    val currentTurn: String,
 )
