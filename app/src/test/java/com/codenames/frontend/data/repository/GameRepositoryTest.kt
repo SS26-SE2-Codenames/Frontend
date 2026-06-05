@@ -47,4 +47,18 @@ class GameRepositoryTest {
 
             coVerify { webSocketHandler.sendClue(any()) }
         }
+
+    @Test
+    fun testSubmitGuess() =
+        runTest {
+            val lobbyCode = "ABCDE"
+            val position = 3
+            val currentTurn = Team.RED
+
+            coEvery { webSocketHandler.sendGuess(any()) } just Runs
+
+            gameRepository.submitGuess(lobbyCode, position, currentTurn)
+
+            coVerify { webSocketHandler.sendGuess(any()) }
+        }
 }
