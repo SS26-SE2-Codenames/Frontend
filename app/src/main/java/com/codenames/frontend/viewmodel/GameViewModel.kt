@@ -138,6 +138,27 @@ class GameViewModel
             }
         }
 
+        fun submitGuess(
+            lobbyCode: String,
+            position: Int,
+        ) {
+            if (lobbyCode.isBlank()) {
+                return
+            }
+
+            val turn = uiState.value.currentTurn
+            if (turn != PlayerRoles.BLUE_OPERATIVE && turn != PlayerRoles.RED_OPERATIVE) return
+
+            val team = if (turn == PlayerRoles.BLUE_OPERATIVE) Team.BLUE else Team.RED
+            viewModelScope.launch {
+                try {
+                    gameRepository.submitGuess(lobbyCode, position, team)
+                } catch (e: Exception) {
+                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                }
+            }
+        }
+
         fun handleMessage(message: GameMessage) {
             val state = message.toGameState()
             _uiState.update {
