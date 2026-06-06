@@ -81,6 +81,7 @@ class GameViewModel
                 gameRepository.startGame(lobbyCode)
             }
         }
+
         fun submitClue(
             lobbyCode: String,
             word: String,
@@ -102,11 +103,12 @@ class GameViewModel
                 }
             }
         }
+
         fun handleMessage(message: GameMessage) {
             val state = message.toGameState()
             _uiState.update { current ->
                 state.copy(
-                    chatLists = current.chatLists
+                    chatLists = current.chatLists,
                 )
             }
             Log.d("GameViewModel", "Updated game state: $state")

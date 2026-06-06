@@ -16,10 +16,10 @@ import com.codenames.frontend.ui.screens.StartScreen
 import com.codenames.frontend.ui.screens.UserNameScreen
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.responsiveDimensionsFor
+import com.codenames.frontend.viewmodel.ChatViewModel
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
-import com.codenames.frontend.viewmodel.ChatViewModel
 
 @Composable
 @Suppress("ktlint:standard:function-naming")

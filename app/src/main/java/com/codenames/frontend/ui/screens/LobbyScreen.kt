@@ -51,10 +51,10 @@ import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.ui.toPlayerRole
 import com.codenames.frontend.ui.toTeamAndRole
+import com.codenames.frontend.viewmodel.ChatViewModel
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
-import com.codenames.frontend.viewmodel.ChatViewModel
 
 private const val JOIN_TEAM: String = "JOIN TEAM"
 

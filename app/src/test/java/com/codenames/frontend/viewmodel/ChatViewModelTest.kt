@@ -1,81 +1,197 @@
 package com.codenames.frontend.viewmodel
 
+import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.enums.ChatTab
+import com.codenames.frontend.data.model.enums.Role
+import com.codenames.frontend.data.model.enums.Team
+import com.codenames.frontend.data.repository.ChatRepository
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
 class ChatViewModelTest {
+    private lateinit var repository: ChatRepository
     private lateinit var viewModel: ChatViewModel
 
     @Before
     fun setup() {
-        viewModel = ChatViewModel()
+        repository = mockk(relaxed = true)
+
+        every {
+            repository.observeChat(any(), any())
+        } returns emptyFlow()
+
+        viewModel = ChatViewModel(repository)
     }
 
     @Test
-    fun updateInput_updatesCurrentInput() {
-        viewModel.updateInput("Hallo")
+    fun sendChatMessage_global_sendsLobbyMessage() =
+        runTest {
+            viewModel.sendChatMessage(
+                tab = ChatTab.GLOBAL,
+                lobbyCode = "ABCD",
+                username = "Max",
+                team = Team.RED,
+                content = "Hallo",
+                availableChatTabs = listOf(ChatTab.GLOBAL),
+            )
 
-        assertEquals(
-            "Hallo",
-            viewModel.uiState.value.currentInput,
-        )
-    }
-
-    @Test
-    fun sendMessage_addsMessage() {
-        viewModel.updateInput("Neue Nachricht")
-
-        val before =
-            viewModel.uiState.value.messages.size
-
-        viewModel.sendMessage(
-            username = "Max",
-            tab = ChatTab.GLOBAL,
-        )
-
-        val state = viewModel.uiState.value
-
-        assertEquals(before + 1, state.messages.size)
-
-        val last = state.messages.last()
-
-        assertEquals("Max", last.sender)
-        assertEquals("Neue Nachricht", last.message)
-        assertEquals(ChatTab.GLOBAL, last.chatTab)
-    }
+            coVerify {
+                repository.sendMessage(
+                    "/app/chat/ABCD",
+                    "Max",
+                    "Hallo",
+                )
+            }
+        }
 
     @Test
-    fun sendMessage_clearsInputAfterSend() {
-        viewModel.updateInput("Text")
+    fun sendChatMessage_team_sendsTeamMessage() =
+        runTest {
+            viewModel.sendChatMessage(
+                tab = ChatTab.TEAM,
+                lobbyCode = "ABCD",
+                username = "Max",
+                team = Team.RED,
+                content = "Hallo Team",
+                availableChatTabs =
+                    listOf(
+                        ChatTab.GLOBAL,
+                        ChatTab.TEAM,
+                    ),
+            )
 
-        viewModel.sendMessage(
-            "Max",
-            ChatTab.GLOBAL,
-        )
-
-        assertEquals(
-            "",
-            viewModel.uiState.value.currentInput,
-        )
-    }
+            coVerify {
+                repository.sendMessage(
+                    "/app/chat/ABCD/RED",
+                    "Max",
+                    "Hallo Team",
+                )
+            }
+        }
 
     @Test
-    fun sendMessage_blankMessage_doesNothing() {
-        viewModel.updateInput("     ")
+    fun sendChatMessage_operatives_sendsOperativeMessage() =
+        runTest {
+            viewModel.sendChatMessage(
+                tab = ChatTab.OPERATIVES,
+                lobbyCode = "ABCD",
+                username = "Max",
+                team = Team.RED,
+                content = "Secret",
+                availableChatTabs =
+                    listOf(
+                        ChatTab.GLOBAL,
+                        ChatTab.TEAM,
+                        ChatTab.OPERATIVES,
+                    ),
+            )
 
-        val before =
-            viewModel.uiState.value.messages.size
+            coVerify {
+                repository.sendMessage(
+                    "/app/chat/ABCD/RED/operative",
+                    "Max",
+                    "Secret",
+                )
+            }
+        }
 
-        viewModel.sendMessage(
-            "Max",
-            ChatTab.GLOBAL,
-        )
+    @Test
+    fun sendChatMessage_operativesNotAvailable_doesNothing() =
+        runTest {
+            viewModel.sendChatMessage(
+                tab = ChatTab.OPERATIVES,
+                lobbyCode = "ABCD",
+                username = "Max",
+                team = Team.RED,
+                content = "Secret",
+                availableChatTabs =
+                    listOf(
+                        ChatTab.GLOBAL,
+                        ChatTab.TEAM,
+                    ),
+            )
 
-        val after =
-            viewModel.uiState.value.messages.size
+            coVerify(exactly = 0) {
+                repository.sendMessage(any(), any(), any())
+            }
+        }
 
-        assertEquals(before, after)
-    }
+    @Test
+    fun sendChatMessage_blankLobbyCode_doesNothing() =
+        runTest {
+            viewModel.sendChatMessage(
+                tab = ChatTab.GLOBAL,
+                lobbyCode = "",
+                username = "Max",
+                team = Team.RED,
+                content = "Hallo",
+                availableChatTabs = listOf(ChatTab.GLOBAL),
+            )
+
+            coVerify(exactly = 0) {
+                repository.sendMessage(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun subscribeToChats_lobbyMessage_updatesLobbyMessages() =
+        runTest {
+            val msg =
+                ChatDomainModel(
+                    sender = "Anna",
+                    text = "Hallo",
+                    isFromMe = false,
+                )
+
+            every {
+                repository.observeChat(
+                    "/topic/chat/ABCD",
+                    "Max",
+                )
+            } returns flowOf(msg)
+
+            every {
+                repository.observeChat(
+                    "/topic/chat/ABCD/RED",
+                    "Max",
+                )
+            } returns emptyFlow()
+
+            every {
+                repository.observeChat(
+                    "/topic/chat/ABCD/RED/operative",
+                    "Max",
+                )
+            } returns emptyFlow()
+
+            viewModel.subscribeToChats(
+                username = "Max",
+                lobbyCode = "ABCD",
+                team = "RED",
+                role = Role.OPERATIVE.name,
+            )
+
+            advanceUntilIdle()
+
+            val messages = viewModel.chatState.value.lobbyMessages
+            if (messages.isNotEmpty()) {
+                println("First sender: ${messages.first().sender}")
+                println("First text: ${messages.first().text}")
+            }
+
+            assertEquals(1, messages.size)
+
+            val first = messages.first()
+
+            assertEquals("Anna", first.sender)
+            assertEquals("Hallo", first.text)
+        }
 }

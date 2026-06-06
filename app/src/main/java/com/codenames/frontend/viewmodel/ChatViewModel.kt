@@ -16,136 +16,135 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel
-@Inject
-constructor(
-    private val chatRepository: ChatRepository,
-) : ViewModel() {
+    @Inject
+    constructor(
+        private val chatRepository: ChatRepository,
+    ) : ViewModel() {
+        private val _chatState = MutableStateFlow(ChatLists())
+        val chatState: StateFlow<ChatLists> = _chatState
 
-    private val _chatState = MutableStateFlow(ChatLists())
-    val chatState: StateFlow<ChatLists> = _chatState
-
-    fun subscribeToChats(
-        username: String,
-        lobbyCode: String,
-        team: String,
-        role: String,
-    ) {
-        viewModelScope.launch {
-            chatRepository.observeChat("/topic/chat/$lobbyCode", username).collect { msg ->
-                _chatState.update {
-                    it.copy(
-                        lobbyMessages = it.lobbyMessages + msg,
-                    )
-                }
-            }
-        }
-
-        viewModelScope.launch {
-            chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username).collect { msg ->
-                _chatState.update {
-                    it.copy(
-                        teamMessages = it.teamMessages + msg,
-                    )
-                }
-            }
-        }
-
-        if (role == Role.OPERATIVE.name) {
+        fun subscribeToChats(
+            username: String,
+            lobbyCode: String,
+            team: String,
+            role: String,
+        ) {
             viewModelScope.launch {
-                chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username).collect { msg ->
+                chatRepository.observeChat("/topic/chat/$lobbyCode", username).collect { msg ->
                     _chatState.update {
                         it.copy(
-                            operativeMessages = it.operativeMessages + msg,
+                            lobbyMessages = it.lobbyMessages + msg,
                         )
                     }
                 }
             }
-        }
-    }
 
-    fun sendLobbyMessage(
-        lobbyCode: String,
-        username: String,
-        content: String,
-    ) {
-        viewModelScope.launch {
-            chatRepository.sendMessage(
-                "/app/chat/$lobbyCode",
-                username,
-                content,
-            )
-        }
-    }
+            viewModelScope.launch {
+                chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username).collect { msg ->
+                    _chatState.update {
+                        it.copy(
+                            teamMessages = it.teamMessages + msg,
+                        )
+                    }
+                }
+            }
 
-    fun sendTeamMessage(
-        lobbyCode: String,
-        team: String,
-        username: String,
-        content: String,
-    ) {
-        viewModelScope.launch {
-            chatRepository.sendMessage(
-                "/app/chat/$lobbyCode/$team",
-                username,
-                content,
-            )
-        }
-    }
-
-    fun sendOperativeMessage(
-        lobbyCode: String,
-        team: String,
-        username: String,
-        content: String,
-    ) {
-        viewModelScope.launch {
-            chatRepository.sendMessage(
-                "/app/chat/$lobbyCode/$team/operative",
-                username,
-                content,
-            )
-        }
-    }
-
-    fun sendChatMessage(
-        tab: ChatTab,
-        lobbyCode: String,
-        username: String,
-        team: Team?,
-        content: String,
-        availableChatTabs: List<ChatTab>,
-    ) {
-        if (lobbyCode.isBlank()) {
-            return
+            if (role == Role.OPERATIVE.name) {
+                viewModelScope.launch {
+                    chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username).collect { msg ->
+                        _chatState.update {
+                            it.copy(
+                                operativeMessages = it.operativeMessages + msg,
+                            )
+                        }
+                    }
+                }
+            }
         }
 
-        when (tab) {
-            ChatTab.GLOBAL ->
-                sendLobbyMessage(
-                    lobbyCode,
+        fun sendLobbyMessage(
+            lobbyCode: String,
+            username: String,
+            content: String,
+        ) {
+            viewModelScope.launch {
+                chatRepository.sendMessage(
+                    "/app/chat/$lobbyCode",
                     username,
                     content,
                 )
+            }
+        }
 
-            ChatTab.TEAM ->
-                if (team != null) {
-                    sendTeamMessage(
+        fun sendTeamMessage(
+            lobbyCode: String,
+            team: String,
+            username: String,
+            content: String,
+        ) {
+            viewModelScope.launch {
+                chatRepository.sendMessage(
+                    "/app/chat/$lobbyCode/$team",
+                    username,
+                    content,
+                )
+            }
+        }
+
+        fun sendOperativeMessage(
+            lobbyCode: String,
+            team: String,
+            username: String,
+            content: String,
+        ) {
+            viewModelScope.launch {
+                chatRepository.sendMessage(
+                    "/app/chat/$lobbyCode/$team/operative",
+                    username,
+                    content,
+                )
+            }
+        }
+
+        fun sendChatMessage(
+            tab: ChatTab,
+            lobbyCode: String,
+            username: String,
+            team: Team?,
+            content: String,
+            availableChatTabs: List<ChatTab>,
+        ) {
+            if (lobbyCode.isBlank()) {
+                return
+            }
+
+            when (tab) {
+                ChatTab.GLOBAL ->
+                    sendLobbyMessage(
                         lobbyCode,
-                        team.name,
                         username,
                         content,
                     )
-                }
 
-            ChatTab.OPERATIVES ->
-                if (team != null && ChatTab.OPERATIVES in availableChatTabs) {
-                    sendOperativeMessage(
-                        lobbyCode,
-                        team.name,
-                        username,
-                        content,
-                    )
-                }
+                ChatTab.TEAM ->
+                    if (team != null) {
+                        sendTeamMessage(
+                            lobbyCode,
+                            team.name,
+                            username,
+                            content,
+                        )
+                    }
+
+                ChatTab.OPERATIVES ->
+                    if (team != null && ChatTab.OPERATIVES in availableChatTabs) {
+                        sendOperativeMessage(
+                            lobbyCode,
+                            team.name,
+                            username,
+                            content,
+                        )
+                    }
+            }
         }
     }
-}
