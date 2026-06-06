@@ -1,98 +1,52 @@
 package com.codenames.frontend.network.websocket
 
-import android.util.Log
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.StartGameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
-import org.hildan.krossbow.stomp.StompClient
-import org.hildan.krossbow.stomp.StompSession
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
 import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
-import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import org.junit.Before
 import org.junit.Test
 
-class GameWebSocketHandlerTest {
-    private lateinit var client: StompClient
+class GameWebSocketControllerTest {
+    private lateinit var wsClient: GameWebSocketController
+    private lateinit var sessionManager: WebSocketSessionManager
     private lateinit var session: StompSessionWithKxSerialization
-    private lateinit var wsClient: GameWebSocketHandler
 
     @Before
     fun setup() {
-        client = mockk()
+        sessionManager = mockk()
         session = mockk(relaxed = true)
-        wsClient = GameWebSocketHandler(client)
-        wsClient.session = session
+        wsClient = GameWebSocketController(sessionManager)
+
+        coEvery { sessionManager.getSession() } returns session
     }
 
     @Test
-    fun testConnectStomp() =
+    fun testConnect() =
         runTest {
-            val client = mockk<StompClient>()
-            val session = mockk<StompSession>()
-            val sessionWithJson = mockk<StompSessionWithKxSerialization>()
-
-            mockkStatic(Log::class)
-
-            coEvery { client.connect(BASE_URL) } returns session
-            every { Log.d(any(), any()) } returns 0
-
-            coEvery {
-                sessionWithJson.subscribe<GameMessage>(any(), any())
-            } returns emptyFlow()
-
-            val wsClient = GameWebSocketHandler(client)
+            coEvery { sessionManager.connectStomp() } returns Unit
 
             wsClient.connectStomp()
 
-            coVerify {
-                client.connect(BASE_URL)
-                session.withJsonConversions()
-            }
-        }
-
-    @Test
-    fun testSendGuess_sendsCorrectMessage(): Unit =
-        runTest {
-            val session = mockk<StompSessionWithKxSerialization>(relaxed = true)
-            val client = mockk<StompClient>()
-
-            val wsClient = GameWebSocketHandler(client)
-            wsClient.session = session
-
-            val msg = GuessMessage("name", "word", 1)
-
-            wsClient.sendGuess(msg)
-
-            coVerify {
-                session.convertAndSend("/app/game/guess", msg, GuessMessage.serializer())
-            }
+            coVerify { sessionManager.connectStomp() }
         }
 
     @Test
     fun testSubscribeToLobby_subscribesToCorrectTopic(): Unit =
         runTest {
-            val session = mockk<StompSessionWithKxSerialization>(relaxed = true)
-            val client = mockk<StompClient>()
-
             coEvery {
                 session.subscribe<GameMessage>("/topic/game/ABCDE")
             } returns emptyFlow()
-
-            val wsClient = GameWebSocketHandler(client)
-            wsClient.session = session
 
             wsClient.subscribeToLobby("ABCDE")
 
@@ -107,12 +61,6 @@ class GameWebSocketHandlerTest {
     @Test
     fun testSendReconnectMessageSendsMessage() =
         runTest {
-            val session = mockk<StompSessionWithKxSerialization>(relaxed = true)
-            val client = mockk<StompClient>()
-
-            val wsClient = GameWebSocketHandler(client)
-            wsClient.session = session
-
             val msg = WebSocketJoinMessage("name", "1234")
 
             wsClient.sendReconnectMessage(msg)
@@ -167,7 +115,9 @@ class GameWebSocketHandlerTest {
             val guessAmount = 2
             val currentTurn = Team.RED
 
-            wsClient.sendClue(lobbyCode, word, guessAmount, currentTurn)
+            val clueMessage = ClueMessageDto(lobbyCode, word, guessAmount, currentTurn)
+
+            wsClient.sendClue(clueMessage)
 
             val expectedMsg =
                 ClueMessageDto(

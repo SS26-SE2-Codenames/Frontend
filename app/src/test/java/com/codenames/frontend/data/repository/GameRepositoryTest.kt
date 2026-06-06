@@ -1,6 +1,7 @@
 package com.codenames.frontend.data.repository
 
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.data.model.enums.Team
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -13,7 +14,7 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GameRepositoryTest {
-    private val webSocketHandler: GameWebSocketHandler = mockk()
+    private val webSocketHandler: GameWebSocketController = mockk()
     private lateinit var gameRepository: GameRepository
 
     @Before
@@ -30,5 +31,20 @@ class GameRepositoryTest {
             gameRepository.startGame(lobbyCode)
 
             coVerify { webSocketHandler.startGame(any()) }
+        }
+
+    @Test
+    fun testSubmitClue() =
+        runTest {
+            val lobbyCode = "ABCDE"
+            val word = "test"
+            val guessAmount = 2
+            val currentTurn = Team.RED
+
+            coEvery { webSocketHandler.sendClue(any()) } just Runs
+
+            gameRepository.submitClue(lobbyCode, word, guessAmount, currentTurn)
+
+            coVerify { webSocketHandler.sendClue(any()) }
         }
 }
