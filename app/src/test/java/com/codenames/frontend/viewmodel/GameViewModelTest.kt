@@ -473,4 +473,61 @@ class GameViewModelTest {
                 client.sendClue(any())
             }
         }
+
+    @Test
+    fun testSubmitGuess_RedOperative_Success() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } just Runs
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuess(lobbyCode, 3)
+            advanceUntilIdle()
+
+            coVerify { gameRepository.submitGuess(lobbyCode, 3, Team.RED) }
+        }
+
+    @Test
+    fun testSubmitGuess_whenTurnIsSpymaster_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.submitGuess(lobbyCode, 3)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun testSubmitGuess_blankLobbyCode_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuess("", 3)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun testSubmitGuess_NetworkError_UpdatesConnectionState() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } throws Exception("Network connection failed")
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuess(lobbyCode, 3)
+            advanceUntilIdle()
+
+            val state = viewModel.connectionState.value
+            assertTrue(state is ConnectionState.Error)
+        }
 }
