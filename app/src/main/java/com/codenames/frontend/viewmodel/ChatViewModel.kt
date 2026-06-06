@@ -68,11 +68,7 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendMessage(
-                    "/app/chat/$lobbyCode",
-                    username,
-                    content,
-                )
+                chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
             }
         }
 
@@ -83,11 +79,7 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendMessage(
-                    "/app/chat/$lobbyCode/$team",
-                    username,
-                    content,
-                )
+                chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
             }
         }
 
@@ -98,11 +90,7 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendMessage(
-                    "/app/chat/$lobbyCode/$team/operative",
-                    username,
-                    content,
-                )
+                chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
             }
         }
 
@@ -121,28 +109,28 @@ class ChatViewModel
             when (tab) {
                 ChatTab.GLOBAL ->
                     sendLobbyMessage(
-                        lobbyCode,
-                        username,
-                        content,
+                        lobbyCode = lobbyCode,
+                        username = username,
+                        content = content,
                     )
 
                 ChatTab.TEAM ->
                     if (team != null) {
                         sendTeamMessage(
-                            lobbyCode,
-                            team.name,
-                            username,
-                            content,
+                            lobbyCode = lobbyCode,
+                            team = team.name,
+                            username = username,
+                            content = content,
                         )
                     }
 
                 ChatTab.OPERATIVES ->
                     if (team != null && ChatTab.OPERATIVES in availableChatTabs) {
                         sendOperativeMessage(
-                            lobbyCode,
-                            team.name,
-                            username,
-                            content,
+                            lobbyCode = lobbyCode,
+                            team = team.name,
+                            username = username,
+                            content = content,
                         )
                     }
             }

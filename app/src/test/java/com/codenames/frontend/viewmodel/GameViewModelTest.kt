@@ -61,17 +61,13 @@ class GameViewModelTest {
         )
 
     private lateinit var viewModel: GameViewModel
-    private lateinit var client: GameWebSocketHandler
     private lateinit var client: GameWebSocketController
-    private lateinit var chatRepository: ChatRepository
     private lateinit var gameRepository: GameRepository
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        client = mockk<GameWebSocketHandler>()
         client = mockk<GameWebSocketController>()
-        chatRepository = mockk(relaxed = true)
         gameRepository = mockk(relaxed = true)
 
         viewModel =
@@ -274,12 +270,9 @@ class GameViewModelTest {
     @Test
     fun testSubmitClue_whenTurnIsNone_doesNotSendClue() =
         runTest {
-            // never call handleMessage so turn is NONE
-
             viewModel.submitClue(lobbyCode, "EAGLE", 2)
             advanceUntilIdle()
-
-            coVerify(exactly = 0) { client.sendClue(any()) }
+            coVerify(exactly = 0) { gameRepository.submitClue(any(), any(), any(), any()) }
         }
 
     @Test
@@ -289,9 +282,8 @@ class GameViewModelTest {
 
             viewModel.submitClue("", "EAGLE", 2)
             advanceUntilIdle()
-
             coVerify(exactly = 0) {
-                client.sendClue(any())
+                gameRepository.submitClue(any(), any(), any(), any())
             }
         }
 }

@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.GameState
-import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toGameState
@@ -26,7 +25,6 @@ class GameViewModel
     @Inject
     constructor(
         private val handler: GameWebSocketController,
-        private val chatRepository: ChatRepository,
         private val gameRepository: GameRepository,
     ) : ViewModel() {
         private var job: Job? = null
@@ -109,80 +107,6 @@ class GameViewModel
             val state = message.toGameState()
             _uiState.update {
                 state
-            }
-        }
-
-        fun sendChatMessage(
-            tab: ChatTab,
-            lobbyCode: String,
-            username: String,
-            team: Team?,
-            content: String,
-            availableChatTabs: List<ChatTab>,
-        ) {
-            if (lobbyCode.isBlank()) {
-                return
-            }
-
-            when (tab) {
-                ChatTab.GLOBAL ->
-                    sendLobbyMessage(
-                        lobbyCode = lobbyCode,
-                        username = username,
-                        content = content,
-                    )
-
-                ChatTab.TEAM ->
-                    if (team != null) {
-                        sendTeamMessage(
-                            lobbyCode = lobbyCode,
-                            team = team.name,
-                            username = username,
-                            content = content,
-                        )
-                    }
-
-                ChatTab.OPERATIVES ->
-                    if (team != null && ChatTab.OPERATIVES in availableChatTabs) {
-                        sendOperativeMessage(
-                            lobbyCode = lobbyCode,
-                            team = team.name,
-                            username = username,
-                            content = content,
-                        )
-                    }
-            }
-        }
-
-        fun sendLobbyMessage(
-            lobbyCode: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
-            }
-        }
-
-        fun sendTeamMessage(
-            lobbyCode: String,
-            team: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
-            }
-        }
-
-        fun sendOperativeMessage(
-            lobbyCode: String,
-            team: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
             }
         }
     }
