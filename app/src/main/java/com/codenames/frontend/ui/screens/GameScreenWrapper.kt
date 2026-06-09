@@ -39,8 +39,8 @@ fun GameScreenWrapper(
         onHintChange = { word, count ->
             gameViewModel.submitClue(lobbyCode, word, count)
         },
-        onReveal = {
-            // TODO: Send guess through GameViewModel once backend endpoint exists.
+        onReveal = { positions ->
+            gameViewModel.submitGuesses(lobbyCode, positions)
         },
         onSendChatMessage = { tab, message ->
             gameViewModel.sendChatMessage(

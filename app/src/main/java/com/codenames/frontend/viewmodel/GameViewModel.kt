@@ -159,6 +159,29 @@ class GameViewModel
             }
         }
 
+        fun submitGuesses(
+            lobbyCode: String,
+            positions: List<Int>,
+        ) {
+            if (lobbyCode.isBlank() || positions.isEmpty()) {
+                return
+            }
+
+            val turn = uiState.value.currentTurn
+            if (turn != PlayerRoles.BLUE_OPERATIVE && turn != PlayerRoles.RED_OPERATIVE) return
+
+            val team = if (turn == PlayerRoles.BLUE_OPERATIVE) Team.BLUE else Team.RED
+            viewModelScope.launch {
+                try {
+                    positions.forEach { position ->
+                        gameRepository.submitGuess(lobbyCode, position, team)
+                    }
+                } catch (e: Exception) {
+                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                }
+            }
+        }
+
         fun handleMessage(message: GameMessage) {
             val state = message.toGameState()
             _uiState.update {
