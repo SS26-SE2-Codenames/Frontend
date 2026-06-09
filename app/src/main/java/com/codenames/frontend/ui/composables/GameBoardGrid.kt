@@ -23,7 +23,8 @@ fun GameBoardGrid(
     scale: Float,
     offset: Offset,
     isSpymaster: Boolean,
-    onReveal: (Int) -> Unit,
+    selectedCardPositions: Set<Int>,
+    onCardClick: (Int) -> Unit,
     modifier: Modifier,
 ) {
     Box(
@@ -61,9 +62,10 @@ fun GameBoardGrid(
                                 CodenamesCard(
                                     card = card,
                                     isSpymaster = isSpymaster,
+                                    isSelected = index in selectedCardPositions,
                                     onClick = {
                                         if (!isSpymaster && !card.revealed) {
-                                            onReveal(index)
+                                            onCardClick(index)
                                         }
                                     },
                                 )

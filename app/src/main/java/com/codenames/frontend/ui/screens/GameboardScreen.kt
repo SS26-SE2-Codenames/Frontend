@@ -1,6 +1,7 @@
 package com.codenames.frontend.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -79,7 +81,7 @@ fun GameboardScreen(
     userRole: PlayerRoles,
     gameState: GameState,
     onHintChange: (String, Int) -> Unit,
-    onReveal: (Int) -> Unit,
+    onReveal: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
     onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
@@ -101,6 +103,7 @@ fun GameboardScreen(
     var chatInput by rememberSaveable { mutableStateOf("") }
     var isChatOpen by rememberSaveable { mutableStateOf(false) }
     var selectedChatTab by rememberSaveable { mutableStateOf(ChatTab.GLOBAL) }
+    var selectedCardPositions by remember { mutableStateOf(emptyList<Int>()) }
 
     val activeChatTab =
         if (selectedChatTab in availableChatTabs) {
@@ -111,6 +114,7 @@ fun GameboardScreen(
 
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
+    val canSelectCards = !isSpymaster && remainingGuesses > 0
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -118,6 +122,13 @@ fun GameboardScreen(
     var offset by remember { mutableStateOf(Offset.Zero) }
 
     val onInputChange: (String) -> Unit = { hintInput = it }
+
+    LaunchedEffect(cards, currentTurn, remainingGuesses) {
+        selectedCardPositions =
+            selectedCardPositions
+                .filter { position -> cards.getOrNull(position)?.revealed == false }
+                .take(remainingGuesses.coerceAtLeast(0))
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(
@@ -186,7 +197,19 @@ fun GameboardScreen(
                         scale,
                         offset,
                         isSpymaster,
-                        onReveal,
+                        selectedCardPositions.toSet(),
+                        onCardClick = { position ->
+                            if (!canSelectCards) {
+                                return@GameBoardGrid
+                            }
+
+                            if (position in selectedCardPositions) {
+                                selectedCardPositions = selectedCardPositions - position
+                                onReveal(listOf(position))
+                            } else if (selectedCardPositions.size < remainingGuesses) {
+                                selectedCardPositions = selectedCardPositions + position
+                            }
+                        },
                         modifier =
                             Modifier
                                 .weight(1f)
@@ -718,9 +741,11 @@ fun TeamRoleBox(
 fun CodenamesCard(
     card: GameCard,
     isSpymaster: Boolean,
+    isSelected: Boolean = false,
     onClick: () -> Unit,
 ) {
     val dimensions = LocalResponsiveDimensions.current
+    val cardShape = RoundedCornerShape(12.dp)
 
     val backgroundColor =
         when {
@@ -739,12 +764,22 @@ fun CodenamesCard(
     AppButton(
         text = card.word,
         onClick = onClick,
-        modifier = Modifier.aspectRatio(2f),
+        modifier =
+            Modifier
+                .aspectRatio(2f)
+                .then(
+                    if (isSelected) {
+                        Modifier.border(3.dp, AppGreen, cardShape)
+                    } else {
+                        Modifier
+                    },
+                ),
         style =
             AppButtonStyle(
                 containerColor = backgroundColor,
                 contentColor = contentColor,
                 fontSize = dimensions.smallFontSize,
+                shape = cardShape,
             ),
     )
 }
