@@ -30,7 +30,10 @@ class ChatViewModel
             role: String,
         ) {
             viewModelScope.launch {
-                chatRepository.observeChat("/topic/chat/$lobbyCode", username).collect { msg ->
+                chatRepository.observeLobbyChat(
+                    lobbyCode = lobbyCode,
+                    currentUsername = username,
+                ).collect { msg ->
                     _chatState.update {
                         it.copy(
                             lobbyMessages = it.lobbyMessages + msg,
@@ -40,7 +43,11 @@ class ChatViewModel
             }
 
             viewModelScope.launch {
-                chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username).collect { msg ->
+                chatRepository.observeTeamChat(
+                    lobbyCode = lobbyCode,
+                    team = team,
+                    currentUsername = username,
+                ).collect { msg ->
                     _chatState.update {
                         it.copy(
                             teamMessages = it.teamMessages + msg,
@@ -51,7 +58,11 @@ class ChatViewModel
 
             if (role == Role.OPERATIVE.name) {
                 viewModelScope.launch {
-                    chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username).collect { msg ->
+                    chatRepository.observeOperativeChat(
+                        lobbyCode = lobbyCode,
+                        team = team,
+                        currentUsername = username,
+                    ).collect { msg ->
                         _chatState.update {
                             it.copy(
                                 operativeMessages = it.operativeMessages + msg,
@@ -68,7 +79,11 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
+                chatRepository.sendLobbyMessage(
+                    lobbyCode = lobbyCode,
+                    username = username,
+                    text = content,
+                )
             }
         }
 
@@ -79,7 +94,12 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
+                chatRepository.sendTeamMessage(
+                    lobbyCode = lobbyCode,
+                    team = team,
+                    username = username,
+                    text = content,
+                )
             }
         }
 
@@ -90,7 +110,12 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
+                chatRepository.sendOperativeMessage(
+                    lobbyCode = lobbyCode,
+                    team = team,
+                    username = username,
+                    text = content,
+                )
             }
         }
 
