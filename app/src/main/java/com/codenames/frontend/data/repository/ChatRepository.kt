@@ -8,103 +8,104 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class ChatRepository
-@Inject
-constructor(
-    private val webSocketHandler: GameWebSocketController,
-) {
-    fun observeLobbyChat(
-        lobbyCode: String,
-        currentUsername: String,
-    ): Flow<ChatDomainModel> =
-        observeChat(
-            topic = "/topic/chat/$lobbyCode",
-            currentUsername = currentUsername,
-        )
+    @Inject
+    constructor(
+        private val webSocketHandler: GameWebSocketController,
+    ) {
+        fun observeLobbyChat(
+            lobbyCode: String,
+            currentUsername: String,
+        ): Flow<ChatDomainModel> =
+            observeChat(
+                topic = "/topic/chat/$lobbyCode",
+                currentUsername = currentUsername,
+            )
 
-    fun observeTeamChat(
-        lobbyCode: String,
-        team: String,
-        currentUsername: String,
-    ): Flow<ChatDomainModel> =
-        observeChat(
-            topic = "/topic/chat/$lobbyCode/$team",
-            currentUsername = currentUsername,
-        )
+        fun observeTeamChat(
+            lobbyCode: String,
+            team: String,
+            currentUsername: String,
+        ): Flow<ChatDomainModel> =
+            observeChat(
+                topic = "/topic/chat/$lobbyCode/$team",
+                currentUsername = currentUsername,
+            )
 
-    fun observeOperativeChat(
-        lobbyCode: String,
-        team: String,
-        currentUsername: String,
-    ): Flow<ChatDomainModel> =
-        observeChat(
-            topic = "/topic/chat/$lobbyCode/$team/operative",
-            currentUsername = currentUsername,
-        )
+        fun observeOperativeChat(
+            lobbyCode: String,
+            team: String,
+            currentUsername: String,
+        ): Flow<ChatDomainModel> =
+            observeChat(
+                topic = "/topic/chat/$lobbyCode/$team/operative",
+                currentUsername = currentUsername,
+            )
 
-    private fun observeChat(
-        topic: String,
-        currentUsername: String,
-    ): Flow<ChatDomainModel> =
-        flow {
-            webSocketHandler.subscribeToChat(topic).collect { dto ->
-                emit(
-                    ChatDomainModel(
-                        sender = dto.senderUsername,
-                        text = dto.content,
-                        isFromMe = dto.senderUsername == currentUsername,
-                    ),
-                )
+        private fun observeChat(
+            topic: String,
+            currentUsername: String,
+        ): Flow<ChatDomainModel> =
+            flow {
+                webSocketHandler.subscribeToChat(topic).collect { dto ->
+                    emit(
+                        ChatDomainModel(
+                            sender = dto.senderUsername,
+                            text = dto.content,
+                            isFromMe = dto.senderUsername == currentUsername,
+                        ),
+                    )
+                }
             }
+
+        suspend fun sendLobbyMessage(
+            lobbyCode: String,
+            username: String,
+            text: String,
+        ) {
+            sendMessage(
+                destination = "/app/chat/$lobbyCode",
+                username = username,
+                text = text,
+            )
         }
 
-    suspend fun sendLobbyMessage(
-        lobbyCode: String,
-        username: String,
-        text: String,
-    ) {
-        sendMessage(
-            destination = "/app/chat/$lobbyCode",
-            username = username,
-            text = text,
-        )
-    }
+        suspend fun sendTeamMessage(
+            lobbyCode: String,
+            team: String,
+            username: String,
+            text: String,
+        ) {
+            sendMessage(
+                destination = "/app/chat/$lobbyCode/$team",
+                username = username,
+                text = text,
+            )
+        }
 
-    suspend fun sendTeamMessage(
-        lobbyCode: String,
-        team: String,
-        username: String,
-        text: String,
-    ) {
-        sendMessage(
-            destination = "/app/chat/$lobbyCode/$team",
-            username = username,
-            text = text,
-        )
-    }
+        suspend fun sendOperativeMessage(
+            lobbyCode: String,
+            team: String,
+            username: String,
+            text: String,
+        ) {
+            sendMessage(
+                destination = "/app/chat/$lobbyCode/$team/operative",
+                username = username,
+                text = text,
+            )
+        }
 
-    suspend fun sendOperativeMessage(
-        lobbyCode: String,
-        team: String,
-        username: String,
-        text: String,
-    ) {
-        sendMessage(
-            destination = "/app/chat/$lobbyCode/$team/operative",
-            username = username,
-            text = text,
-        )
-    }
+        private suspend fun sendMessage(
+            destination: String,
+            username: String,
+            text: String,
+        ) {
+            val dto =
+                ChatMessageDto(
+                    senderUsername = username,
+                    content = text,
+                )
 
-    private suspend fun sendMessage(
-        destination: String,
-        username: String,
-        text: String,
-    ) {
-        val dto = ChatMessageDto(
-            senderUsername = username,
-            content = text,
-        )
-
-        webSocketHandler.sendChatMessage(destination, dto)
+            webSocketHandler.sendChatMessage(destination, dto)
+        }
     }
-}

@@ -25,7 +25,15 @@ class ChatViewModelTest {
         repository = mockk(relaxed = true)
 
         every {
-            repository.observeChat(any(), any())
+            repository.observeLobbyChat(any(), any())
+        } returns emptyFlow()
+
+        every {
+            repository.observeTeamChat(any(), any(), any())
+        } returns emptyFlow()
+
+        every {
+            repository.observeOperativeChat(any(), any(), any())
         } returns emptyFlow()
 
         viewModel = ChatViewModel(repository)
@@ -44,8 +52,8 @@ class ChatViewModelTest {
             )
 
             coVerify {
-                repository.sendMessage(
-                    "/app/chat/ABCD",
+                repository.sendLobbyMessage(
+                    "ABCD",
                     "Max",
                     "Hallo",
                 )
@@ -69,8 +77,9 @@ class ChatViewModelTest {
             )
 
             coVerify {
-                repository.sendMessage(
-                    "/app/chat/ABCD/RED",
+                repository.sendTeamMessage(
+                    "ABCD",
+                    "RED",
                     "Max",
                     "Hallo Team",
                 )
@@ -95,8 +104,9 @@ class ChatViewModelTest {
             )
 
             coVerify {
-                repository.sendMessage(
-                    "/app/chat/ABCD/RED/operative",
+                repository.sendOperativeMessage(
+                    "ABCD",
+                    "RED",
                     "Max",
                     "Secret",
                 )
@@ -120,7 +130,12 @@ class ChatViewModelTest {
             )
 
             coVerify(exactly = 0) {
-                repository.sendMessage(any(), any(), any())
+                repository.sendOperativeMessage(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
             }
         }
 
@@ -137,7 +152,15 @@ class ChatViewModelTest {
             )
 
             coVerify(exactly = 0) {
-                repository.sendMessage(any(), any(), any())
+                repository.sendLobbyMessage(any(), any(), any())
+            }
+
+            coVerify(exactly = 0) {
+                repository.sendTeamMessage(any(), any(), any(), any())
+            }
+
+            coVerify(exactly = 0) {
+                repository.sendOperativeMessage(any(), any(), any(), any())
             }
         }
 
@@ -152,22 +175,24 @@ class ChatViewModelTest {
                 )
 
             every {
-                repository.observeChat(
-                    "/topic/chat/ABCD",
+                repository.observeLobbyChat(
+                    "ABCD",
                     "Max",
                 )
             } returns flowOf(msg)
 
             every {
-                repository.observeChat(
-                    "/topic/chat/ABCD/RED",
+                repository.observeTeamChat(
+                    "ABCD",
+                    "RED",
                     "Max",
                 )
             } returns emptyFlow()
 
             every {
-                repository.observeChat(
-                    "/topic/chat/ABCD/RED/operative",
+                repository.observeOperativeChat(
+                    "ABCD",
+                    "RED",
                     "Max",
                 )
             } returns emptyFlow()

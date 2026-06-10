@@ -30,45 +30,48 @@ class ChatViewModel
             role: String,
         ) {
             viewModelScope.launch {
-                chatRepository.observeLobbyChat(
-                    lobbyCode = lobbyCode,
-                    currentUsername = username,
-                ).collect { msg ->
-                    _chatState.update {
-                        it.copy(
-                            lobbyMessages = it.lobbyMessages + msg,
-                        )
+                chatRepository
+                    .observeLobbyChat(
+                        lobbyCode = lobbyCode,
+                        currentUsername = username,
+                    ).collect { msg ->
+                        _chatState.update {
+                            it.copy(
+                                lobbyMessages = it.lobbyMessages + msg,
+                            )
+                        }
                     }
-                }
             }
 
             viewModelScope.launch {
-                chatRepository.observeTeamChat(
-                    lobbyCode = lobbyCode,
-                    team = team,
-                    currentUsername = username,
-                ).collect { msg ->
-                    _chatState.update {
-                        it.copy(
-                            teamMessages = it.teamMessages + msg,
-                        )
-                    }
-                }
-            }
-
-            if (role == Role.OPERATIVE.name) {
-                viewModelScope.launch {
-                    chatRepository.observeOperativeChat(
+                chatRepository
+                    .observeTeamChat(
                         lobbyCode = lobbyCode,
                         team = team,
                         currentUsername = username,
                     ).collect { msg ->
                         _chatState.update {
                             it.copy(
-                                operativeMessages = it.operativeMessages + msg,
+                                teamMessages = it.teamMessages + msg,
                             )
                         }
                     }
+            }
+
+            if (role == Role.OPERATIVE.name) {
+                viewModelScope.launch {
+                    chatRepository
+                        .observeOperativeChat(
+                            lobbyCode = lobbyCode,
+                            team = team,
+                            currentUsername = username,
+                        ).collect { msg ->
+                            _chatState.update {
+                                it.copy(
+                                    operativeMessages = it.operativeMessages + msg,
+                                )
+                            }
+                        }
                 }
             }
         }
