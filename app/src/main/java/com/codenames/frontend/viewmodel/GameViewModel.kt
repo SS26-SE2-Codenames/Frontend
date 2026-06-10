@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val CONNECTION_ERROR_MESSAGE = "Connection error"
+
 @HiltViewModel
 class GameViewModel
     @Inject
@@ -102,7 +104,7 @@ class GameViewModel
                             sendGameStart(lobbyCode)
                         }
                     } catch (e: Exception) {
-                        _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                        _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
                     }
                 }
         }
@@ -133,7 +135,7 @@ class GameViewModel
                 try {
                     gameRepository.submitClue(lobbyCode, word, count, team)
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
                 }
             }
         }
@@ -154,7 +156,7 @@ class GameViewModel
                 try {
                     gameRepository.submitGuess(lobbyCode, position, team)
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
                 }
             }
         }
@@ -177,7 +179,7 @@ class GameViewModel
                         gameRepository.submitGuess(lobbyCode, position, team)
                     }
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
                 }
             }
         }
