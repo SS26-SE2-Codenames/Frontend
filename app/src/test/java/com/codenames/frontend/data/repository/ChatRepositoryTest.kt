@@ -1,7 +1,7 @@
 package com.codenames.frontend.data.repository
 
 import com.codenames.frontend.network.dto.ChatMessageDto
-import com.codenames.frontend.network.websocket.GameWebSocketController
+import com.codenames.frontend.network.websocket.ChatWebSocketController
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -21,7 +21,7 @@ import org.junit.Test
 import kotlin.test.assertFailsWith
 
 class ChatRepositoryTest {
-    private lateinit var webSocketHandler: GameWebSocketController
+    private lateinit var chatSocketHandler: ChatWebSocketController
     private lateinit var repository: ChatRepository
 
     private val testLobbyCode = "ABCD"
@@ -36,10 +36,10 @@ class ChatRepositoryTest {
 
     @Before
     fun setup() {
-        webSocketHandler = mockk()
-        repository = ChatRepository(webSocketHandler)
+        chatSocketHandler = mockk()
+        repository = ChatRepository(chatSocketHandler)
         // Suspend methods use coroutines (lighter version of thread) -> instead of every, we use coEvery
-        coEvery { webSocketHandler.subscribeToChat(any()) } returns flowOf(testDto)
+        coEvery { chatSocketHandler.subscribeToChat(any()) } returns flowOf(testDto)
     }
 
     @Test
@@ -95,7 +95,7 @@ class ChatRepositoryTest {
     fun testSendMessage() =
         runTest {
             coEvery {
-                webSocketHandler.sendChatMessage(
+                chatSocketHandler.sendChatMessage(
                     "/app/chat/$testLobbyCode",
                     testDto,
                 )
@@ -108,7 +108,7 @@ class ChatRepositoryTest {
             )
 
             coVerify {
-                webSocketHandler.sendChatMessage(
+                chatSocketHandler.sendChatMessage(
                     "/app/chat/$testLobbyCode",
                     testDto,
                 )
@@ -119,7 +119,7 @@ class ChatRepositoryTest {
     fun testObserveChat_emptyFlow() =
         runTest {
             coEvery {
-                webSocketHandler.subscribeToChat(lobbyTopic)
+                chatSocketHandler.subscribeToChat(lobbyTopic)
             } returns emptyFlow()
 
             val result =
@@ -141,7 +141,7 @@ class ChatRepositoryTest {
                     ChatMessageDto("OtherUser", "Second"),
                 )
             coEvery {
-                webSocketHandler.subscribeToChat(lobbyTopic)
+                chatSocketHandler.subscribeToChat(lobbyTopic)
             } returns dtos
 
             val result =
@@ -158,7 +158,7 @@ class ChatRepositoryTest {
     fun testObserveChat_webSocketError() =
         runTest {
             coEvery {
-                webSocketHandler.subscribeToChat(any())
+                chatSocketHandler.subscribeToChat(any())
             } throws RuntimeException()
 
             assertFailsWith<RuntimeException> {
@@ -179,7 +179,7 @@ class ChatRepositoryTest {
                     throw RuntimeException("Connection Lost")
                 }
             coEvery {
-                webSocketHandler.subscribeToChat(lobbyTopic)
+                chatSocketHandler.subscribeToChat(lobbyTopic)
             } returns flowWithError
 
             val flow =
@@ -202,7 +202,7 @@ class ChatRepositoryTest {
                     ChatMessageDto("OtherUser", "Second"),
                 )
             coEvery {
-                webSocketHandler.subscribeToChat(lobbyTopic)
+                chatSocketHandler.subscribeToChat(lobbyTopic)
             } returns dtos
 
             val result =
