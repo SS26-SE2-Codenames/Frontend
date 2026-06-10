@@ -105,13 +105,6 @@ fun GameboardScreen(
     var selectedChatTab by rememberSaveable { mutableStateOf(ChatTab.GLOBAL) }
     var selectedCardPositions by remember { mutableStateOf(emptyList<Int>()) }
 
-    val activeChatTab =
-        if (selectedChatTab in availableChatTabs) {
-            selectedChatTab
-        } else {
-            availableChatTabs.firstOrNull() ?: ChatTab.GLOBAL
-        }
-
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val canSelectCards = !isSpymaster && remainingGuesses > 0
@@ -148,112 +141,43 @@ fun GameboardScreen(
                 remainingGuesses = remainingGuesses,
             )
 
-            if (availableChatTabs.isNotEmpty()) {
-                ChatToggleButton(
-                    isChatOpen = isChatOpen,
-                    onClick = { isChatOpen = !isChatOpen },
-                    modifier =
-                        Modifier
-                            .padding(end = dimensions.itemSpacing, bottom = dimensions.itemSpacing),
-                )
-            }
+            ChatToggle(
+                isVisible = availableChatTabs.isNotEmpty(),
+                isChatOpen = isChatOpen,
+                onClick = { isChatOpen = !isChatOpen },
+            )
 
             Spacer(modifier = Modifier.height(dimensions.gameBoardTopSpacing))
 
-            Row(
+            GameBoardSection(
+                userRole = userRole,
+                cards = cards,
+                currentBlueFound = currentBlueFound,
+                currentRedFound = currentRedFound,
+                isSpymaster = isSpymaster,
+                canSelectCards = canSelectCards,
+                selectedCardPositions = selectedCardPositions,
+                remainingGuesses = remainingGuesses,
+                scale = scale,
+                offset = offset,
+                onTransform = { pan, zoom ->
+                    scale = (scale * zoom).coerceIn(0.5f, 3f)
+                    offset += pan
+                },
+                onSelectionChange = { selectedCardPositions = it },
+                onReveal = onReveal,
                 modifier =
                     Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-            ) {
-                TeamSidebar(
-                    userRole,
-                    color = Team.BLUE,
-                    teamFound = currentBlueFound,
-                    textColor = AppBlue,
-                    gradient = blueGradient,
-                )
-
-                if (cards.isEmpty()) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .padding(horizontal = dimensions.smallSpacing)
-                                .background(AppSurface, RoundedCornerShape(12.dp)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = "Waiting for game state...",
-                            color = AppInk,
-                            fontSize = dimensions.bodyFontSize,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                } else {
-                    GameBoardGrid(
-                        cards,
-                        scale,
-                        offset,
-                        isSpymaster,
-                        selectedCardPositions.toSet(),
-                        onCardClick = { position ->
-                            if (!canSelectCards) {
-                                return@GameBoardGrid
-                            }
-
-                            if (position in selectedCardPositions) {
-                                selectedCardPositions = selectedCardPositions - position
-                                onReveal(listOf(position))
-                            } else if (selectedCardPositions.size < remainingGuesses) {
-                                selectedCardPositions = selectedCardPositions + position
-                            }
-                        },
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .padding(horizontal = dimensions.smallSpacing)
-                                .clipToBounds()
-                                .pointerInput(Unit) {
-                                    detectTransformGestures { _, pan, zoom, _ ->
-                                        scale = (scale * zoom).coerceIn(0.5f, 3f)
-                                        offset += pan
-                                    }
-                                },
-                    )
-                }
-
-                TeamSidebar(
-                    userRole,
-                    color = Team.RED,
-                    teamFound = currentRedFound,
-                    textColor = AppRed,
-                    gradient = redGradient,
-                )
-            }
+            )
 
             Spacer(modifier = Modifier.height(dimensions.itemSpacing))
 
-            if (canSelectCards && selectedCardPositions.isNotEmpty()) {
-                AppButton(
-                    text = "Deselect all",
-                    onClick = { selectedCardPositions = emptyList() },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = dimensions.screenPadding),
-                    style =
-                        AppButtonStyle(
-                            containerColor = AppGreen,
-                            contentColor = AppWhite,
-                            fontSize = dimensions.bodyFontSize,
-                        ),
-                )
-
-                Spacer(modifier = Modifier.height(dimensions.itemSpacing))
-            }
+            DeselectAllButton(
+                isVisible = canSelectCards && selectedCardPositions.isNotEmpty(),
+                onClick = { selectedCardPositions = emptyList() },
+            )
 
             HintSection(
                 isSpymaster,
@@ -268,23 +192,22 @@ fun GameboardScreen(
             )
         }
 
-        if (availableChatTabs.isNotEmpty() && isChatOpen) {
-            ChatWindow(
-                chatInput = chatInput,
-                messages = chatLists,
-                selectedTab = activeChatTab,
-                availableTabs = availableChatTabs,
-                onTabSelected = { selectedChatTab = it },
-                onChatInputChange = { chatInput = it },
-                onSendClick = { tab, message -> onSendChatMessage(tab, message) },
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .padding(end = dimensions.itemSpacing, bottom = dimensions.itemSpacing)
-                        .width(dimensions.gameChatWidth)
-                        .fillMaxHeight(dimensions.gameChatHeightFraction),
-            )
-        }
+        GameChatOverlay(
+            isVisible = availableChatTabs.isNotEmpty() && isChatOpen,
+            chatInput = chatInput,
+            chatLists = chatLists,
+            selectedChatTab = selectedChatTab,
+            availableChatTabs = availableChatTabs,
+            onTabSelected = { selectedChatTab = it },
+            onChatInputChange = { chatInput = it },
+            onSendChatMessage = onSendChatMessage,
+            modifier =
+                Modifier
+                    .align(Alignment.Center)
+                    .padding(end = dimensions.itemSpacing, bottom = dimensions.itemSpacing)
+                    .width(dimensions.gameChatWidth)
+                    .fillMaxHeight(dimensions.gameChatHeightFraction),
+        )
 
         onSettingsClick?.let { openSettings ->
             SettingsCornerButton(
@@ -293,6 +216,227 @@ fun GameboardScreen(
         }
     }
 }
+
+private fun updateSelectedCardPositions(
+    position: Int,
+    selectedCardPositions: List<Int>,
+    remainingGuesses: Int,
+    onReveal: (List<Int>) -> Unit,
+): List<Int> =
+    when {
+        position in selectedCardPositions -> {
+            onReveal(listOf(position))
+            selectedCardPositions - position
+        }
+        selectedCardPositions.size < remainingGuesses -> selectedCardPositions + position
+        else -> selectedCardPositions
+    }
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+private fun ChatToggle(
+    isVisible: Boolean,
+    isChatOpen: Boolean,
+    onClick: () -> Unit,
+) {
+    val dimensions = LocalResponsiveDimensions.current
+
+    if (isVisible) {
+        ChatToggleButton(
+            isChatOpen = isChatOpen,
+            onClick = onClick,
+            modifier =
+                Modifier
+                    .padding(end = dimensions.itemSpacing, bottom = dimensions.itemSpacing),
+        )
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+private fun GameBoardSection(
+    userRole: PlayerRoles,
+    cards: List<GameCard>,
+    currentBlueFound: Int,
+    currentRedFound: Int,
+    isSpymaster: Boolean,
+    canSelectCards: Boolean,
+    selectedCardPositions: List<Int>,
+    remainingGuesses: Int,
+    scale: Float,
+    offset: Offset,
+    onTransform: (Offset, Float) -> Unit,
+    onSelectionChange: (List<Int>) -> Unit,
+    onReveal: (List<Int>) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val dimensions = LocalResponsiveDimensions.current
+
+    Row(modifier = modifier) {
+        TeamSidebar(
+            userRole,
+            color = Team.BLUE,
+            teamFound = currentBlueFound,
+            textColor = AppBlue,
+            gradient = blueGradient,
+        )
+
+        BoardContent(
+            cards = cards,
+            scale = scale,
+            offset = offset,
+            isSpymaster = isSpymaster,
+            selectedCardPositions = selectedCardPositions,
+            onCardClick = { position ->
+                if (canSelectCards) {
+                    onSelectionChange(
+                        updateSelectedCardPositions(
+                            position = position,
+                            selectedCardPositions = selectedCardPositions,
+                            remainingGuesses = remainingGuesses,
+                            onReveal = onReveal,
+                        ),
+                    )
+                }
+            },
+            onTransform = onTransform,
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(horizontal = dimensions.smallSpacing),
+        )
+
+        TeamSidebar(
+            userRole,
+            color = Team.RED,
+            teamFound = currentRedFound,
+            textColor = AppRed,
+            gradient = redGradient,
+        )
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+private fun BoardContent(
+    cards: List<GameCard>,
+    scale: Float,
+    offset: Offset,
+    isSpymaster: Boolean,
+    selectedCardPositions: List<Int>,
+    onCardClick: (Int) -> Unit,
+    onTransform: (Offset, Float) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val dimensions = LocalResponsiveDimensions.current
+
+    if (cards.isEmpty()) {
+        WaitingForGameState(modifier = modifier)
+    } else {
+        GameBoardGrid(
+            cards = cards,
+            scale = scale,
+            offset = offset,
+            isSpymaster = isSpymaster,
+            selectedCardPositions = selectedCardPositions.toSet(),
+            onCardClick = onCardClick,
+            modifier =
+                modifier
+                    .clipToBounds()
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            onTransform(pan, zoom)
+                        }
+                    },
+        )
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+private fun WaitingForGameState(modifier: Modifier = Modifier) {
+    val dimensions = LocalResponsiveDimensions.current
+
+    Box(
+        modifier =
+            modifier
+                .background(AppSurface, RoundedCornerShape(12.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "Waiting for game state...",
+            color = AppInk,
+            fontSize = dimensions.bodyFontSize,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+private fun DeselectAllButton(
+    isVisible: Boolean,
+    onClick: () -> Unit,
+) {
+    val dimensions = LocalResponsiveDimensions.current
+
+    if (isVisible) {
+        AppButton(
+            text = "Deselect all",
+            onClick = onClick,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensions.screenPadding),
+            style =
+                AppButtonStyle(
+                    containerColor = AppGreen,
+                    contentColor = AppWhite,
+                    fontSize = dimensions.bodyFontSize,
+                ),
+        )
+
+        Spacer(modifier = Modifier.height(dimensions.itemSpacing))
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+private fun GameChatOverlay(
+    isVisible: Boolean,
+    chatInput: String,
+    chatLists: ChatLists,
+    selectedChatTab: ChatTab,
+    availableChatTabs: List<ChatTab>,
+    onTabSelected: (ChatTab) -> Unit,
+    onChatInputChange: (String) -> Unit,
+    onSendChatMessage: (ChatTab, String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (isVisible) {
+        ChatWindow(
+            chatInput = chatInput,
+            messages = chatLists,
+            selectedTab = getActiveChatTab(selectedChatTab, availableChatTabs),
+            availableTabs = availableChatTabs,
+            onTabSelected = onTabSelected,
+            onChatInputChange = onChatInputChange,
+            onSendClick = onSendChatMessage,
+            modifier = modifier,
+        )
+    }
+}
+
+private fun getActiveChatTab(
+    selectedChatTab: ChatTab,
+    availableChatTabs: List<ChatTab>,
+): ChatTab =
+    if (selectedChatTab in availableChatTabs) {
+        selectedChatTab
+    } else {
+        availableChatTabs.firstOrNull() ?: ChatTab.GLOBAL
+    }
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
