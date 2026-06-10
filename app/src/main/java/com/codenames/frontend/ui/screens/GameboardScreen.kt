@@ -236,6 +236,25 @@ fun GameboardScreen(
 
             Spacer(modifier = Modifier.height(dimensions.itemSpacing))
 
+            if (canSelectCards && selectedCardPositions.isNotEmpty()) {
+                AppButton(
+                    text = "Deselect all",
+                    onClick = { selectedCardPositions = emptyList() },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimensions.screenPadding),
+                    style =
+                        AppButtonStyle(
+                            containerColor = AppGreen,
+                            contentColor = AppWhite,
+                            fontSize = dimensions.bodyFontSize,
+                        ),
+                )
+
+                Spacer(modifier = Modifier.height(dimensions.itemSpacing))
+            }
+
             HintSection(
                 isSpymaster,
                 currentHint,
