@@ -2,7 +2,7 @@ package com.codenames.frontend.data.repository
 
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.network.dto.ChatMessageDto
-import com.codenames.frontend.network.websocket.GameWebSocketController
+import com.codenames.frontend.network.websocket.ChatWebSocketController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -10,7 +10,7 @@ import javax.inject.Inject
 class ChatRepository
     @Inject
     constructor(
-        private val webSocketHandler: GameWebSocketController,
+        private val chatWebSocketController: ChatWebSocketController,
     ) {
         fun observeLobbyChat(
             lobbyCode: String,
@@ -46,7 +46,7 @@ class ChatRepository
             currentUsername: String,
         ): Flow<ChatDomainModel> =
             flow {
-                webSocketHandler.subscribeToChat(topic).collect { dto ->
+                chatWebSocketController.subscribeToChat(topic).collect { dto ->
                     emit(
                         ChatDomainModel(
                             sender = dto.senderUsername,
@@ -106,6 +106,6 @@ class ChatRepository
                     content = text,
                 )
 
-            webSocketHandler.sendChatMessage(destination, dto)
+            chatWebSocketController.sendChatMessage(destination, dto)
         }
     }

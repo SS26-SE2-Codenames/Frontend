@@ -1,6 +1,5 @@
 package com.codenames.frontend.network.websocket
 
-import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.StartGameMessage
@@ -31,17 +30,6 @@ class GameWebSocketController
 
         suspend fun sendReconnectMessage(msg: WebSocketJoinMessage) {
             webSocketSessionManager.getSession().convertAndSend("/app/join", msg, WebSocketJoinMessage.serializer())
-        }
-
-        @Suppress("kotlin:S6309")
-        suspend fun subscribeToChat(topicPath: String): Flow<ChatMessageDto> =
-            webSocketSessionManager.getSession().subscribe(topicPath, ChatMessageDto.serializer())
-
-        suspend fun sendChatMessage(
-            destination: String,
-            msg: ChatMessageDto,
-        ) {
-            webSocketSessionManager.getSession().convertAndSend(destination, msg, ChatMessageDto.serializer())
         }
 
         suspend fun sendClue(msg: ClueMessageDto) {
