@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val CONNECTION_ERROR_MESSAGE = "Connection error"
+
 @HiltViewModel
 class GameViewModel
     @Inject
@@ -102,7 +104,7 @@ class GameViewModel
                             sendGameStart(lobbyCode)
                         }
                     } catch (e: Exception) {
-                        _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                        _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
                     }
                 }
         }
@@ -133,7 +135,51 @@ class GameViewModel
                 try {
                     gameRepository.submitClue(lobbyCode, word, count, team)
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                }
+            }
+        }
+
+        fun submitGuess(
+            lobbyCode: String,
+            position: Int,
+        ) {
+            if (lobbyCode.isBlank()) {
+                return
+            }
+
+            val turn = uiState.value.currentTurn
+            if (turn != PlayerRoles.BLUE_OPERATIVE && turn != PlayerRoles.RED_OPERATIVE) return
+
+            val team = if (turn == PlayerRoles.BLUE_OPERATIVE) Team.BLUE else Team.RED
+            viewModelScope.launch {
+                try {
+                    gameRepository.submitGuess(lobbyCode, position, team)
+                } catch (e: Exception) {
+                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                }
+            }
+        }
+
+        fun submitGuesses(
+            lobbyCode: String,
+            positions: List<Int>,
+        ) {
+            if (lobbyCode.isBlank() || positions.isEmpty()) {
+                return
+            }
+
+            val turn = uiState.value.currentTurn
+            if (turn != PlayerRoles.BLUE_OPERATIVE && turn != PlayerRoles.RED_OPERATIVE) return
+
+            val team = if (turn == PlayerRoles.BLUE_OPERATIVE) Team.BLUE else Team.RED
+            viewModelScope.launch {
+                try {
+                    positions.forEach { position ->
+                        gameRepository.submitGuess(lobbyCode, position, team)
+                    }
+                } catch (e: Exception) {
+                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
                 }
             }
         }

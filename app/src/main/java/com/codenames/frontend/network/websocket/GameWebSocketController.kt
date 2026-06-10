@@ -3,6 +3,7 @@ package com.codenames.frontend.network.websocket
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GameMessage
+import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.StartGameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import kotlinx.coroutines.flow.Flow
@@ -46,5 +47,9 @@ class GameWebSocketController
 
         suspend fun sendClue(msg: ClueMessageDto) {
             webSocketSessionManager.getSession().convertAndSend("/app/submit-clue", msg, ClueMessageDto.serializer())
+        }
+
+        suspend fun sendGuess(msg: GuessMessage) {
+            webSocketSessionManager.getSession().convertAndSend("/app/reveal-card", msg, GuessMessage.serializer())
         }
     }

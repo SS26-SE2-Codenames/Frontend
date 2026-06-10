@@ -14,6 +14,7 @@ import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.screens.GameboardScreen
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -158,5 +159,67 @@ class GameboardScreenTest {
 
         composeRule.onNodeWithText("Chat").performClick()
         composeRule.onAllNodesWithText("Operatives").assertCountEquals(0)
+    }
+
+    @Test
+    fun operativeCanSelectAndDeselectCards() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards =
+                            listOf(
+                                GameCard("BERLIN", CardType.BLUE),
+                                GameCard("ROME", CardType.RED),
+                            ),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("Deselect all").assertCountEquals(0)
+
+        composeRule.onNodeWithText("BERLIN").performClick()
+        composeRule.onNodeWithText("Deselect all").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Deselect all").performClick()
+        composeRule.onAllNodesWithText("Deselect all").assertCountEquals(0)
+    }
+
+    @Test
+    fun clickingSelectedCardRevealsOnlyThatCard() {
+        var revealedPositions = emptyList<Int>()
+
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards =
+                            listOf(
+                                GameCard("BERLIN", CardType.BLUE),
+                                GameCard("ROME", CardType.RED),
+                            ),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = { positions -> revealedPositions = positions },
+            )
+        }
+
+        composeRule.onNodeWithText("BERLIN").performClick()
+        composeRule.onNodeWithText("ROME").performClick()
+        composeRule.onNodeWithText("BERLIN").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(listOf(0), revealedPositions)
+        }
     }
 }

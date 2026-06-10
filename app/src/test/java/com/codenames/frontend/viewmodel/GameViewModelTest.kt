@@ -473,4 +473,122 @@ class GameViewModelTest {
                 client.sendClue(any())
             }
         }
+
+    @Test
+    fun testSubmitGuess_RedOperative_Success() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } just Runs
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuess(lobbyCode, 3)
+            advanceUntilIdle()
+
+            coVerify { gameRepository.submitGuess(lobbyCode, 3, Team.RED) }
+        }
+
+    @Test
+    fun testSubmitGuess_whenTurnIsSpymaster_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.submitGuess(lobbyCode, 3)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun testSubmitGuess_blankLobbyCode_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuess("", 3)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun testSubmitGuess_NetworkError_UpdatesConnectionState() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } throws Exception("Network connection failed")
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuess(lobbyCode, 3)
+            advanceUntilIdle()
+
+            val state = viewModel.connectionState.value
+            assertTrue(state is ConnectionState.Error)
+        }
+
+    @Test
+    fun submitGuesses_redOperative_sendsEachGuessInOrder() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } just Runs
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, listOf(2, 4))
+            advanceUntilIdle()
+
+            coVerify {
+                gameRepository.submitGuess(lobbyCode, 2, Team.RED)
+                gameRepository.submitGuess(lobbyCode, 4, Team.RED)
+            }
+        }
+
+    @Test
+    fun submitGuesses_blueOperative_sendsBlueTeamGuess() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } just Runs
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.BLUE, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, listOf(1))
+            advanceUntilIdle()
+
+            coVerify {
+                gameRepository.submitGuess(lobbyCode, 1, Team.BLUE)
+            }
+        }
+
+    @Test
+    fun submitGuesses_emptyPositions_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, emptyList())
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun submitGuesses_whenTurnIsSpymaster_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.submitGuesses(lobbyCode, listOf(3))
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
 }
