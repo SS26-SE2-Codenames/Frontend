@@ -530,4 +530,65 @@ class GameViewModelTest {
             val state = viewModel.connectionState.value
             assertTrue(state is ConnectionState.Error)
         }
+
+    @Test
+    fun submitGuesses_redOperative_sendsEachGuessInOrder() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } just Runs
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, listOf(2, 4))
+            advanceUntilIdle()
+
+            coVerify {
+                gameRepository.submitGuess(lobbyCode, 2, Team.RED)
+                gameRepository.submitGuess(lobbyCode, 4, Team.RED)
+            }
+        }
+
+    @Test
+    fun submitGuesses_blueOperative_sendsBlueTeamGuess() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } just Runs
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.BLUE, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, listOf(1))
+            advanceUntilIdle()
+
+            coVerify {
+                gameRepository.submitGuess(lobbyCode, 1, Team.BLUE)
+            }
+        }
+
+    @Test
+    fun submitGuesses_emptyPositions_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, emptyList())
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun submitGuesses_whenTurnIsSpymaster_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.submitGuesses(lobbyCode, listOf(3))
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
 }
