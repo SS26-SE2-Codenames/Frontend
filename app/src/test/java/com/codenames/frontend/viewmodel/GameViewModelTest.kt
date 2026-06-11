@@ -144,7 +144,7 @@ class GameViewModelTest {
 
             assertEquals(PlayerRoles.BLUE_OPERATIVE, state.currentTurn)
             assertEquals("EAGLE", state.currentHint)
-            assertEquals(3, state.remainingGuesses)
+            assertEquals(3, state.numGuesses)
             assertEquals(2, state.cards.size)
             assertEquals("BERLIN", state.cards[0].word)
         }

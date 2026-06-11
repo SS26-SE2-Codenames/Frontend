@@ -80,17 +80,19 @@ class MapperTest {
                 currentTurn = Team.RED,
                 currentPhase = Role.OPERATIVE,
                 winner = null,
+                remainingGuesses = 2,
             )
 
         val result = gameMessage.toGameState()
 
         assertEquals("Animal", result.currentHint)
         assertEquals(PlayerRoles.RED_OPERATIVE, result.currentTurn)
-        assertEquals(2, result.remainingGuesses)
+        assertEquals(2, result.numGuesses)
         assertNull(result.winner)
 
         assertEquals(1, result.cards.size)
         assertEquals("Dog", result.cards[0].word)
+        assertEquals(2, result.remainingGuesses)
     }
 
     @Test

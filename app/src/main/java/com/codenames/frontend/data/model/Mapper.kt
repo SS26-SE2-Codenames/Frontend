@@ -33,7 +33,8 @@ fun GameMessage.toGameState(): GameState {
         cards = cards,
         currentTurn = getCurrentTurn(),
         winner = winner,
-        remainingGuesses = currentClue?.guessAmount ?: 0,
+        numGuesses = currentClue?.guessAmount ?: 0,
+        remainingGuesses = remainingGuesses,
         currentRedFound = cards.count { it.type == CardType.RED && it.revealed },
         currentBlueFound = cards.count { it.type == CardType.BLUE && it.revealed },
     )

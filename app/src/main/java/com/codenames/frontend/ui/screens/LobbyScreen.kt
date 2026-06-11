@@ -95,6 +95,20 @@ fun LobbyScreen(
                     role = role.name,
                     isHost = viewModel.getIsHost(usernameState.username),
                 )
+            }
+        }
+    }
+
+    LaunchedEffect(connectionState) {
+        val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
+        val teamAndRole = currentRole.toTeamAndRole()
+
+        if (connectionState == ConnectionState.CONNECTED) {
+            navController.navigate(Screen.Gameboard.route)
+
+            if (lobbyCode.isNotBlank() && teamAndRole != null) {
+                val (team, role) = teamAndRole
+
                 chatViewModel.subscribeToChats(
                     username = usernameState.username,
                     lobbyCode = lobbyCode,
@@ -102,12 +116,6 @@ fun LobbyScreen(
                     role = role.name,
                 )
             }
-        }
-    }
-
-    LaunchedEffect(connectionState) {
-        if (connectionState == ConnectionState.CONNECTED) {
-            navController.navigate(Screen.Gameboard.route)
         }
     }
 
