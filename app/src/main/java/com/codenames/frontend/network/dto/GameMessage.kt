@@ -12,4 +12,5 @@ data class GameMessage(
     val currentClue: ClueDto? = null,
     val cardList: List<CardDto> = emptyList(),
     val error: String? = null,
+    val remainingGuesses: Int = 0
 )

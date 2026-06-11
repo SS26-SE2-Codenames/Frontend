@@ -186,6 +186,7 @@ class GameViewModel
 
         fun handleMessage(message: GameMessage) {
             val state = message.toGameState()
+            Log.d("GameViewModel", "New Game State: $state")
             _uiState.update {
                 state
             }

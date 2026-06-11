@@ -1,5 +1,6 @@
 package com.codenames.frontend.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -126,6 +127,7 @@ fun GameboardScreen(
     val currentTurn = gameState.currentTurn
     val winner = gameState.winner
     val remainingGuesses = gameState.remainingGuesses
+    val numGuesses = gameState.numGuesses
     val chatLists = gameState.chatLists
     val currentRedFound = gameState.currentRedFound
     val currentBlueFound = gameState.currentBlueFound
@@ -172,6 +174,7 @@ fun GameboardScreen(
                 currentTurn = currentTurn,
                 winner = winner,
                 remainingGuesses = remainingGuesses,
+                numGuesses = numGuesses
             )
 
             ChatToggle(
@@ -478,8 +481,11 @@ fun GameStatusBar(
     currentTurn: PlayerRoles?,
     winner: Team?,
     remainingGuesses: Int,
+    numGuesses: Int
 ) {
     val dimensions = LocalResponsiveDimensions.current
+
+    Log.d("GameboardScreen", "GameStatusBar: Updated guesses. Remaining guesses: $remainingGuesses")
 
     Row(
         modifier =
@@ -492,7 +498,7 @@ fun GameStatusBar(
         val statusText =
             when {
                 winner != null -> "Winner: $winner"
-                currentTurn != null -> "Turn: ${currentTurn.name} | Guesses: $remainingGuesses"
+                currentTurn != null -> "Turn: ${currentTurn.name} | Remaining Guesses: $remainingGuesses/$numGuesses"
                 else -> "Waiting for turn..."
             }
 
