@@ -42,7 +42,7 @@ fun GameScreenWrapper(
             gameViewModel.submitClue(lobbyCode, word, count)
         },
         onReveal = { positions ->
-            gameViewModel.submitGuesses(lobbyCode, positions)
+            gameViewModel.submitGuesses(lobbyCode, positions, team)
         },
         onSendChatMessage = { tab, message ->
             chatViewModel.sendChatMessage(

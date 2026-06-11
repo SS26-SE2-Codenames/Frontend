@@ -108,15 +108,14 @@ class GameViewModel
         fun submitGuess(
             lobbyCode: String,
             position: Int,
+            team: Team?,
         ) {
-            if (lobbyCode.isBlank()) {
+            if (lobbyCode.isBlank() || team == null) {
                 return
             }
 
             val turn = uiState.value.currentTurn
-            if (turn != PlayerRoles.BLUE_OPERATIVE && turn != PlayerRoles.RED_OPERATIVE) return
-
-            val team = if (turn == PlayerRoles.BLUE_OPERATIVE) Team.BLUE else Team.RED
+            if (!team.isActiveOperativeTurn(turn)) return
             viewModelScope.launch {
                 try {
                     gameRepository.submitGuess(lobbyCode, position, team)
@@ -129,15 +128,14 @@ class GameViewModel
         fun submitGuesses(
             lobbyCode: String,
             positions: List<Int>,
+            team: Team?,
         ) {
-            if (lobbyCode.isBlank() || positions.isEmpty()) {
+            if (lobbyCode.isBlank() || positions.isEmpty() || team == null) {
                 return
             }
 
             val turn = uiState.value.currentTurn
-            if (turn != PlayerRoles.BLUE_OPERATIVE && turn != PlayerRoles.RED_OPERATIVE) return
-
-            val team = if (turn == PlayerRoles.BLUE_OPERATIVE) Team.BLUE else Team.RED
+            if (!team.isActiveOperativeTurn(turn)) return
             viewModelScope.launch {
                 try {
                     positions.forEach { position ->
@@ -148,6 +146,10 @@ class GameViewModel
                 }
             }
         }
+
+        private fun Team.isActiveOperativeTurn(turn: PlayerRoles): Boolean =
+            (this == Team.BLUE && turn == PlayerRoles.BLUE_OPERATIVE) ||
+                (this == Team.RED && turn == PlayerRoles.RED_OPERATIVE)
 
         fun handleMessage(message: GameMessage) {
             val state = message.toGameState()
