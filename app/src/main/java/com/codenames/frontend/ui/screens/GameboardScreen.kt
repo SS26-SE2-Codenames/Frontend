@@ -174,7 +174,7 @@ fun GameboardScreen(
                 currentTurn = currentTurn,
                 winner = winner,
                 remainingGuesses = remainingGuesses,
-                numGuesses = numGuesses
+                numGuesses = numGuesses,
             )
 
             ChatToggle(
@@ -481,7 +481,7 @@ fun GameStatusBar(
     currentTurn: PlayerRoles?,
     winner: Team?,
     remainingGuesses: Int,
-    numGuesses: Int
+    numGuesses: Int,
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
