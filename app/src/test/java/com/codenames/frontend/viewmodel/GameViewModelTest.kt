@@ -296,7 +296,7 @@ class GameViewModelTest {
 
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
 
-            viewModel.submitGuess(lobbyCode, 3)
+            viewModel.submitGuess(lobbyCode, 3, Team.RED)
             advanceUntilIdle()
 
             coVerify { gameRepository.submitGuess(lobbyCode, 3, Team.RED) }
@@ -307,7 +307,7 @@ class GameViewModelTest {
         runTest {
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
 
-            viewModel.submitGuess(lobbyCode, 3)
+            viewModel.submitGuess(lobbyCode, 3, Team.RED)
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
@@ -320,7 +320,7 @@ class GameViewModelTest {
         runTest {
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
 
-            viewModel.submitGuess("", 3)
+            viewModel.submitGuess("", 3, Team.RED)
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
@@ -337,7 +337,7 @@ class GameViewModelTest {
 
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
 
-            viewModel.submitGuess(lobbyCode, 3)
+            viewModel.submitGuess(lobbyCode, 3, Team.RED)
             advanceUntilIdle()
 
             val state = viewModel.connectionState.value
@@ -353,7 +353,7 @@ class GameViewModelTest {
 
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
 
-            viewModel.submitGuesses(lobbyCode, listOf(2, 4))
+            viewModel.submitGuesses(lobbyCode, listOf(2, 4), Team.RED)
             advanceUntilIdle()
 
             coVerify {
@@ -371,7 +371,7 @@ class GameViewModelTest {
 
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.BLUE, currentPhase = Role.OPERATIVE))
 
-            viewModel.submitGuesses(lobbyCode, listOf(1))
+            viewModel.submitGuesses(lobbyCode, listOf(1), Team.BLUE)
             advanceUntilIdle()
 
             coVerify {
@@ -384,7 +384,33 @@ class GameViewModelTest {
         runTest {
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
 
-            viewModel.submitGuesses(lobbyCode, emptyList())
+            viewModel.submitGuesses(lobbyCode, emptyList(), Team.RED)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun submitGuesses_blankLobbyCode_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses("", listOf(3), Team.RED)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun submitGuesses_nullTeam_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, listOf(3), null)
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
@@ -397,11 +423,40 @@ class GameViewModelTest {
         runTest {
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
 
-            viewModel.submitGuesses(lobbyCode, listOf(3))
+            viewModel.submitGuesses(lobbyCode, listOf(3), Team.RED)
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
                 gameRepository.submitGuess(any(), any(), any())
             }
+        }
+
+    @Test
+    fun submitGuesses_wrongTeamForCurrentTurn_doesNotSendGuess() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, listOf(3), Team.BLUE)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitGuess(any(), any(), any())
+            }
+        }
+
+    @Test
+    fun submitGuesses_networkError_updatesConnectionState() =
+        runTest {
+            coEvery {
+                gameRepository.submitGuess(any(), any(), any())
+            } throws Exception("Network connection failed")
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.submitGuesses(lobbyCode, listOf(3), Team.RED)
+            advanceUntilIdle()
+
+            val state = viewModel.connectionState.value
+            assertTrue(state is ConnectionState.Error)
         }
 }
