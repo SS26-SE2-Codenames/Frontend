@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.viewmodel.ChatViewModel
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
@@ -15,11 +16,12 @@ fun GameScreenWrapper(
     navController: NavHostController,
     lobbyViewModel: LobbyViewModel,
     gameViewModel: GameViewModel,
+    chatViewModel: ChatViewModel,
     sessionViewModel: SessionViewModel,
 ) {
     val lobbyState by lobbyViewModel.state.collectAsState()
     val gameState by gameViewModel.uiState.collectAsState()
-    val chatState by gameViewModel.chatState.collectAsState()
+    val chatState by chatViewModel.chatState.collectAsState()
     val usernameState by sessionViewModel.username.collectAsState()
 
     val username = usernameState.username
@@ -43,7 +45,7 @@ fun GameScreenWrapper(
             gameViewModel.submitGuesses(lobbyCode, positions)
         },
         onSendChatMessage = { tab, message ->
-            gameViewModel.sendChatMessage(
+            chatViewModel.sendChatMessage(
                 tab = tab,
                 lobbyCode = lobbyCode,
                 username = username,
