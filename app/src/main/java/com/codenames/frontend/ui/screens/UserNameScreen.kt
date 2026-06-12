@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,8 +37,10 @@ fun UserNameScreen(
     navController: NavController,
     viewModel: SessionViewModel,
 ) {
+    val userState by viewModel.userState.collectAsState()
+
     val dimensions = LocalResponsiveDimensions.current
-    var username by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf(userState.username) }
 
     Box(
         modifier =
