@@ -3,7 +3,7 @@ package com.codenames.frontend.data.datastore
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.codenames.frontend.data.model.SessionData
+import com.codenames.frontend.data.model.SessionState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -43,9 +43,9 @@ class UserPreferencesDataStore @Inject constructor(
         }
     }
 
-    val sessionData: Flow<SessionData> =
+    val sessionData: Flow<SessionState> =
         context.dataStore.data.map { prefs ->
-            SessionData(
+            SessionState(
                 username = prefs[PreferencesKeys.USERNAME],
                 userId = prefs[PreferencesKeys.USER_ID]?.let(UUID::fromString),
                 lobbyCode = prefs[PreferencesKeys.LOBBY_CODE],
