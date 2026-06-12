@@ -78,6 +78,12 @@ fun LobbyScreen(
         viewModel.sendStartGame(userState.username)
     }
 
+    LaunchedEffect(userState.userId) {
+        if(userState.userId != null) {
+            sessionViewModel.persistUserState()
+        }
+    }
+
     LaunchedEffect(lobbyUiState.isGameStarted) {
         if (lobbyUiState.isGameStarted) {
             val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
@@ -109,6 +115,12 @@ fun LobbyScreen(
                     lobbyCode = lobbyCode,
                     team = team.name,
                     role = role.name,
+                )
+
+                sessionViewModel.persistLobbyState(
+                    lobbyCode,
+                    role,
+                    team
                 )
             }
         }
