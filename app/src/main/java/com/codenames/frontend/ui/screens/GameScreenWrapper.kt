@@ -39,7 +39,7 @@ fun GameScreenWrapper(
                 availableChatTabs = availableChatTabs,
             ),
         onHintChange = { word, count ->
-            gameViewModel.submitClue(lobbyCode, word, count)
+            gameViewModel.submitClue(lobbyCode, word, count, team)
         },
         onReveal = { positions ->
             gameViewModel.submitGuesses(lobbyCode, positions, team)
