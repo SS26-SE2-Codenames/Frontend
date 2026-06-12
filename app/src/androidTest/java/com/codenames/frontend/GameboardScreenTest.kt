@@ -76,6 +76,25 @@ class GameboardScreenTest {
     }
 
     @Test
+    fun inactiveSpymasterCannotEnterClue() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_SPYMASTER,
+                gameState =
+                    GameState(
+                        currentHint = "",
+                        currentTurn = PlayerRoles.RED_SPYMASTER,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("SEND").assertCountEquals(0)
+    }
+
+    @Test
     fun spymasterCanOpenLobbyChat() {
         composeRule.setContent {
             GameboardScreen(

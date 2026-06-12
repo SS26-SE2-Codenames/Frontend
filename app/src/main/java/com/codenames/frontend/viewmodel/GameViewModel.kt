@@ -37,10 +37,7 @@ class GameViewModel
         val connectionState: StateFlow<ConnectionState> = _connectionState
 
         fun connect(
-            username: String,
             lobbyCode: String,
-            team: String,
-            role: String,
             isHost: Boolean = false,
         ) {
             job?.cancel()
@@ -87,15 +84,14 @@ class GameViewModel
             lobbyCode: String,
             word: String,
             count: Int,
+            team: Team?,
         ) {
-            if (lobbyCode.isBlank()) {
+            if (lobbyCode.isBlank() || team == null) {
                 return
             }
 
             val turn = uiState.value.currentTurn
-            if (turn != PlayerRoles.BLUE_SPYMASTER && turn != PlayerRoles.RED_SPYMASTER) return
-
-            val team = if (turn == PlayerRoles.BLUE_SPYMASTER) Team.BLUE else Team.RED
+            if (!team.isActiveSpymasterTurn(turn)) return
             viewModelScope.launch {
                 try {
                     gameRepository.submitClue(lobbyCode, word, count, team)
@@ -150,6 +146,10 @@ class GameViewModel
         private fun Team.isActiveOperativeTurn(turn: PlayerRoles): Boolean =
             (this == Team.BLUE && turn == PlayerRoles.BLUE_OPERATIVE) ||
                 (this == Team.RED && turn == PlayerRoles.RED_OPERATIVE)
+
+        private fun Team.isActiveSpymasterTurn(turn: PlayerRoles): Boolean =
+            (this == Team.BLUE && turn == PlayerRoles.BLUE_SPYMASTER) ||
+                (this == Team.RED && turn == PlayerRoles.RED_SPYMASTER)
 
         fun handleMessage(message: GameMessage) {
             val state = message.toGameState()
