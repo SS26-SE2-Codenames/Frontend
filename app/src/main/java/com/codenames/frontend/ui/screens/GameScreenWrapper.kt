@@ -22,9 +22,9 @@ fun GameScreenWrapper(
     val lobbyState by lobbyViewModel.state.collectAsState()
     val gameState by gameViewModel.uiState.collectAsState()
     val chatState by chatViewModel.chatState.collectAsState()
-    val usernameState by sessionViewModel.username.collectAsState()
+    val userState by sessionViewModel.userState.collectAsState()
 
-    val username = usernameState.username
+    val username = userState.username
     val lobbyCode = lobbyState.lobbyCode.orEmpty()
     val currentPlayer = lobbyState.players.firstOrNull { it.name == username }
     val team = currentPlayer?.team

@@ -17,7 +17,7 @@ class SessionViewModelTest {
 
     @Test
     fun `initial username is empty`() {
-        val result = viewModel.username.value
+        val result = viewModel.sessionState.value
 
         assertEquals(SessionState(""), result)
     }
@@ -26,7 +26,7 @@ class SessionViewModelTest {
     fun `setUsername updates username state`() {
         viewModel.setUsername("Max")
 
-        val result = viewModel.username.value
+        val result = viewModel.sessionState.value
 
         assertEquals(SessionState("Max"), result)
     }

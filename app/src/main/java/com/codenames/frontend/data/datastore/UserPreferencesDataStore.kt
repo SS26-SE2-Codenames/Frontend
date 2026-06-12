@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.codenames.frontend.data.model.SessionState
+import com.codenames.frontend.data.model.UserState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -35,7 +36,7 @@ class UserPreferencesDataStore @Inject constructor(
 
     suspend fun saveUserData(
         username: String,
-        userId: UUID
+        userId: UUID?
     ) {
         context.dataStore.edit { prefs ->
             prefs[PreferencesKeys.USERNAME] = username
@@ -46,8 +47,6 @@ class UserPreferencesDataStore @Inject constructor(
     val sessionData: Flow<SessionState> =
         context.dataStore.data.map { prefs ->
             SessionState(
-                username = prefs[PreferencesKeys.USERNAME],
-                userId = prefs[PreferencesKeys.USER_ID]?.let(UUID::fromString),
                 lobbyCode = prefs[PreferencesKeys.LOBBY_CODE],
                 lobbyRole = prefs[PreferencesKeys.LOBBY_ROLE]?.let {
                     runCatching { Role.valueOf(it) }.getOrNull()
@@ -55,6 +54,14 @@ class UserPreferencesDataStore @Inject constructor(
                 lobbyTeam = prefs[PreferencesKeys.LOBBY_TEAM]?.let {
                     runCatching { Team.valueOf(it) }.getOrNull()
                 }
+            )
+        }
+
+    val userData: Flow<UserState> =
+        context.dataStore.data.map { prefs ->
+            UserState(
+                username = prefs[PreferencesKeys.USERNAME] ?: "",
+                userId = prefs[PreferencesKeys.USER_ID]?.let(UUID::fromString)
             )
         }
 

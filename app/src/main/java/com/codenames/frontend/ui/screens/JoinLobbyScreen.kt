@@ -77,7 +77,7 @@ fun JoinlobbyScreen(
     val focusManager = LocalFocusManager.current
 
     val state by viewModel.state.collectAsState()
-    val username by sessionViewModel.username.collectAsState()
+    val username by sessionViewModel.userState.collectAsState()
 
     val joinEnabled = isLobbyIdValid(lobbyId)
 
