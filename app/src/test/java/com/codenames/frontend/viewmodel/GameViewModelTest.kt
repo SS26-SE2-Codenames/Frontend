@@ -39,10 +39,6 @@ class GameViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private val lobbyCode = "12345"
-    private val username = "user"
-    private val team = Team.RED.name
-    private val role = Role.OPERATIVE.name
-
     private val testState =
         GameState(
             currentHint = "",
@@ -90,7 +86,7 @@ class GameViewModelTest {
             coEvery { client.connectStomp() } just Runs
             coEvery { client.subscribeToLobby(lobbyCode) } returns flow
 
-            viewModel.connect(username, lobbyCode, team, role)
+            viewModel.connect(lobbyCode)
 
             advanceUntilIdle()
 
@@ -108,11 +104,11 @@ class GameViewModelTest {
             coEvery { client.connectStomp() } just Runs
             coEvery { client.subscribeToLobby(lobbyCode) } returns flow
 
-            viewModel.connect(username, lobbyCode, team, role)
+            viewModel.connect(lobbyCode)
 
             advanceUntilIdle()
 
-            viewModel.connect(username, lobbyCode, team, role)
+            viewModel.connect(lobbyCode)
 
             coVerify { client.connectStomp() }
             coVerify { client.subscribeToLobby(lobbyCode) }
@@ -156,7 +152,7 @@ class GameViewModelTest {
                 client.connectStomp()
             } throws RuntimeException("Connection failed")
 
-            viewModel.connect(username, lobbyCode, team, role)
+            viewModel.connect(lobbyCode)
 
             advanceUntilIdle()
 
@@ -181,10 +177,7 @@ class GameViewModelTest {
             } just Runs
 
             viewModel.connect(
-                username,
                 lobbyCode,
-                team,
-                role,
                 isHost = true,
             )
 
@@ -202,10 +195,7 @@ class GameViewModelTest {
             coEvery { client.subscribeToLobby(any()) } returns emptyFlow()
 
             viewModel.connect(
-                username,
                 "",
-                team,
-                role,
                 isHost = true,
             )
 

@@ -37,10 +37,7 @@ class GameViewModel
         val connectionState: StateFlow<ConnectionState> = _connectionState
 
         fun connect(
-            username: String,
             lobbyCode: String,
-            team: String,
-            role: String,
             isHost: Boolean = false,
         ) {
             job?.cancel()
