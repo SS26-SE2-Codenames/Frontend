@@ -958,7 +958,7 @@ fun CodenamesCard(
         }
 
     val contentColor =
-        if (!card.revealed && !isSpymaster) {
+        if (backgroundColor == AppSurface) {
             AppInk
         } else {
             AppWhite
