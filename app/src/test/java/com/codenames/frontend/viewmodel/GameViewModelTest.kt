@@ -245,7 +245,7 @@ class GameViewModelTest {
 
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
 
-            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            viewModel.submitClue(lobbyCode, "EAGLE", 2, Team.RED)
             advanceUntilIdle()
 
             coVerify { gameRepository.submitClue(lobbyCode, "EAGLE", 2, Team.RED) }
@@ -260,7 +260,7 @@ class GameViewModelTest {
 
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
 
-            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            viewModel.submitClue(lobbyCode, "EAGLE", 2, Team.RED)
             advanceUntilIdle()
 
             val state = viewModel.connectionState.value
@@ -270,7 +270,7 @@ class GameViewModelTest {
     @Test
     fun testSubmitClue_whenTurnIsNone_doesNotSendClue() =
         runTest {
-            viewModel.submitClue(lobbyCode, "EAGLE", 2)
+            viewModel.submitClue(lobbyCode, "EAGLE", 2, Team.RED)
             advanceUntilIdle()
             coVerify(exactly = 0) { gameRepository.submitClue(any(), any(), any(), any()) }
         }
@@ -280,8 +280,34 @@ class GameViewModelTest {
         runTest {
             viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
 
-            viewModel.submitClue("", "EAGLE", 2)
+            viewModel.submitClue("", "EAGLE", 2, Team.RED)
             advanceUntilIdle()
+            coVerify(exactly = 0) {
+                gameRepository.submitClue(any(), any(), any(), any())
+            }
+        }
+
+    @Test
+    fun testSubmitClue_nullTeam_doesNotSendClue() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.submitClue(lobbyCode, "EAGLE", 2, null)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.submitClue(any(), any(), any(), any())
+            }
+        }
+
+    @Test
+    fun testSubmitClue_wrongTeamForCurrentTurn_doesNotSendClue() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.submitClue(lobbyCode, "EAGLE", 2, Team.BLUE)
+            advanceUntilIdle()
+
             coVerify(exactly = 0) {
                 gameRepository.submitClue(any(), any(), any(), any())
             }
