@@ -32,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
@@ -973,6 +974,13 @@ fun CodenamesCard(
                 .then(
                     if (isSelected) {
                         Modifier.border(3.dp, AppGreen, cardShape)
+                    } else {
+                        Modifier
+                    },
+                )
+                .then(
+                    if (card.revealed && isSpymaster) {
+                        Modifier.alpha(0.5f)
                     } else {
                         Modifier
                     },
