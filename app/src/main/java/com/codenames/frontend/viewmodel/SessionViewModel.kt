@@ -89,7 +89,9 @@ class SessionViewModel
         private fun observeUser() {
             viewModelScope.launch {
                 sessionRepository.userFlow.collect { state ->
-                    _userState.value = state
+                    if(state.username.isNotBlank() ) {
+                        _userState.value = state
+                    }
                 }
             }
         }
