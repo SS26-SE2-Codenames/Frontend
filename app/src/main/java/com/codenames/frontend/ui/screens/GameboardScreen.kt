@@ -991,6 +991,6 @@ fun getColor(type: CardType): Color =
     when (type) {
         CardType.BLUE -> AppBlue
         CardType.RED -> AppRed
-        CardType.NEUTRAL -> AppInk
+        CardType.NEUTRAL -> AppSurface
         CardType.ASSASSIN -> AppBlack
     }
