@@ -192,6 +192,31 @@ class GameboardScreenTest {
     }
 
     @Test
+    fun inactiveOperativeCannotSelectCards() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.RED_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards =
+                            listOf(
+                                GameCard("BERLIN", CardType.BLUE),
+                                GameCard("ROME", CardType.RED),
+                            ),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onNodeWithText("BERLIN").performClick()
+        composeRule.onAllNodesWithText("Deselect all").assertCountEquals(0)
+    }
+
+    @Test
     fun clickingSelectedCardRevealsOnlyThatCard() {
         var revealedPositions = emptyList<Int>()
 

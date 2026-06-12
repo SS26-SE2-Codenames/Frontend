@@ -142,7 +142,7 @@ fun GameboardScreen(
 
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
-    val canSelectCards = !isSpymaster && remainingGuesses > 0
+    val canSelectCards = userRole == currentTurn && !isSpymaster && remainingGuesses > 0
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
