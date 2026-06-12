@@ -86,13 +86,8 @@ fun LobbyScreen(
             Log.d("LobbyScreen", "Lobby UI state is started, recomposing")
 
             if (lobbyCode.isNotBlank() && teamAndRole != null) {
-                val (team, role) = teamAndRole
-
                 gameViewModel.connect(
-                    username = userState.username,
                     lobbyCode = lobbyCode,
-                    team = team.name,
-                    role = role.name,
                     isHost = viewModel.getIsHost(userState.username),
                 )
             }
