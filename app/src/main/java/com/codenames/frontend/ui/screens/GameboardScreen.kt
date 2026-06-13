@@ -962,6 +962,7 @@ fun CodenamesCard(
 
     val backgroundColor =
         when {
+            card.revealed && card.type == CardType.NEUTRAL -> AppLightGray
             card.revealed -> getColor(card.type)
             isSpymaster -> getColor(card.type)
             else -> AppSurface
