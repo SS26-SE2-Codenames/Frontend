@@ -64,12 +64,14 @@ import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppBlack
 import com.codenames.frontend.ui.theme.AppBlue
+import com.codenames.frontend.ui.theme.AppBlueTeamBackground
 import com.codenames.frontend.ui.theme.AppGreen
 import com.codenames.frontend.ui.theme.AppInk
 import com.codenames.frontend.ui.theme.AppInkOverlay
 import com.codenames.frontend.ui.theme.AppLightGray
 import com.codenames.frontend.ui.theme.AppMutedDark
 import com.codenames.frontend.ui.theme.AppRed
+import com.codenames.frontend.ui.theme.AppRedTeamBackground
 import com.codenames.frontend.ui.theme.AppSurface
 import com.codenames.frontend.ui.theme.AppSurfaceOverlay
 import com.codenames.frontend.ui.theme.AppWhite
@@ -1011,7 +1013,7 @@ fun getColor(type: CardType): Color =
 
 fun getTeamBackgroundColor(currentTurn: PlayerRoles): Color =
     when (currentTurn) {
-        PlayerRoles.BLUE_OPERATIVE, PlayerRoles.BLUE_SPYMASTER -> Color(0xFFD6E8F5)
-        PlayerRoles.RED_OPERATIVE, PlayerRoles.RED_SPYMASTER -> Color(0xFFF39696)
+        PlayerRoles.BLUE_OPERATIVE, PlayerRoles.BLUE_SPYMASTER -> AppBlueTeamBackground
+        PlayerRoles.RED_OPERATIVE, PlayerRoles.RED_SPYMASTER -> AppRedTeamBackground
         PlayerRoles.NONE -> AppBackground
     }
