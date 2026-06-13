@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.RejoinState
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toGameState
@@ -18,7 +19,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val CONNECTION_ERROR_MESSAGE = "Connection error"
 
@@ -62,7 +65,7 @@ class GameViewModel
                         Log.d("GameViewModel", "Subscribed to Lobby")
 
                         if (isHost) {
-                            delay(2000)
+                            delay(3000.milliseconds)
                             sendGameStart(lobbyCode)
                         }
                     } catch (e: Exception) {
@@ -87,6 +90,7 @@ class GameViewModel
             team: Team?,
         ) {
             if (lobbyCode.isBlank() || team == null) {
+                Log.e("GameViewModel","Could not send request, Team: $team, lobbyCode: $lobbyCode")
                 return
             }
 
@@ -107,6 +111,7 @@ class GameViewModel
             team: Team?,
         ) {
             if (lobbyCode.isBlank() || team == null) {
+                Log.e("GameViewModel","Could not send request, Team: $team, lobbyCode: $lobbyCode")
                 return
             }
 
@@ -139,6 +144,20 @@ class GameViewModel
                     }
                 } catch (e: Exception) {
                     _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                }
+            }
+        }
+
+        fun rejoinGame(username: String, userId: UUID, rejoinState: RejoinState.Available?) {
+            if(rejoinState == null) return
+
+            val lobbyCode = rejoinState.sessionState.lobbyCode
+            val team = rejoinState.sessionState.lobbyTeam
+            val role = rejoinState.sessionState.lobbyRole
+
+            if(lobbyCode != null && team != null && role != null) {
+                viewModelScope.launch {
+                    gameRepository.sendRejoin(username, userId, lobbyCode, role, team)
                 }
             }
         }

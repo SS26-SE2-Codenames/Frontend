@@ -55,3 +55,13 @@ fun GameMessage.getCurrentTurn(): PlayerRoles {
     if (currentPhase == Role.SPYMASTER) return PlayerRoles.BLUE_SPYMASTER
     return PlayerRoles.BLUE_OPERATIVE
 }
+
+fun toPlayerRole(team: Team?, role: Role?): PlayerRoles {
+    if(team == null || role == null) return PlayerRoles.NONE
+    if (team == Team.RED) {
+        if (role == Role.SPYMASTER) return PlayerRoles.RED_SPYMASTER
+        return PlayerRoles.RED_OPERATIVE
+    }
+    if (role == Role.SPYMASTER) return PlayerRoles.BLUE_SPYMASTER
+    return PlayerRoles.BLUE_OPERATIVE
+}

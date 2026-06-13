@@ -3,6 +3,7 @@ package com.codenames.frontend.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.RejoinState
+import com.codenames.frontend.data.model.SessionState
 import com.codenames.frontend.data.model.UserState
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
@@ -66,6 +67,21 @@ class SessionViewModel
         fun clearLobby() {
             viewModelScope.launch {
                 sessionRepository.clearLobbyData()
+            }
+        }
+
+        fun setRejoinStateConsumed() {
+            _rejoinSessionState.update { currentState ->
+                when (currentState) {
+                    is RejoinState.Available -> {
+                        currentState.copy(
+                            sessionState = currentState.sessionState.copy(
+                                consumed = true
+                            )
+                        )
+                    }
+                    RejoinState.None -> currentState
+                }
             }
         }
 

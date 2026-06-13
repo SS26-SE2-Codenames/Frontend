@@ -1,10 +1,14 @@
 package com.codenames.frontend.data.repository
 
+import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GuessMessage
+import com.codenames.frontend.network.dto.LobbyResponse
 import com.codenames.frontend.network.dto.StartGameMessage
+import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketController
+import java.util.UUID
 import javax.inject.Inject
 
 class GameRepository
@@ -45,5 +49,16 @@ class GameRepository
                     currentTurn = currentTurn,
                 )
             webSocketHandler.sendGuess(msg)
+        }
+
+        suspend fun sendRejoin(
+            username: String,
+            userId: UUID,
+            lobbyCode: String,
+            lobbyRole: Role,
+            lobbyTeam: Team
+        ) {
+            val msg = WebSocketJoinMessage(username, lobbyCode)
+            webSocketHandler.sendReconnectMessage(msg)
         }
     }
