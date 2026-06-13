@@ -985,8 +985,8 @@ fun CodenamesCard(
                         Modifier
                     },
                 ).then(
-                    if (card.revealed && isSpymaster) {
-                        Modifier.alpha(0.5f)
+                    if (card.revealed) {
+                        Modifier.alpha(0.75f)
                     } else {
                         Modifier
                     },
