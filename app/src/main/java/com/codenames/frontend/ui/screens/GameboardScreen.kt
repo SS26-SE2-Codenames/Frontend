@@ -998,7 +998,7 @@ fun CodenamesCard(
             AppButtonStyle(
                 containerColor = backgroundColor,
                 contentColor = contentColor,
-                fontSize = dimensions.smallFontSize,
+                fontSize = dimensions.cardFontSize,
                 shape = cardShape,
             ),
     )
