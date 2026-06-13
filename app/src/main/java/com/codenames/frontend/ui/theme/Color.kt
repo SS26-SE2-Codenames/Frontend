@@ -4,6 +4,10 @@ import androidx.compose.ui.graphics.Color
 
 val AppBackground = Color(0xFFF0D8CE)
 
+val AppRedTeamBackground = Color(0xFFF1AAAA)
+
+val AppBlueTeamBackground = Color(0xFFA9D7F6)
+
 val AppInk = Color(0xFF383330)
 val AppInkDark = Color(0xFF1A1513)
 val AppMutedDark = Color(0xFF555555)

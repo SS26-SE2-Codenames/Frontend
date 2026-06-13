@@ -37,6 +37,7 @@ data class ResponsiveDimensions(
     val titleFontSize: TextUnit,
     val bodyFontSize: TextUnit,
     val smallFontSize: TextUnit,
+    val cardFontSize: TextUnit,
     val gameBoardTopSpacing: Dp,
 )
 
@@ -84,6 +85,7 @@ fun responsiveDimensionsFor(
         titleFontSize = compactSp(isCompactHeight, compact = 28, regular = 36),
         bodyFontSize = compactSp(isCompactHeight, compact = 16, regular = 20),
         smallFontSize = compactSp(isCompactHeight, compact = 10, regular = 12),
+        cardFontSize = compactSp(isCompactHeight, compact = 16, regular = 18),
         gameBoardTopSpacing = compactDp(isCompactHeight, compact = 2.dp, regular = 4.dp),
     )
 }

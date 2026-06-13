@@ -32,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
@@ -60,14 +61,17 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppBlack
 import com.codenames.frontend.ui.theme.AppBlue
+import com.codenames.frontend.ui.theme.AppBlueTeamBackground
 import com.codenames.frontend.ui.theme.AppGreen
 import com.codenames.frontend.ui.theme.AppInk
 import com.codenames.frontend.ui.theme.AppInkOverlay
 import com.codenames.frontend.ui.theme.AppLightGray
 import com.codenames.frontend.ui.theme.AppMutedDark
 import com.codenames.frontend.ui.theme.AppRed
+import com.codenames.frontend.ui.theme.AppRedTeamBackground
 import com.codenames.frontend.ui.theme.AppSurface
 import com.codenames.frontend.ui.theme.AppSurfaceOverlay
 import com.codenames.frontend.ui.theme.AppWhite
@@ -159,7 +163,12 @@ fun GameboardScreen(
                 .take(remainingGuesses.coerceAtLeast(0))
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(getTeamBackgroundColor(currentTurn)),
+    ) {
         Column(
             modifier =
                 Modifier
@@ -953,13 +962,14 @@ fun CodenamesCard(
 
     val backgroundColor =
         when {
+            card.revealed && card.type == CardType.NEUTRAL -> AppLightGray
             card.revealed -> getColor(card.type)
             isSpymaster -> getColor(card.type)
             else -> AppSurface
         }
 
     val contentColor =
-        if (!card.revealed && !isSpymaster) {
+        if (backgroundColor == AppSurface) {
             AppInk
         } else {
             AppWhite
@@ -977,12 +987,18 @@ fun CodenamesCard(
                     } else {
                         Modifier
                     },
+                ).then(
+                    if (card.revealed) {
+                        Modifier.alpha(0.75f)
+                    } else {
+                        Modifier
+                    },
                 ),
         style =
             AppButtonStyle(
                 containerColor = backgroundColor,
                 contentColor = contentColor,
-                fontSize = dimensions.smallFontSize,
+                fontSize = dimensions.cardFontSize,
                 shape = cardShape,
             ),
     )
@@ -992,6 +1008,13 @@ fun getColor(type: CardType): Color =
     when (type) {
         CardType.BLUE -> AppBlue
         CardType.RED -> AppRed
-        CardType.NEUTRAL -> AppInk
+        CardType.NEUTRAL -> AppSurface
         CardType.ASSASSIN -> AppBlack
+    }
+
+fun getTeamBackgroundColor(currentTurn: PlayerRoles): Color =
+    when (currentTurn) {
+        PlayerRoles.BLUE_OPERATIVE, PlayerRoles.BLUE_SPYMASTER -> AppBlueTeamBackground
+        PlayerRoles.RED_OPERATIVE, PlayerRoles.RED_SPYMASTER -> AppRedTeamBackground
+        PlayerRoles.NONE -> AppBackground
     }
