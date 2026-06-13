@@ -18,20 +18,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Modifier.Companion.any
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavController
 import com.codenames.frontend.data.model.RejoinState
+import com.codenames.frontend.data.model.RejoinUiState
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
-import com.codenames.frontend.ui.navigation.NavGraph
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
@@ -59,16 +57,24 @@ fun UserNameScreen(
     var username by rememberSaveable { mutableStateOf("") }
 
     val availableRejoinState = rejoinState as? RejoinState.Available
+    val lobbyCode = availableRejoinState?.sessionState?.lobbyCode
+    val userId = userState.userId
 
-    LaunchedEffect(connectionState) {
-        val username = userState.username
-        val userId = userState.userId ?: return@LaunchedEffect
-        val lobbyCode = availableRejoinState?.sessionState?.lobbyCode ?: return@LaunchedEffect
-
-        if(connectionState !is ConnectionState.CONNECTED) return@LaunchedEffect
-
-        gameViewModel.rejoinGame(username, userId, availableRejoinState)
-        lobbyViewModel.startUpdateAfterRejoin(lobbyCode)
+    if(availableRejoinState != null && lobbyCode != null) {
+        HandleRejoinEffects(
+            navController,
+            viewModel,
+            gameViewModel,
+            lobbyViewModel,
+            RejoinUiState(
+                availableRejoinState = availableRejoinState,
+                connectionState = connectionState,
+                gameState = gameState,
+                userId = userId,
+                lobbyCode = lobbyCode,
+                username = username
+            )
+        )
     }
 
     LaunchedEffect(userState.username) {
@@ -76,30 +82,6 @@ fun UserNameScreen(
             username = userState.username
         }
     }
-
-    LaunchedEffect(availableRejoinState) {
-        availableRejoinState?: return@LaunchedEffect
-        if(availableRejoinState.sessionState.consumed) {
-            navController.navigate(Screen.Gameboard.route)
-        }
-    }
-
-    LaunchedEffect(gameState) {
-        if(gameState.currentTurn != PlayerRoles.NONE) {
-            viewModel.setRejoinStateConsumed()
-        }
-    }
-
-    fun onRejoinGame() {
-        val lobbyCode = availableRejoinState?.sessionState?.lobbyCode ?: return
-        gameViewModel.connect(lobbyCode, false)
-    }
-
-    fun onDiscardGame() {
-        viewModel.clearLobby()
-    }
-
-    val showRejoinDialog = rejoinState is RejoinState.Available
 
     Box(
         modifier =
@@ -158,8 +140,15 @@ fun UserNameScreen(
         )
     }
 
-    if(showRejoinDialog) {
-        RejoinDialog(onRejoinGame = ::onRejoinGame, onDiscardGame = ::onDiscardGame)
+    if(availableRejoinState != null) {
+        RejoinDialog(onRejoinGame = {
+                 lobbyCode?.let {
+                    gameViewModel.connect(lobbyCode, false)
+                }
+            },
+            onDiscardGame = {
+                viewModel.clearLobby()
+            })
     }
 }
 
@@ -190,4 +179,44 @@ fun RejoinDialog(
             )
         }
     )
+}
+
+@Composable
+fun HandleRejoinEffects(
+    navController: NavController,
+    viewModel: SessionViewModel,
+    gameViewModel: GameViewModel,
+    lobbyViewModel: LobbyViewModel,
+    rejoinUiState: RejoinUiState
+) {
+    val connectionState = rejoinUiState.connectionState
+    val userId = rejoinUiState.userId
+    val lobbyCode = rejoinUiState.lobbyCode
+    val username = rejoinUiState.username
+    val availableRejoinState = rejoinUiState.availableRejoinState
+    val gameState = rejoinUiState.gameState
+
+
+    val canRejoin =
+        connectionState is ConnectionState.CONNECTED &&
+                userId != null
+
+    LaunchedEffect(canRejoin) {
+        if(!canRejoin) return@LaunchedEffect
+
+        gameViewModel.rejoinGame(username, userId, availableRejoinState)
+        lobbyViewModel.startUpdateAfterRejoin(lobbyCode)
+    }
+
+    LaunchedEffect(availableRejoinState) {
+        if(availableRejoinState.sessionState.consumed) {
+            navController.navigate(Screen.Gameboard.route)
+        }
+    }
+
+    LaunchedEffect(gameState) {
+        if(gameState.currentTurn != PlayerRoles.NONE) {
+            viewModel.setRejoinStateConsumed()
+        }
+    }
 }
