@@ -2,6 +2,8 @@ package com.codenames.frontend.viewmodel
 
 import android.util.Log
 import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.RejoinState
+import com.codenames.frontend.data.model.SessionState
 import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Role
@@ -33,6 +35,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GameViewModelTest {
@@ -474,5 +477,59 @@ class GameViewModelTest {
 
             val state = viewModel.connectionState.value
             assertTrue(state is ConnectionState.Error)
+        }
+
+    @Test
+    fun testSendRejoinMessage_sendsMessage() =
+        runTest {
+            coEvery {
+                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+            } just Runs
+
+            val rejoinState = RejoinState.Available(SessionState(lobbyCode, Role.OPERATIVE, Team.RED))
+
+            viewModel.rejoinGame("User", UUID.randomUUID(), rejoinState)
+
+            advanceUntilIdle()
+
+            coVerify {
+                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+            }
+        }
+
+    @Test
+    fun testSendRejoinMessage_ignoresWithoutRejoinState() =
+        runTest {
+            coEvery {
+                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+            } just Runs
+
+            val rejoinState = null
+
+            viewModel.rejoinGame("User", UUID.randomUUID(), rejoinState )
+
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+            }
+        }
+
+    @Test
+    fun testSendRejoinMessage_ignoresNullValuesInRejoinState() =
+        runTest {
+            coEvery {
+                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+            } just Runs
+
+            val rejoinState = RejoinState.Available(SessionState(null, null, null))
+
+            viewModel.rejoinGame("User", UUID.randomUUID(), rejoinState)
+
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+            }
         }
 }

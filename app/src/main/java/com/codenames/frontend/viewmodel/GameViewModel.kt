@@ -90,7 +90,6 @@ class GameViewModel
             team: Team?,
         ) {
             if (lobbyCode.isBlank() || team == null) {
-                Log.e("GameViewModel","Could not send request, Team: $team, lobbyCode: $lobbyCode")
                 return
             }
 
@@ -111,7 +110,6 @@ class GameViewModel
             team: Team?,
         ) {
             if (lobbyCode.isBlank() || team == null) {
-                Log.e("GameViewModel","Could not send request, Team: $team, lobbyCode: $lobbyCode")
                 return
             }
 
