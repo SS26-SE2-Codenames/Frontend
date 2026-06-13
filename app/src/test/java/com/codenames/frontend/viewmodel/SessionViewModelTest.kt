@@ -8,12 +8,9 @@ import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.SessionRepository
 import io.mockk.coVerify
 import io.mockk.every
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -21,7 +18,10 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
 import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -45,8 +45,8 @@ class SessionViewModelTest {
                     lobbyCode = null,
                     lobbyRole = null,
                     lobbyTeam = null,
-                    consumed = false
-                )
+                    consumed = false,
+                ),
             )
 
         sessionRepository = mockk(relaxed = true)
@@ -84,155 +84,165 @@ class SessionViewModelTest {
     }
 
     @Test
-    fun `persistUserState saves user`() = runTest {
-        val uuid = UUID.randomUUID()
+    fun `persistUserState saves user`() =
+        runTest {
+            val uuid = UUID.randomUUID()
 
-        viewModel.setUsername("Max")
-        viewModel.setUserId(uuid)
+            viewModel.setUsername("Max")
+            viewModel.setUserId(uuid)
 
-        viewModel.persistUserState()
+            viewModel.persistUserState()
 
-        advanceUntilIdle()
+            advanceUntilIdle()
 
-        coVerify {
-            sessionRepository.saveUser("Max", uuid)
+            coVerify {
+                sessionRepository.saveUser("Max", uuid)
+            }
         }
-    }
 
     @Test
-    fun `persistUserState does nothing when userId is null`() = runTest {
-        viewModel.setUsername("Max")
+    fun `persistUserState does nothing when userId is null`() =
+        runTest {
+            viewModel.setUsername("Max")
 
-        viewModel.persistUserState()
+            viewModel.persistUserState()
 
-        advanceUntilIdle()
+            advanceUntilIdle()
 
-        coVerify(exactly = 0) {
-            sessionRepository.saveUser(any(), any())
+            coVerify(exactly = 0) {
+                sessionRepository.saveUser(any(), any())
+            }
         }
-    }
 
     @Test
-    fun `persistLobbyState saves lobby`() = runTest {
-        viewModel.persistLobbyState(
-            lobbyCode = "ABCD",
-            role = Role.OPERATIVE,
-            team = Team.RED
-        )
-
-        advanceUntilIdle()
-
-        coVerify {
-            sessionRepository.saveLobby(
-                "ABCD",
-                Role.OPERATIVE,
-                Team.RED
-            )
-        }
-    }
-
-    @Test
-    fun `clearLobby clears repository lobby data`() = runTest {
-        viewModel.clearLobby()
-
-        advanceUntilIdle()
-
-        coVerify {
-            sessionRepository.clearLobbyData()
-        }
-    }
-
-    @Test
-    fun `observeUser updates state when username is not blank`() = runTest {
-        val uuid = UUID.randomUUID()
-
-        userFlow.value =
-            UserState(
-                username = "Anna",
-                userId = uuid
-            )
-
-        advanceUntilIdle()
-
-        assertEquals("Anna", viewModel.userState.value.username)
-        assertEquals(uuid, viewModel.userState.value.userId)
-    }
-
-    @Test
-    fun `observeUser ignores blank username`() = runTest {
-        userFlow.value =
-            UserState(
-                username = "",
-                userId = UUID.randomUUID()
-            )
-
-        advanceUntilIdle()
-
-        assertEquals("", viewModel.userState.value.username)
-    }
-
-    @Test
-    fun `observeSession creates Available state when lobby data exists`() = runTest {
-        val session =
-            SessionState(
+    fun `persistLobbyState saves lobby`() =
+        runTest {
+            viewModel.persistLobbyState(
                 lobbyCode = "ABCD",
-                lobbyRole = Role.OPERATIVE,
-                lobbyTeam = Team.RED,
-                consumed = false
+                role = Role.OPERATIVE,
+                team = Team.RED,
             )
 
-        sessionFlow.value = session
+            advanceUntilIdle()
 
-        advanceUntilIdle()
-
-        assertTrue(viewModel.rejoinSessionState.value is RejoinState.Available)
-    }
+            coVerify {
+                sessionRepository.saveLobby(
+                    "ABCD",
+                    Role.OPERATIVE,
+                    Team.RED,
+                )
+            }
+        }
 
     @Test
-    fun `observeSession creates None state when lobby data incomplete`() = runTest {
-        sessionFlow.value =
-            SessionState(
-                lobbyCode = null,
-                lobbyRole = Role.OPERATIVE,
-                lobbyTeam = Team.RED,
-                consumed = false
+    fun `clearLobby clears repository lobby data`() =
+        runTest {
+            viewModel.clearLobby()
+
+            advanceUntilIdle()
+
+            coVerify {
+                sessionRepository.clearLobbyData()
+            }
+        }
+
+    @Test
+    fun `observeUser updates state when username is not blank`() =
+        runTest {
+            val uuid = UUID.randomUUID()
+
+            userFlow.value =
+                UserState(
+                    username = "Anna",
+                    userId = uuid,
+                )
+
+            advanceUntilIdle()
+
+            assertEquals("Anna", viewModel.userState.value.username)
+            assertEquals(uuid, viewModel.userState.value.userId)
+        }
+
+    @Test
+    fun `observeUser ignores blank username`() =
+        runTest {
+            userFlow.value =
+                UserState(
+                    username = "",
+                    userId = UUID.randomUUID(),
+                )
+
+            advanceUntilIdle()
+
+            assertEquals("", viewModel.userState.value.username)
+        }
+
+    @Test
+    fun `observeSession creates Available state when lobby data exists`() =
+        runTest {
+            val session =
+                SessionState(
+                    lobbyCode = "ABCD",
+                    lobbyRole = Role.OPERATIVE,
+                    lobbyTeam = Team.RED,
+                    consumed = false,
+                )
+
+            sessionFlow.value = session
+
+            advanceUntilIdle()
+
+            assertTrue(viewModel.rejoinSessionState.value is RejoinState.Available)
+        }
+
+    @Test
+    fun `observeSession creates None state when lobby data incomplete`() =
+        runTest {
+            sessionFlow.value =
+                SessionState(
+                    lobbyCode = null,
+                    lobbyRole = Role.OPERATIVE,
+                    lobbyTeam = Team.RED,
+                    consumed = false,
+                )
+
+            advanceUntilIdle()
+
+            assertEquals(
+                RejoinState.None,
+                viewModel.rejoinSessionState.value,
             )
-
-        advanceUntilIdle()
-
-        assertEquals(
-            RejoinState.None,
-            viewModel.rejoinSessionState.value
-        )
-    }
+        }
 
     @Test
-    fun `setRejoinStateConsumed sets consumed to true`() = runTest {
-        sessionFlow.value =
-            SessionState(
-                lobbyCode = "ABCD",
-                lobbyRole = Role.OPERATIVE,
-                lobbyTeam = Team.RED,
-                consumed = false
+    fun `setRejoinStateConsumed sets consumed to true`() =
+        runTest {
+            sessionFlow.value =
+                SessionState(
+                    lobbyCode = "ABCD",
+                    lobbyRole = Role.OPERATIVE,
+                    lobbyTeam = Team.RED,
+                    consumed = false,
+                )
+
+            advanceUntilIdle()
+
+            viewModel.setRejoinStateConsumed()
+
+            val result =
+                viewModel.rejoinSessionState.value as RejoinState.Available
+
+            assertTrue(result.sessionState.consumed)
+        }
+
+    @Test
+    fun `setRejoinStateConsumed does nothing for None state`() =
+        runTest {
+            viewModel.setRejoinStateConsumed()
+
+            assertEquals(
+                RejoinState.None,
+                viewModel.rejoinSessionState.value,
             )
-
-        advanceUntilIdle()
-
-        viewModel.setRejoinStateConsumed()
-
-        val result =
-            viewModel.rejoinSessionState.value as RejoinState.Available
-
-        assertTrue(result.sessionState.consumed)
-    }
-
-    @Test
-    fun `setRejoinStateConsumed does nothing for None state`() = runTest {
-        viewModel.setRejoinStateConsumed()
-
-        assertEquals(
-            RejoinState.None,
-            viewModel.rejoinSessionState.value
-        )
-    }
+        }
 }

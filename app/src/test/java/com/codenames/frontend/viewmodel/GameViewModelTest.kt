@@ -506,7 +506,7 @@ class GameViewModelTest {
 
             val rejoinState = null
 
-            viewModel.rejoinGame("User", UUID.randomUUID(), rejoinState )
+            viewModel.rejoinGame("User", UUID.randomUUID(), rejoinState)
 
             advanceUntilIdle()
 

@@ -46,7 +46,7 @@ fun UserNameScreen(
     navController: NavController,
     viewModel: SessionViewModel,
     gameViewModel: GameViewModel,
-    lobbyViewModel: LobbyViewModel
+    lobbyViewModel: LobbyViewModel,
 ) {
     val userState by viewModel.userState.collectAsState()
     val rejoinState by viewModel.rejoinSessionState.collectAsState()
@@ -60,7 +60,7 @@ fun UserNameScreen(
     val lobbyCode = availableRejoinState?.sessionState?.lobbyCode
     val userId = userState.userId
 
-    if(availableRejoinState != null && lobbyCode != null) {
+    if (availableRejoinState != null && lobbyCode != null) {
         HandleRejoinEffects(
             navController,
             viewModel,
@@ -72,8 +72,8 @@ fun UserNameScreen(
                 gameState = gameState,
                 userId = userId,
                 lobbyCode = lobbyCode,
-                username = username
-            )
+                username = username,
+            ),
         )
     }
 
@@ -117,7 +117,7 @@ fun UserNameScreen(
                 onClick = {
                     if (username.isBlank()) return@AppButton
                     viewModel.setUsername(username)
-                    viewModel.setUserId(UUID.randomUUID()) //ONLY FOR TESTING!!!!
+                    viewModel.setUserId(UUID.randomUUID()) // ONLY FOR TESTING!!!!
                     navController.navigate(Screen.Start.route)
                 },
                 modifier =
@@ -140,23 +140,25 @@ fun UserNameScreen(
         )
     }
 
-    if(availableRejoinState != null) {
-        RejoinDialog(onRejoinGame = {
-                 lobbyCode?.let {
+    if (availableRejoinState != null) {
+        RejoinDialog(
+            onRejoinGame = {
+                lobbyCode?.let {
                     gameViewModel.connect(lobbyCode, false)
                 }
             },
             onDiscardGame = {
                 viewModel.clearLobby()
-            })
+            },
+        )
     }
 }
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun RejoinDialog(
-    onRejoinGame : () -> Unit,
-    onDiscardGame: () -> Unit
+    onRejoinGame: () -> Unit,
+    onDiscardGame: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = {},
@@ -169,25 +171,26 @@ fun RejoinDialog(
         confirmButton = {
             AppButton(
                 text = "Beitreten",
-                onClick = { onRejoinGame() }
+                onClick = { onRejoinGame() },
             )
         },
         dismissButton = {
             AppButton(
                 text = "Verwerfen",
-                onClick = { onDiscardGame() }
+                onClick = { onDiscardGame() },
             )
-        }
+        },
     )
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun HandleRejoinEffects(
     navController: NavController,
     viewModel: SessionViewModel,
     gameViewModel: GameViewModel,
     lobbyViewModel: LobbyViewModel,
-    rejoinUiState: RejoinUiState
+    rejoinUiState: RejoinUiState,
 ) {
     val connectionState = rejoinUiState.connectionState
     val userId = rejoinUiState.userId
@@ -196,26 +199,25 @@ fun HandleRejoinEffects(
     val availableRejoinState = rejoinUiState.availableRejoinState
     val gameState = rejoinUiState.gameState
 
-
     val canRejoin =
         connectionState is ConnectionState.CONNECTED &&
-                userId != null
+            userId != null
 
     LaunchedEffect(canRejoin) {
-        if(!canRejoin) return@LaunchedEffect
+        if (!canRejoin) return@LaunchedEffect
 
         gameViewModel.rejoinGame(username, userId, availableRejoinState)
         lobbyViewModel.startUpdateAfterRejoin(lobbyCode)
     }
 
     LaunchedEffect(availableRejoinState) {
-        if(availableRejoinState.sessionState.consumed) {
+        if (availableRejoinState.sessionState.consumed) {
             navController.navigate(Screen.Gameboard.route)
         }
     }
 
     LaunchedEffect(gameState) {
-        if(gameState.currentTurn != PlayerRoles.NONE) {
+        if (gameState.currentTurn != PlayerRoles.NONE) {
             viewModel.setRejoinStateConsumed()
         }
     }

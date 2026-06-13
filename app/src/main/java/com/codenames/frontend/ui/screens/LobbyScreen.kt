@@ -79,7 +79,7 @@ fun LobbyScreen(
     }
 
     LaunchedEffect(userState.userId) {
-        if(userState.userId != null) {
+        if (userState.userId != null) {
             sessionViewModel.persistUserState()
         }
     }
@@ -120,7 +120,7 @@ fun LobbyScreen(
                 sessionViewModel.persistLobbyState(
                     lobbyCode,
                     role,
-                    team
+                    team,
                 )
             }
         }

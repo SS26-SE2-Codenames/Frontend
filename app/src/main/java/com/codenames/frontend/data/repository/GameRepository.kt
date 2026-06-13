@@ -55,7 +55,7 @@ class GameRepository
             userId: UUID,
             lobbyCode: String,
             lobbyRole: Role,
-            lobbyTeam: Team
+            lobbyTeam: Team,
         ) {
             val msg = WebSocketJoinMessage(username, lobbyCode)
             webSocketHandler.sendReconnectMessage(msg)

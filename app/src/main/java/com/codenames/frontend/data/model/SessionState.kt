@@ -7,5 +7,5 @@ data class SessionState(
     val lobbyCode: String? = null,
     val lobbyRole: Role? = null,
     val lobbyTeam: Team? = null,
-    val consumed: Boolean = false
+    val consumed: Boolean = false,
 )

@@ -34,7 +34,7 @@ fun GameScreenWrapper(
     val winner = gameState.winner
 
     LaunchedEffect(winner) {
-        if(winner != null) {
+        if (winner != null) {
             sessionViewModel.clearLobby()
         }
     }

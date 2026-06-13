@@ -11,21 +11,30 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SessionRepository @Inject constructor(
-    private val dataStore: UserPreferencesDataStore
-){
-    val sessionFlow: Flow<SessionState> = dataStore.sessionData
-    val userFlow: Flow<UserState> = dataStore.userData
+class SessionRepository
+    @Inject
+    constructor(
+        private val dataStore: UserPreferencesDataStore,
+    ) {
+        val sessionFlow: Flow<SessionState> = dataStore.sessionData
+        val userFlow: Flow<UserState> = dataStore.userData
 
-    suspend fun saveLobby(lobbyCode: String, lobbyRole: Role, lobbyTeam: Team) {
-        dataStore.saveLobbyData(lobbyCode, lobbyRole, lobbyTeam)
-    }
+        suspend fun saveLobby(
+            lobbyCode: String,
+            lobbyRole: Role,
+            lobbyTeam: Team,
+        ) {
+            dataStore.saveLobbyData(lobbyCode, lobbyRole, lobbyTeam)
+        }
 
-    suspend fun saveUser(username: String, userId: UUID?) {
-        dataStore.saveUserData(username, userId)
-    }
+        suspend fun saveUser(
+            username: String,
+            userId: UUID?,
+        ) {
+            dataStore.saveUserData(username, userId)
+        }
 
-    suspend fun clearLobbyData() {
-        dataStore.clearSessionData()
+        suspend fun clearLobbyData() {
+            dataStore.clearSessionData()
+        }
     }
-}

@@ -146,14 +146,18 @@ class GameViewModel
             }
         }
 
-        fun rejoinGame(username: String, userId: UUID, rejoinState: RejoinState.Available?) {
-            if(rejoinState == null) return
+        fun rejoinGame(
+            username: String,
+            userId: UUID,
+            rejoinState: RejoinState.Available?,
+        ) {
+            if (rejoinState == null) return
 
             val lobbyCode = rejoinState.sessionState.lobbyCode
             val team = rejoinState.sessionState.lobbyTeam
             val role = rejoinState.sessionState.lobbyRole
 
-            if(lobbyCode != null && team != null && role != null) {
+            if (lobbyCode != null && team != null && role != null) {
                 viewModelScope.launch {
                     gameRepository.sendRejoin(username, userId, lobbyCode, role, team)
                 }

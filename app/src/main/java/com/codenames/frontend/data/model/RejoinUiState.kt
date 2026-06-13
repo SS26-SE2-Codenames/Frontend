@@ -9,5 +9,5 @@ data class RejoinUiState(
     val gameState: GameState,
     val username: String,
     val userId: UUID?,
-    val lobbyCode: String
+    val lobbyCode: String,
 )

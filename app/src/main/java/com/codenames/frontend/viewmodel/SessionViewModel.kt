@@ -19,9 +19,11 @@ import javax.inject.Inject
 class SessionViewModel
     @Inject
     constructor(
-        private val sessionRepository: SessionRepository
+        private val sessionRepository: SessionRepository,
     ) : ViewModel() {
-        private val _userState = MutableStateFlow(UserState("", null)) //initialized with random UUID, is replaced when real uuid is collected
+        private val _userState = MutableStateFlow(UserState("", null))
+
+        // initialized with random UUID, is replaced when real uuid is collected
         val userState: StateFlow<UserState> = _userState
 
         private val _rejoinSessionState = MutableStateFlow<RejoinState>(RejoinState.None)
@@ -41,15 +43,21 @@ class SessionViewModel
         fun setUserId(userId: UUID) {
             _userState.update {
                 it.copy(
-                    userId = userId
+                    userId = userId,
                 )
             }
         }
 
-        fun persistLobbyState(lobbyCode: String, role: Role, team: Team) {
+        fun persistLobbyState(
+            lobbyCode: String,
+            role: Role,
+            team: Team,
+        ) {
             viewModelScope.launch {
                 sessionRepository.saveLobby(
-                    lobbyCode, role, team
+                    lobbyCode,
+                    role,
+                    team,
                 )
             }
         }
@@ -58,7 +66,7 @@ class SessionViewModel
             viewModelScope.launch {
                 sessionRepository.saveUser(
                     _userState.value.username,
-                    _userState.value.userId ?: return@launch
+                    _userState.value.userId ?: return@launch,
                 )
             }
         }
@@ -74,9 +82,10 @@ class SessionViewModel
                 when (currentState) {
                     is RejoinState.Available -> {
                         currentState.copy(
-                            sessionState = currentState.sessionState.copy(
-                                consumed = true
-                            )
+                            sessionState =
+                                currentState.sessionState.copy(
+                                    consumed = true,
+                                ),
                         )
                     }
                     RejoinState.None -> currentState
@@ -104,10 +113,10 @@ class SessionViewModel
         private fun observeUser() {
             viewModelScope.launch {
                 sessionRepository.userFlow.collect { state ->
-                    if(state.username.isNotBlank() ) {
+                    if (state.username.isNotBlank()) {
                         _userState.value = state
                     }
                 }
             }
         }
-}
+    }
