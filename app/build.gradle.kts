@@ -95,6 +95,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
             include("jacoco/testDebugUnitTest.exec")
             include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
             include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec.ec")
+            include("outputs/androidTest-results/connected/**/*.ec")
+            include("outputs/code_coverage/**/connected/**/*.ec")
         },
     )
 }
