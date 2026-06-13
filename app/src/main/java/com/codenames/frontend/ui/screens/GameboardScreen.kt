@@ -61,6 +61,7 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.roles.PlayerRoles
+import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppBlack
 import com.codenames.frontend.ui.theme.AppBlue
 import com.codenames.frontend.ui.theme.AppGreen
@@ -160,7 +161,12 @@ fun GameboardScreen(
                 .take(remainingGuesses.coerceAtLeast(0))
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(getTeamBackgroundColor(currentTurn)),
+    ) {
         Column(
             modifier =
                 Modifier
@@ -1001,4 +1007,11 @@ fun getColor(type: CardType): Color =
         CardType.RED -> AppRed
         CardType.NEUTRAL -> AppSurface
         CardType.ASSASSIN -> AppBlack
+    }
+
+fun getTeamBackgroundColor(currentTurn: PlayerRoles): Color =
+    when (currentTurn) {
+        PlayerRoles.BLUE_OPERATIVE, PlayerRoles.BLUE_SPYMASTER -> Color(0xFFD6E8F5)
+        PlayerRoles.RED_OPERATIVE, PlayerRoles.RED_SPYMASTER -> Color(0xFFF39696)
+        PlayerRoles.NONE -> AppBackground
     }
