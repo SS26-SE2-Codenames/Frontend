@@ -16,6 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
     private lateinit var repository: ChatRepository
     private lateinit var viewModel: ChatViewModel

@@ -132,6 +132,11 @@ android {
                 "proguard-rules.pro",
             )
         }
+
+        debug {
+            enableUnitTestCoverage = true
+            enableAndroidTestCoverage = true
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -140,6 +145,19 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("pixel6Api34") {
+                    device = "Pixel 6"
+                    apiLevel = 34
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
     }
 }
 
