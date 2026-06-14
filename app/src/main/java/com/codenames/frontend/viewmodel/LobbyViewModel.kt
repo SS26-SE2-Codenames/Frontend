@@ -232,6 +232,10 @@ class LobbyViewModel
             }
         }
 
+        fun startUpdateAfterRejoin(lobbyCode: String) {
+            startPolling(lobbyCode)
+        }
+
         private fun cleanup() {
             _state.update {
                 it.copy(

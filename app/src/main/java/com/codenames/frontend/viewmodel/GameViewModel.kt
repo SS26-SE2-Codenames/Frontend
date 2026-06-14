@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.model.GameState
+import com.codenames.frontend.data.model.RejoinState
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toGameState
@@ -18,7 +19,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val CONNECTION_ERROR_MESSAGE = "Connection error"
 
@@ -37,10 +40,7 @@ class GameViewModel
         val connectionState: StateFlow<ConnectionState> = _connectionState
 
         fun connect(
-            username: String,
             lobbyCode: String,
-            team: String,
-            role: String,
             isHost: Boolean = false,
         ) {
             job?.cancel()
@@ -65,7 +65,7 @@ class GameViewModel
                         Log.d("GameViewModel", "Subscribed to Lobby")
 
                         if (isHost) {
-                            delay(2000)
+                            delay(3000.milliseconds)
                             sendGameStart(lobbyCode)
                         }
                     } catch (e: Exception) {
@@ -87,15 +87,14 @@ class GameViewModel
             lobbyCode: String,
             word: String,
             count: Int,
+            team: Team?,
         ) {
-            if (lobbyCode.isBlank()) {
+            if (lobbyCode.isBlank() || team == null) {
                 return
             }
 
             val turn = uiState.value.currentTurn
-            if (turn != PlayerRoles.BLUE_SPYMASTER && turn != PlayerRoles.RED_SPYMASTER) return
-
-            val team = if (turn == PlayerRoles.BLUE_SPYMASTER) Team.BLUE else Team.RED
+            if (!team.isActiveSpymasterTurn(turn)) return
             viewModelScope.launch {
                 try {
                     gameRepository.submitClue(lobbyCode, word, count, team)
@@ -108,15 +107,14 @@ class GameViewModel
         fun submitGuess(
             lobbyCode: String,
             position: Int,
+            team: Team?,
         ) {
-            if (lobbyCode.isBlank()) {
+            if (lobbyCode.isBlank() || team == null) {
                 return
             }
 
             val turn = uiState.value.currentTurn
-            if (turn != PlayerRoles.BLUE_OPERATIVE && turn != PlayerRoles.RED_OPERATIVE) return
-
-            val team = if (turn == PlayerRoles.BLUE_OPERATIVE) Team.BLUE else Team.RED
+            if (!team.isActiveOperativeTurn(turn)) return
             viewModelScope.launch {
                 try {
                     gameRepository.submitGuess(lobbyCode, position, team)
@@ -129,15 +127,14 @@ class GameViewModel
         fun submitGuesses(
             lobbyCode: String,
             positions: List<Int>,
+            team: Team?,
         ) {
-            if (lobbyCode.isBlank() || positions.isEmpty()) {
+            if (lobbyCode.isBlank() || positions.isEmpty() || team == null) {
                 return
             }
 
             val turn = uiState.value.currentTurn
-            if (turn != PlayerRoles.BLUE_OPERATIVE && turn != PlayerRoles.RED_OPERATIVE) return
-
-            val team = if (turn == PlayerRoles.BLUE_OPERATIVE) Team.BLUE else Team.RED
+            if (!team.isActiveOperativeTurn(turn)) return
             viewModelScope.launch {
                 try {
                     positions.forEach { position ->
@@ -148,6 +145,32 @@ class GameViewModel
                 }
             }
         }
+
+        fun rejoinGame(
+            username: String,
+            userId: UUID,
+            rejoinState: RejoinState.Available?,
+        ) {
+            if (rejoinState == null) return
+
+            val lobbyCode = rejoinState.sessionState.lobbyCode
+            val team = rejoinState.sessionState.lobbyTeam
+            val role = rejoinState.sessionState.lobbyRole
+
+            if (lobbyCode != null && team != null && role != null) {
+                viewModelScope.launch {
+                    gameRepository.sendRejoin(username, userId, lobbyCode, role, team)
+                }
+            }
+        }
+
+        private fun Team.isActiveOperativeTurn(turn: PlayerRoles): Boolean =
+            (this == Team.BLUE && turn == PlayerRoles.BLUE_OPERATIVE) ||
+                (this == Team.RED && turn == PlayerRoles.RED_OPERATIVE)
+
+        private fun Team.isActiveSpymasterTurn(turn: PlayerRoles): Boolean =
+            (this == Team.BLUE && turn == PlayerRoles.BLUE_SPYMASTER) ||
+                (this == Team.RED && turn == PlayerRoles.RED_SPYMASTER)
 
         fun handleMessage(message: GameMessage) {
             val state = message.toGameState()

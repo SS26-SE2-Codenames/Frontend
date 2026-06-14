@@ -1,6 +1,7 @@
 package com.codenames.frontend.ui.screens
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
@@ -22,14 +23,21 @@ fun GameScreenWrapper(
     val lobbyState by lobbyViewModel.state.collectAsState()
     val gameState by gameViewModel.uiState.collectAsState()
     val chatState by chatViewModel.chatState.collectAsState()
-    val usernameState by sessionViewModel.username.collectAsState()
+    val userState by sessionViewModel.userState.collectAsState()
 
-    val username = usernameState.username
+    val username = userState.username
     val lobbyCode = lobbyState.lobbyCode.orEmpty()
     val currentPlayer = lobbyState.players.firstOrNull { it.name == username }
     val team = currentPlayer?.team
     val userRole = lobbyViewModel.getRoleForUser(username)
     val availableChatTabs = lobbyViewModel.getAvailableChatTabsForUser(username)
+    val winner = gameState.winner
+
+    LaunchedEffect(winner) {
+        if (winner != null) {
+            sessionViewModel.clearLobby()
+        }
+    }
 
     GameboardScreen(
         userRole = userRole,
@@ -39,10 +47,10 @@ fun GameScreenWrapper(
                 availableChatTabs = availableChatTabs,
             ),
         onHintChange = { word, count ->
-            gameViewModel.submitClue(lobbyCode, word, count)
+            gameViewModel.submitClue(lobbyCode, word, count, team)
         },
         onReveal = { positions ->
-            gameViewModel.submitGuesses(lobbyCode, positions)
+            gameViewModel.submitGuesses(lobbyCode, positions, team)
         },
         onSendChatMessage = { tab, message ->
             chatViewModel.sendChatMessage(

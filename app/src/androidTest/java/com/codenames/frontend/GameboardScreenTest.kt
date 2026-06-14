@@ -40,6 +40,7 @@ class GameboardScreenTest {
                         currentHint = "EAGLE",
                         currentTurn = PlayerRoles.BLUE_OPERATIVE,
                         remainingGuesses = 3,
+                        numGuesses = 3,
                         currentBlueFound = 0,
                         currentRedFound = 1,
                         cards = cards,
@@ -51,10 +52,9 @@ class GameboardScreenTest {
 
         composeRule.onNodeWithText("BERLIN").assertIsDisplayed()
         composeRule.onNodeWithText("ROME").assertIsDisplayed()
-        composeRule.onNodeWithText("Turn: BLUE_OPERATIVE | Guesses: 3").assertIsDisplayed()
+        composeRule.onNodeWithText("Turn: BLUE_OPERATIVE | Remaining Guesses: 3/3").assertIsDisplayed()
         composeRule.onNodeWithText("0 FOUND").assertIsDisplayed()
         composeRule.onNodeWithText("1 FOUND").assertIsDisplayed()
-        composeRule.onAllNodesWithText("Hint: EAGLE").assertCountEquals(0)
     }
 
     @Test
@@ -73,6 +73,25 @@ class GameboardScreenTest {
         }
 
         composeRule.onNodeWithText("Hint: EAGLE").assertIsDisplayed()
+    }
+
+    @Test
+    fun inactiveSpymasterCannotEnterClue() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_SPYMASTER,
+                gameState =
+                    GameState(
+                        currentHint = "",
+                        currentTurn = PlayerRoles.RED_SPYMASTER,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("SEND").assertCountEquals(0)
     }
 
     @Test
@@ -188,6 +207,31 @@ class GameboardScreenTest {
         composeRule.onNodeWithText("Deselect all").assertIsDisplayed()
 
         composeRule.onNodeWithText("Deselect all").performClick()
+        composeRule.onAllNodesWithText("Deselect all").assertCountEquals(0)
+    }
+
+    @Test
+    fun inactiveOperativeCannotSelectCards() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.RED_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards =
+                            listOf(
+                                GameCard("BERLIN", CardType.BLUE),
+                                GameCard("ROME", CardType.RED),
+                            ),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onNodeWithText("BERLIN").performClick()
         composeRule.onAllNodesWithText("Deselect all").assertCountEquals(0)
     }
 

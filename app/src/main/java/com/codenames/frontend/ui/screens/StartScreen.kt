@@ -41,7 +41,7 @@ fun StartScreen(
 
     val dimensions = LocalResponsiveDimensions.current
     val lobbyState by lobbyViewModel.state.collectAsState()
-    val usernameState by sessionViewModel.username.collectAsState()
+    val userState by sessionViewModel.userState.collectAsState()
 
     LaunchedEffect(lobbyState.lobbyCode, lobbyState.error, lobbyState.isLoading) {
         if (!lobbyState.isLoading && lobbyState.error == null && lobbyState.lobbyCode != null) {
@@ -64,7 +64,7 @@ fun StartScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Welcome to Codenames, ${usernameState.username}!",
+                text = "Welcome to Codenames, ${userState.username}!",
                 fontSize = dimensions.titleFontSize,
                 modifier = Modifier.padding(bottom = dimensions.sectionSpacing * 2),
             )
@@ -76,7 +76,7 @@ fun StartScreen(
                 AppButton(
                     text = "Create Lobby",
                     onClick = {
-                        lobbyViewModel.createLobby(usernameState.username)
+                        lobbyViewModel.createLobby(userState.username)
                     },
                     modifier =
                         Modifier

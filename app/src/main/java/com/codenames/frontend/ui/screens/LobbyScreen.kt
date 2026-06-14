@@ -68,14 +68,20 @@ fun LobbyScreen(
     chatViewModel: ChatViewModel,
 ) {
     val dimensions = LocalResponsiveDimensions.current
-    val usernameState by sessionViewModel.username.collectAsState()
+    val userState by sessionViewModel.userState.collectAsState()
     val lobbyUiState by viewModel.state.collectAsState()
-    val currentPlayer = lobbyUiState.players.firstOrNull { it.name == usernameState.username }
+    val currentPlayer = lobbyUiState.players.firstOrNull { it.name == userState.username }
     val currentRole = currentPlayer?.toPlayerRole() ?: PlayerRoles.NONE
     val connectionState by gameViewModel.connectionState.collectAsState()
 
     val onStartGame = {
-        viewModel.sendStartGame(usernameState.username)
+        viewModel.sendStartGame(userState.username)
+    }
+
+    LaunchedEffect(userState.userId) {
+        if (userState.userId != null) {
+            sessionViewModel.persistUserState()
+        }
     }
 
     LaunchedEffect(lobbyUiState.isGameStarted) {
@@ -86,14 +92,9 @@ fun LobbyScreen(
             Log.d("LobbyScreen", "Lobby UI state is started, recomposing")
 
             if (lobbyCode.isNotBlank() && teamAndRole != null) {
-                val (team, role) = teamAndRole
-
                 gameViewModel.connect(
-                    username = usernameState.username,
                     lobbyCode = lobbyCode,
-                    team = team.name,
-                    role = role.name,
-                    isHost = viewModel.getIsHost(usernameState.username),
+                    isHost = viewModel.getIsHost(userState.username),
                 )
             }
         }
@@ -110,10 +111,16 @@ fun LobbyScreen(
                 val (team, role) = teamAndRole
 
                 chatViewModel.subscribeToChats(
-                    username = usernameState.username,
+                    username = userState.username,
                     lobbyCode = lobbyCode,
                     team = team.name,
                     role = role.name,
+                )
+
+                sessionViewModel.persistLobbyState(
+                    lobbyCode,
+                    role,
+                    team,
                 )
             }
         }
@@ -144,7 +151,7 @@ fun LobbyScreen(
                 gradient = blueGradient,
                 textColor = AppBlueLight,
                 title = "BLUE TEAM",
-                onRoleSelect = { viewModel.changeRole(it, usernameState.username) },
+                onRoleSelect = { viewModel.changeRole(it, userState.username) },
                 lobbyUiState = lobbyUiState,
             )
 
@@ -167,7 +174,7 @@ fun LobbyScreen(
                 gradient = redGradient,
                 textColor = AppRedLight,
                 title = "RED TEAM",
-                onRoleSelect = { viewModel.changeRole(it, usernameState.username) },
+                onRoleSelect = { viewModel.changeRole(it, userState.username) },
                 lobbyUiState = lobbyUiState,
             )
         }
@@ -319,12 +326,12 @@ fun GameSettingsColumn(
     onStartGame: () -> Unit,
 ) {
     val dimensions = LocalResponsiveDimensions.current
-    val usernameState by sessionViewModel.username.collectAsState()
+    val userState by sessionViewModel.userState.collectAsState()
     val canStart =
-        usernameState.username.isNotBlank() &&
+        userState.username.isNotBlank() &&
             lobbyCode.isNotBlank() &&
             currentRole != PlayerRoles.NONE &&
-            viewModel.getIsHost(usernameState.username)
+            viewModel.getIsHost(userState.username)
 
     Column(
         modifier = modifier,
@@ -415,7 +422,7 @@ fun GameSettingsColumn(
                         }
                     }
                 }
-                viewModel.leaveLobby(username = usernameState.username, onResult = onResult)
+                viewModel.leaveLobby(username = userState.username, onResult = onResult)
             },
             modifier =
                 Modifier
