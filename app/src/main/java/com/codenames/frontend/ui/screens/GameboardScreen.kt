@@ -121,6 +121,7 @@ fun GameboardScreen(
     onHintChange: (String, Int) -> Unit,
     onReveal: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
+    onPassTurn: () -> Unit = {},
     onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
 ) {
@@ -147,7 +148,8 @@ fun GameboardScreen(
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val isActiveSpymaster = userRole == currentTurn && isSpymaster
-    val canSelectCards = userRole == currentTurn && !isSpymaster && remainingGuesses > 0
+    val canEndTurn = userRole == currentTurn && !isSpymaster && remainingGuesses > 0
+    val canSelectCards = canEndTurn
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -187,11 +189,23 @@ fun GameboardScreen(
                 numGuesses = numGuesses,
             )
 
-            ChatToggle(
-                isVisible = availableChatTabs.isNotEmpty(),
-                isChatOpen = isChatOpen,
-                onClick = { isChatOpen = !isChatOpen },
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ChatToggle(
+                    isVisible = availableChatTabs.isNotEmpty(),
+                    isChatOpen = isChatOpen,
+                    onClick = { isChatOpen = !isChatOpen },
+                )
+
+                EndTurnButton(
+                    isVisible = canEndTurn,
+                    onClick = onPassTurn,
+                    modifier = Modifier.width(140.dp),
+                )
+            }
 
             Spacer(modifier = Modifier.height(dimensions.gameBoardTopSpacing))
 
@@ -443,6 +457,32 @@ private fun DeselectAllButton(
             modifier =
                 modifier
                     .fillMaxWidth()
+                    .height(dimensions.secondaryButtonHeight),
+            style =
+                AppButtonStyle(
+                    containerColor = AppGreen,
+                    contentColor = AppWhite,
+                    fontSize = dimensions.bodyFontSize,
+                ),
+        )
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+private fun EndTurnButton(
+    isVisible: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val dimensions = LocalResponsiveDimensions.current
+
+    if (isVisible) {
+        AppButton(
+            text = "End Turn",
+            onClick = onClick,
+            modifier =
+                modifier
                     .height(dimensions.secondaryButtonHeight),
             style =
                 AppButtonStyle(

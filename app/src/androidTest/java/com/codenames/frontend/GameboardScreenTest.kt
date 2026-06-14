@@ -236,6 +236,93 @@ class GameboardScreenTest {
     }
 
     @Test
+    fun activeOperativeSeesEndTurnButton() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onNodeWithText("End Turn").assertIsDisplayed()
+    }
+
+    @Test
+    fun spymasterDoesNotSeeEndTurnButton() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_SPYMASTER,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("End Turn").assertCountEquals(0)
+    }
+
+    @Test
+    fun inactiveOperativeDoesNotSeeEndTurnButton() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.RED_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("End Turn").assertCountEquals(0)
+    }
+
+    @Test
+    fun endTurnButtonCallsPassTurn() {
+        var passTurnClicks = 0
+
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onPassTurn = { passTurnClicks++ },
+            )
+        }
+
+        composeRule.onNodeWithText("End Turn").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(1, passTurnClicks)
+        }
+    }
+
+    @Test
     fun clickingSelectedCardRevealsOnlyThatCard() {
         var revealedPositions = emptyList<Int>()
 

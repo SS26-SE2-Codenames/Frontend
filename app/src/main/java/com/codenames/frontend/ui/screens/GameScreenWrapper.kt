@@ -52,6 +52,9 @@ fun GameScreenWrapper(
         onReveal = { positions ->
             gameViewModel.submitGuesses(lobbyCode, positions, team)
         },
+        onPassTurn = {
+            gameViewModel.passTurn(lobbyCode, team)
+        },
         onSendChatMessage = { tab, message ->
             chatViewModel.sendChatMessage(
                 tab = tab,
