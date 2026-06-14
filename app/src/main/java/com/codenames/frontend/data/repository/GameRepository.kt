@@ -4,6 +4,7 @@ import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GuessMessage
+import com.codenames.frontend.network.dto.PassTurnMessage
 import com.codenames.frontend.network.dto.StartGameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import com.codenames.frontend.network.websocket.GameWebSocketController
@@ -46,8 +47,20 @@ class GameRepository
                     lobbyCode = lobbyCode,
                     position = position,
                     currentTurn = currentTurn,
-                )
+            )
             webSocketHandler.sendGuess(msg)
+        }
+
+        suspend fun passTurn(
+            lobbyCode: String,
+            currentTurn: Team,
+        ) {
+            val msg =
+                PassTurnMessage(
+                    lobbyCode = lobbyCode,
+                    currentTurn = currentTurn,
+                )
+            webSocketHandler.passTurn(msg)
         }
 
         suspend fun sendRejoin(
