@@ -149,7 +149,6 @@ android {
         buildConfig = true
     }
 
-
     testOptions {
         managedDevices {
             localDevices {
