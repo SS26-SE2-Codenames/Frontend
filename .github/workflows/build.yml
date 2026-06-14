@@ -34,6 +34,12 @@ jobs:
         run: chmod +x ./gradlew
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+          | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
       - name: Run Android Test (Managed Device)
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -41,6 +47,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
+          emulator-boot-timeout: 900
           script: ./gradlew connectedDebugAndroidTest
       - name: Build project
         run: ./gradlew build
