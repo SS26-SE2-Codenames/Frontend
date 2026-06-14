@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.codenames.frontend.ui.theme.AppInk
@@ -27,7 +28,7 @@ fun BoxScope.SettingsCornerButton(onClick: () -> Unit) {
         modifier =
             Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = dimensions.smallSpacing, end = dimensions.smallSpacing)
+                .padding(top = 0.dp, end = dimensions.smallSpacing)
                 .width(dimensions.cornerButtonSize)
                 .height(dimensions.cornerButtonSize)
                 .zIndex(1f),
