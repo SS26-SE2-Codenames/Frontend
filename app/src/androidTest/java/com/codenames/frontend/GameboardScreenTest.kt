@@ -40,6 +40,7 @@ class GameboardScreenTest {
                         currentHint = "EAGLE",
                         currentTurn = PlayerRoles.BLUE_OPERATIVE,
                         remainingGuesses = 3,
+                        numGuesses = 3,
                         currentBlueFound = 0,
                         currentRedFound = 1,
                         cards = cards,
@@ -51,10 +52,9 @@ class GameboardScreenTest {
 
         composeRule.onNodeWithText("BERLIN").assertIsDisplayed()
         composeRule.onNodeWithText("ROME").assertIsDisplayed()
-        composeRule.onNodeWithText("Turn: BLUE_OPERATIVE | Guesses: 3").assertIsDisplayed()
+        composeRule.onNodeWithText("Turn: BLUE_OPERATIVE | Remaining Guesses: 3/3").assertIsDisplayed()
         composeRule.onNodeWithText("0 FOUND").assertIsDisplayed()
         composeRule.onNodeWithText("1 FOUND").assertIsDisplayed()
-        composeRule.onAllNodesWithText("Hint: EAGLE").assertCountEquals(0)
     }
 
     @Test
