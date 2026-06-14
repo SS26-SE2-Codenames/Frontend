@@ -47,7 +47,7 @@ class GameRepository
                     lobbyCode = lobbyCode,
                     position = position,
                     currentTurn = currentTurn,
-            )
+                )
             webSocketHandler.sendGuess(msg)
         }
 
