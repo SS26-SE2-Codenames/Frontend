@@ -174,17 +174,15 @@ fun GameboardScreen(
 
     val currentCanSelectCards by rememberUpdatedState(canSelectCards)
     val currentSelectedCardPositions by rememberUpdatedState(selectedCardPositions)
-    val currentOnCheatRequest by rememberUpdatedState(onCheatRequest)
 
     val shakeDetector =
         remember {
             ShakeDetector {
                 if (currentCanSelectCards && currentSelectedCardPositions.isNotEmpty()) {
-                    currentOnCheatRequest(currentSelectedCardPositions)
+                    onCheatRequest(currentSelectedCardPositions)
                 }
             }
         }
-
     DisposableEffect(Unit) {
         sensorManager.registerListener(
             shakeDetector,

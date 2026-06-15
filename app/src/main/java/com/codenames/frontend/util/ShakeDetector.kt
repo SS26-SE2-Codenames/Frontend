@@ -35,5 +35,7 @@ class ShakeDetector(
     override fun onAccuracyChanged(
         sensor: Sensor?,
         accuracy: Int,
-    ) {}
+    ) {
+        // Accuracy changes are irrelevant for shake detection.
+    }
 }
