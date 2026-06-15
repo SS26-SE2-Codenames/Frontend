@@ -480,6 +480,91 @@ class GameViewModelTest {
         }
 
     @Test
+    fun passTurn_redOperative_sendsPassTurn() =
+        runTest {
+            coEvery {
+                gameRepository.passTurn(any(), any())
+            } just Runs
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.passTurn(lobbyCode, Team.RED)
+            advanceUntilIdle()
+
+            coVerify {
+                gameRepository.passTurn(lobbyCode, Team.RED)
+            }
+        }
+
+    @Test
+    fun passTurn_blankLobbyCode_doesNotSendPassTurn() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.passTurn("", Team.RED)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.passTurn(any(), any())
+            }
+        }
+
+    @Test
+    fun passTurn_nullTeam_doesNotSendPassTurn() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.passTurn(lobbyCode, null)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.passTurn(any(), any())
+            }
+        }
+
+    @Test
+    fun passTurn_whenTurnIsSpymaster_doesNotSendPassTurn() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.SPYMASTER))
+
+            viewModel.passTurn(lobbyCode, Team.RED)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.passTurn(any(), any())
+            }
+        }
+
+    @Test
+    fun passTurn_wrongTeamForCurrentTurn_doesNotSendPassTurn() =
+        runTest {
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.passTurn(lobbyCode, Team.BLUE)
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) {
+                gameRepository.passTurn(any(), any())
+            }
+        }
+
+    @Test
+    fun passTurn_networkError_updatesConnectionState() =
+        runTest {
+            coEvery {
+                gameRepository.passTurn(any(), any())
+            } throws Exception("Network connection failed")
+
+            viewModel.handleMessage(testMessage.copy(currentTurn = Team.RED, currentPhase = Role.OPERATIVE))
+
+            viewModel.passTurn(lobbyCode, Team.RED)
+            advanceUntilIdle()
+
+            val state = viewModel.connectionState.value
+            assertTrue(state is ConnectionState.Error)
+        }
+
+    @Test
     fun testSendRejoinMessage_sendsMessage() =
         runTest {
             coEvery {

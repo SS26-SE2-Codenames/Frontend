@@ -83,4 +83,17 @@ class GameRepositoryTest {
                 webSocketHandler.sendCheat(any())
             }
         }
+
+    @Test
+    fun testPassTurn() =
+        runTest {
+            val lobbyCode = "ABCDE"
+            val currentTurn = Team.RED
+
+            coEvery { webSocketHandler.passTurn(any()) } just Runs
+
+            gameRepository.passTurn(lobbyCode, currentTurn)
+
+            coVerify { webSocketHandler.passTurn(any()) }
+        }
 }

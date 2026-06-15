@@ -171,6 +171,25 @@ class GameViewModel
             }
         }
 
+        fun passTurn(
+            lobbyCode: String,
+            team: Team?,
+        ) {
+            if (lobbyCode.isBlank() || team == null) {
+                return
+            }
+
+            val turn = uiState.value.currentTurn
+            if (!team.isActiveOperativeTurn(turn)) return
+            viewModelScope.launch {
+                try {
+                    gameRepository.passTurn(lobbyCode, team)
+                } catch (e: Exception) {
+                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                }
+            }
+        }
+
         fun rejoinGame(
             username: String,
             userId: UUID,

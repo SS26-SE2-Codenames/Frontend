@@ -4,6 +4,7 @@ import com.codenames.frontend.network.dto.CheatCardMessage
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
+import com.codenames.frontend.network.dto.PassTurnMessage
 import com.codenames.frontend.network.dto.StartGameMessage
 import com.codenames.frontend.network.dto.WebSocketJoinMessage
 import kotlinx.coroutines.flow.Flow
@@ -40,6 +41,10 @@ class GameWebSocketController
 
         suspend fun sendGuess(msg: GuessMessage) {
             webSocketSessionManager.getSession().convertAndSend("/app/reveal-card", msg, GuessMessage.serializer())
+        }
+
+        suspend fun passTurn(msg: PassTurnMessage) {
+            webSocketSessionManager.getSession().convertAndSend("/app/pass-turn", msg, PassTurnMessage.serializer())
         }
 
         suspend fun sendCheat(msg: CheatCardMessage) {
