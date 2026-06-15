@@ -52,6 +52,13 @@ fun GameScreenWrapper(
         onReveal = { positions ->
             gameViewModel.submitGuesses(lobbyCode, positions, team)
         },
+        onCheatRequest = { positions ->
+            gameViewModel.requestCheat(
+                lobbyCode = lobbyCode,
+                username = username,
+                positions = positions,
+            )
+        },
         onSendChatMessage = { tab, message ->
             chatViewModel.sendChatMessage(
                 tab = tab,

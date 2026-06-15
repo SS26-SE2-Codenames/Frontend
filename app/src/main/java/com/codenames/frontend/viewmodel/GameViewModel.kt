@@ -146,6 +146,31 @@ class GameViewModel
             }
         }
 
+        fun requestCheat(
+            lobbyCode: String,
+            username: String,
+            positions: List<Int>,
+        ) {
+            if (lobbyCode.isBlank() || positions.isEmpty()) {
+                return
+            }
+
+            viewModelScope.launch {
+                try {
+                    gameRepository.requestCheat(
+                        lobbyCode = lobbyCode,
+                        username = username,
+                        positions = positions,
+                    )
+                } catch (e: Exception) {
+                    _connectionState.value =
+                        ConnectionState.Error(
+                            e.message ?: CONNECTION_ERROR_MESSAGE,
+                        )
+                }
+            }
+        }
+
         fun rejoinGame(
             username: String,
             userId: UUID,

@@ -1,5 +1,8 @@
 package com.codenames.frontend.ui.screens
 
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,11 +26,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,6 +44,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -79,6 +85,7 @@ import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
+import com.codenames.frontend.util.ShakeDetector
 
 private data class BoardSectionState(
     val userRole: PlayerRoles,
@@ -120,6 +127,7 @@ fun GameboardScreen(
     gameState: GameState,
     onHintChange: (String, Int) -> Unit,
     onReveal: (List<Int>) -> Unit,
+    onCheatRequest: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
     onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
@@ -151,10 +159,41 @@ fun GameboardScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
+    val context = LocalContext.current
+    val sensorManager =
+        context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+    val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
     val onInputChange: (String) -> Unit = { hintInput = it }
+
+    val currentCanSelectCards by rememberUpdatedState(canSelectCards)
+    val currentSelectedCardPositions by rememberUpdatedState(selectedCardPositions)
+    val currentOnCheatRequest by rememberUpdatedState(onCheatRequest)
+
+    val shakeDetector =
+        remember {
+            ShakeDetector {
+                if (currentCanSelectCards && currentSelectedCardPositions.isNotEmpty()) {
+                    currentOnCheatRequest(currentSelectedCardPositions)
+                }
+            }
+        }
+
+    DisposableEffect(Unit) {
+        sensorManager.registerListener(
+            shakeDetector,
+            accelerometer,
+            SensorManager.SENSOR_DELAY_UI,
+        )
+
+        onDispose {
+            sensorManager.unregisterListener(shakeDetector)
+        }
+    }
 
     LaunchedEffect(cards, currentTurn, remainingGuesses) {
         selectedCardPositions =

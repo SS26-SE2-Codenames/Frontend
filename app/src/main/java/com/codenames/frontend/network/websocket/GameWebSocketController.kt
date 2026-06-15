@@ -1,5 +1,6 @@
 package com.codenames.frontend.network.websocket
 
+import com.codenames.frontend.network.dto.CheatCardMessage
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
@@ -39,5 +40,13 @@ class GameWebSocketController
 
         suspend fun sendGuess(msg: GuessMessage) {
             webSocketSessionManager.getSession().convertAndSend("/app/reveal-card", msg, GuessMessage.serializer())
+        }
+
+        suspend fun sendCheat(msg: CheatCardMessage) {
+            webSocketSessionManager.getSession().convertAndSend(
+                "/app/cheat",
+                msg,
+                CheatCardMessage.serializer(),
+            )
         }
     }

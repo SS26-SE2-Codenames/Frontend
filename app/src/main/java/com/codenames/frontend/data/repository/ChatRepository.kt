@@ -108,4 +108,19 @@ class ChatRepository
 
             chatWebSocketController.sendChatMessage(destination, dto)
         }
+
+        fun observeSystemMessages(currentUsername: String): Flow<ChatDomainModel> =
+            flow {
+                chatWebSocketController
+                    .subscribeToSystemMessages()
+                    .collect { dto ->
+                        emit(
+                            ChatDomainModel(
+                                sender = dto.senderUsername,
+                                text = dto.content,
+                                isFromMe = dto.senderUsername == currentUsername,
+                            ),
+                        )
+                    }
+            }
     }
