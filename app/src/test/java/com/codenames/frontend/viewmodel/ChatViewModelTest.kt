@@ -8,21 +8,29 @@ import com.codenames.frontend.data.repository.ChatRepository
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
+    private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ChatRepository
     private lateinit var viewModel: ChatViewModel
 
     @Before
     fun setup() {
+        Dispatchers.setMain(testDispatcher)
+
         repository = mockk(relaxed = true)
 
         every {
@@ -37,7 +45,16 @@ class ChatViewModelTest {
             repository.observeOperativeChat(any(), any(), any())
         } returns emptyFlow()
 
+        every {
+            repository.observeSystemMessages(any())
+        } returns emptyFlow()
+
         viewModel = ChatViewModel(repository)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
@@ -51,6 +68,8 @@ class ChatViewModelTest {
                 content = "Hallo",
                 availableChatTabs = listOf(ChatTab.GLOBAL),
             )
+
+            advanceUntilIdle()
 
             coVerify {
                 repository.sendLobbyMessage(
@@ -76,6 +95,8 @@ class ChatViewModelTest {
                         ChatTab.TEAM,
                     ),
             )
+
+            advanceUntilIdle()
 
             coVerify {
                 repository.sendTeamMessage(
@@ -103,6 +124,8 @@ class ChatViewModelTest {
                         ChatTab.OPERATIVES,
                     ),
             )
+
+            advanceUntilIdle()
 
             coVerify {
                 repository.sendOperativeMessage(
@@ -219,5 +242,46 @@ class ChatViewModelTest {
 
             assertEquals("Anna", first.sender)
             assertEquals("Hallo", first.text)
+        }
+
+    @Test
+    fun subscribeToChats_systemMessage_updatesOperativeMessages() =
+        runTest {
+            val msg =
+                ChatDomainModel(
+                    sender = "System",
+                    text = "London is correct",
+                    isFromMe = false,
+                )
+
+            every {
+                repository.observeSystemMessages("Max")
+            } returns flowOf(msg)
+
+            every {
+                repository.observeLobbyChat(any(), any())
+            } returns emptyFlow()
+
+            every {
+                repository.observeTeamChat(any(), any(), any())
+            } returns emptyFlow()
+
+            every {
+                repository.observeOperativeChat(any(), any(), any())
+            } returns emptyFlow()
+
+            viewModel.subscribeToChats(
+                username = "Max",
+                lobbyCode = "ABCD",
+                team = "RED",
+                role = Role.OPERATIVE.name,
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(
+                1,
+                viewModel.chatState.value.operativeMessages.size,
+            )
         }
 }
