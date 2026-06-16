@@ -39,7 +39,6 @@ import com.codenames.frontend.ui.inputs.AppTextFieldType
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppInk
-import com.codenames.frontend.ui.theme.AppRed
 import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
@@ -173,6 +172,7 @@ fun JoinlobbyScreen(
                 )
             }
 
+            /* old error line, replaced by error pop-up
             state.error?.let { error ->
                 Text(
                     text = error,
@@ -180,7 +180,7 @@ fun JoinlobbyScreen(
                     fontSize = dimensions.bodyFontSize,
                     modifier = Modifier.padding(top = dimensions.itemSpacing),
                 )
-            }
+            }*/
         }
 
         SettingsCornerButton(

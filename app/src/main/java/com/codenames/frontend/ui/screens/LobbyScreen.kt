@@ -41,7 +41,6 @@ import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppBlack
 import com.codenames.frontend.ui.theme.AppBlueLight
 import com.codenames.frontend.ui.theme.AppMutedDark
-import com.codenames.frontend.ui.theme.AppRed
 import com.codenames.frontend.ui.theme.AppRedLight
 import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
@@ -179,6 +178,7 @@ fun LobbyScreen(
             )
         }
 
+        /* old error line, replaced by error pop-up
         lobbyUiState.error?.let { error ->
             Text(
                 text = error,
@@ -189,7 +189,7 @@ fun LobbyScreen(
                         .align(Alignment.BottomCenter)
                         .padding(bottom = dimensions.screenPadding),
             )
-        }
+        } */
 
         SettingsCornerButton(
             onClick = {
