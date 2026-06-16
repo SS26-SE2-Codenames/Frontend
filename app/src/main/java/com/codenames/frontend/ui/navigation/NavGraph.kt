@@ -39,7 +39,7 @@ fun NavGraph(
     val connectionState by gameViewModel.connectionState.collectAsState()
     val chatErrorMessage by chatViewModel.errorMessage.collectAsState()
 
-    val errorMessage =
+    val errorMessage: String? =
         lobbyState.error
             ?: (connectionState as? ConnectionState.Error)?.message
             ?: chatErrorMessage
@@ -106,9 +106,9 @@ fun NavGraph(
                 }
             }
 
-            errorMessage?.let { message ->
+            if (errorMessage != null) {
                 ErrorDialog(
-                    message = message,
+                    message = errorMessage,
                     onDismiss = {
                         lobbyViewModel.clearError()
                         gameViewModel.clearError()
