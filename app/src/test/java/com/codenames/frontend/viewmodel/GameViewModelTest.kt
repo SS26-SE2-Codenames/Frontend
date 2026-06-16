@@ -617,4 +617,41 @@ class GameViewModelTest {
                 gameRepository.sendRejoin(any(), any(), any(), any(), any())
             }
         }
+
+    @Test
+    fun handleMessage_withError_setsConnectionError() =
+        runTest {
+            val message =
+                GameMessage(
+                    error = "Not your turn.",
+                )
+
+            viewModel.handleMessage(message)
+
+            val state = viewModel.connectionState.value
+
+            assertTrue(state is ConnectionState.Error)
+            assertEquals(
+                "Not your turn.",
+                (state as ConnectionState.Error).message,
+            )
+        }
+
+    @Test
+    fun clearError_whenConnectionStateIsError_resetsToIdle() =
+        runTest {
+            coEvery {
+                client.connectStomp()
+            } throws RuntimeException("Connection failed")
+
+            viewModel.connect(lobbyCode)
+
+            advanceUntilIdle()
+
+            assertTrue(viewModel.connectionState.value is ConnectionState.Error)
+
+            viewModel.clearError()
+
+            assertEquals(ConnectionState.IDLE, viewModel.connectionState.value)
+        }
 }

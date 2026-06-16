@@ -328,7 +328,7 @@ class LobbyViewModelTest {
 
             val state = viewModel.state.value
 
-            assertEquals("Unknown error", state.error)
+            assertEquals("Something went wrong. Please try again.", state.error)
             assertFalse(state.isLoading)
         }
 
@@ -349,7 +349,7 @@ class LobbyViewModelTest {
 
             val state = viewModel.state.value
 
-            assertEquals("Unknown error", state.error)
+            assertEquals("Something went wrong. Please try again.", state.error)
             assertFalse(state.isLoading)
         }
 
@@ -1143,5 +1143,25 @@ class LobbyViewModelTest {
                 listOf(ChatTab.GLOBAL, ChatTab.TEAM, ChatTab.OPERATIVES),
                 viewModel.getAvailableChatTabsForUser("Alice"),
             )
+        }
+
+    @Test
+    fun clearError_resetsError() =
+        runTest {
+            val repository = mockk<LobbyRepository>()
+
+            coEvery { repository.createLobby(any()) } throws RuntimeException("Network error")
+
+            val viewModel = LobbyViewModel(repository)
+
+            viewModel.createLobby("Max")
+
+            advanceUntilIdle()
+
+            assertEquals("Network error", viewModel.state.value.error)
+
+            viewModel.clearError()
+
+            assertNull(viewModel.state.value.error)
         }
 }
