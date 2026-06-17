@@ -9,7 +9,7 @@ if (localPropertiesFile.exists()) {
 val serverUrl =
     localProperties.getProperty(
         "SERVER_URL",
-        "http://10.0.2.2:8080",
+        "se2-demo.aau.at:53213",
     )
 
 plugins {
