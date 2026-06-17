@@ -193,9 +193,7 @@ class LobbyViewModel
         private fun canUseOperativesChat(
             team: Team?,
             role: Role?,
-        ): Boolean {
-            return team != null && role == Role.OPERATIVE
-        }
+        ): Boolean = team != null && role == Role.OPERATIVE
 
         fun getIsHost(username: String): Boolean {
             val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return false
