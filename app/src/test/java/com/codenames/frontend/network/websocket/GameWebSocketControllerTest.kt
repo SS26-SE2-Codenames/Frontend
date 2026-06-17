@@ -18,6 +18,7 @@ import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
 import org.junit.Before
 import org.junit.Test
+import java.util.UUID
 
 class GameWebSocketControllerTest {
     private lateinit var wsClient: GameWebSocketController
@@ -63,7 +64,7 @@ class GameWebSocketControllerTest {
     @Test
     fun testSendReconnectMessageSendsMessage() =
         runTest {
-            val msg = WebSocketJoinMessage("name", "1234")
+            val msg = WebSocketJoinMessage("name", "1234", UUID.randomUUID().toString())
 
             wsClient.sendReconnectMessage(msg)
 

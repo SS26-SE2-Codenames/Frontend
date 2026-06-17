@@ -568,7 +568,7 @@ class GameViewModelTest {
     fun testSendRejoinMessage_sendsMessage() =
         runTest {
             coEvery {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             } just Runs
 
             val rejoinState = RejoinState.Available(SessionState(lobbyCode, Role.OPERATIVE, Team.RED))
@@ -578,7 +578,7 @@ class GameViewModelTest {
             advanceUntilIdle()
 
             coVerify {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             }
         }
 
@@ -586,7 +586,7 @@ class GameViewModelTest {
     fun testSendRejoinMessage_ignoresWithoutRejoinState() =
         runTest {
             coEvery {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             } just Runs
 
             val rejoinState = null
@@ -596,7 +596,7 @@ class GameViewModelTest {
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             }
         }
 
@@ -604,7 +604,7 @@ class GameViewModelTest {
     fun testSendRejoinMessage_ignoresNullValuesInRejoinState() =
         runTest {
             coEvery {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             } just Runs
 
             val rejoinState = RejoinState.Available(SessionState(null, null, null))
@@ -614,7 +614,7 @@ class GameViewModelTest {
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             }
         }
 

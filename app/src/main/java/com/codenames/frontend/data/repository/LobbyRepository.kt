@@ -25,9 +25,7 @@ class LobbyRepository
             username: String,
             lobbyCode: String,
         ): LobbyResponse {
-            Log.d("LobbyRepository", "Joining lobby $lobbyCode ")
             val msg =  api.joinLobby(lobbyCode, username)
-            Log.d("LobbyRepository", "Got Lobby Join message: $msg")
             return msg
         }
 

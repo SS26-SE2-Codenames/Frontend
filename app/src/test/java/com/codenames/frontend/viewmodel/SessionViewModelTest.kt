@@ -79,6 +79,8 @@ class SessionViewModelTest {
         runTest {
             val uuid = UUID.randomUUID()
 
+            viewModel.persistUserId(uuid)
+
             viewModel.setUsername("Max")
 
             viewModel.persistUserState()

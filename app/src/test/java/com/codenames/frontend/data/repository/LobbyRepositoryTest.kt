@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.util.UUID
 import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -66,14 +67,15 @@ class LobbyRepositoryTest {
         runTest {
             val username = "Max"
             val lobbyCode = "1234"
+            val userId = UUID.randomUUID()
 
             val response = LobbyResponse(lobbyCode, emptyList(), false)
 
-            coEvery { api.leaveLobby(username, lobbyCode) } returns response
+            coEvery { api.leaveLobby(lobbyCode = lobbyCode, uuid = userId.toString()) } returns response
 
-            val result = repository.leaveLobby(username, lobbyCode)
+            val result = repository.leaveLobby(lobbyCode, userId)
 
-            coVerify { api.leaveLobby(username, lobbyCode) }
+            coVerify { api.leaveLobby(lobbyCode, userId.toString()) }
             assertEquals(response, result)
         }
 
@@ -97,12 +99,13 @@ class LobbyRepositoryTest {
             val lobbyCode = "1234"
             val role = Role.OPERATIVE
             val team = Team.RED
+            val userId = UUID.randomUUID()
 
             val response = LobbyResponse(lobbyCode, emptyList(), false)
 
             coEvery { api.changeRole(eq(lobbyCode), any()) } returns response
 
-            repository.changeRole(username, lobbyCode, role, team)
+            repository.changeRole(username, userId, lobbyCode, role, team)
 
             coVerify {
                 api.changeRole(
@@ -133,6 +136,7 @@ class LobbyRepositoryTest {
         runTest {
             val lobbyCode = "ABCDE"
             val username = "Test"
+            val userId = UUID.randomUUID()
             val list =
                 listOf(
                     PlayerDto(
@@ -145,7 +149,7 @@ class LobbyRepositoryTest {
 
             coEvery { api.startGame(any(), any()) } returns LobbyResponse(lobbyCode, list, false)
 
-            val response = repository.sendStartGame(lobbyCode, username)
+            val response = repository.sendStartGame(lobbyCode, userId)
 
             coVerify { api.startGame(any(), any()) }
             assertEquals(response.lobbyCode, lobbyCode)
