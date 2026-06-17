@@ -194,16 +194,7 @@ class LobbyViewModel
             team: Team?,
             role: Role?,
         ): Boolean {
-            if (team == null || role != Role.OPERATIVE) {
-                return false
-            }
-
-            val sameTeamOperativeCount =
-                _state.value.players.count { player ->
-                    player.team == team && player.role == Role.OPERATIVE
-                }
-
-            return sameTeamOperativeCount > 1
+            return team != null && role == Role.OPERATIVE
         }
 
         fun getIsHost(username: String): Boolean {
