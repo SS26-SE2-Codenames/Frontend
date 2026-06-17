@@ -1,5 +1,7 @@
 package com.codenames.frontend
 
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -48,6 +50,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -71,6 +74,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -91,6 +95,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -122,6 +127,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -156,6 +162,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -179,6 +186,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -205,6 +213,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -236,6 +245,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -258,6 +268,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -279,6 +290,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -300,6 +312,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -324,6 +337,7 @@ class GameboardScreenTest {
                 onReveal = {},
                 onPassTurn = { passTurnClicks++ },
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
@@ -355,6 +369,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = { positions -> revealedPositions = positions },
                 onCheatRequest = {},
+                onReturnToHome = {}
             )
         }
 
