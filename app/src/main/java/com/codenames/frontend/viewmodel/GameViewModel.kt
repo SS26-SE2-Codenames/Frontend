@@ -237,8 +237,6 @@ class GameViewModel
                 _uiState.update {
                     GameState()
                 }
-            }
-            viewModelScope.launch {
                 handler.disconnect()
             }
         }

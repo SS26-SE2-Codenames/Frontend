@@ -656,6 +656,29 @@ class GameViewModelTest {
         }
 
     @Test
+    fun resetGameState_resetsGameState() =
+        runTest {
+            mockkStatic(Log::class)
+            every { Log.d(any(), any()) } returns 0
+
+            coEvery { client.disconnect() } just Runs
+
+            viewModel.handleMessage(testMessage)
+
+            advanceUntilIdle()
+
+            viewModel.resetGameState()
+
+            advanceUntilIdle()
+
+            val compareMessage = GameState()
+
+            assertEquals(compareMessage.cards, viewModel.uiState.value.cards)
+            assertEquals(compareMessage.winner, viewModel.uiState.value.winner)
+            assertEquals(compareMessage.currentTurn, viewModel.uiState.value.currentTurn)
+        }
+
+    @Test
     fun requestCheat_callsRepository() =
         runTest {
             viewModel.requestCheat(

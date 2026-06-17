@@ -574,6 +574,16 @@ class LobbyViewModelTest {
     }
 
     @Test
+    fun changeRole_DoesNothingWithoutId() =
+        runTest {
+            val viewModel = LobbyViewModel(repository, sessionRepository)
+
+            viewModel.changeRole(PlayerRoles.RED_SPYMASTER, "User", null)
+
+            assertNotNull(viewModel.state.value.error)
+        }
+
+    @Test
     fun `getRoleForUser returns BLUE_OPERATIVE`() =
         runTest {
             val viewModel = LobbyViewModel(repository, sessionRepository)
