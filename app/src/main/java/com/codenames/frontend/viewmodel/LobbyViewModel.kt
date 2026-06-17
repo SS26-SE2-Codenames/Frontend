@@ -48,7 +48,7 @@ class LobbyViewModel
             }
             viewModelScope.launch {
                 setLoading(true)
-
+                sessionRepository.clearUserId()
                 try {
                     val response = repository.createLobby(username)
                     _state.update {
@@ -66,7 +66,6 @@ class LobbyViewModel
 
         fun joinLobby(
             username: String,
-            userId: UUID? = null,
             lobbyCode: String,
         ) {
             val inLobby = !_state.value.lobbyCode.isNullOrBlank()
@@ -78,8 +77,10 @@ class LobbyViewModel
             viewModelScope.launch {
                 setLoading(true)
 
+                sessionRepository.clearUserId()
+
                 try {
-                    val response = repository.joinLobby(username, lobbyCode, userId)
+                    val response = repository.joinLobby(username, lobbyCode)
 
                     _state.update {
                         response.toLobbyState()
