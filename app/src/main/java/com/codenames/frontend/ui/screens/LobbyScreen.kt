@@ -74,7 +74,7 @@ fun LobbyScreen(
     val connectionState by gameViewModel.connectionState.collectAsState()
 
     val onStartGame = {
-        viewModel.sendStartGame(userState.username)
+        viewModel.sendStartGame(userState.username, userState.userId)
     }
 
     LaunchedEffect(userState.userId) {
@@ -150,7 +150,7 @@ fun LobbyScreen(
                 gradient = blueGradient,
                 textColor = AppBlueLight,
                 title = "BLUE TEAM",
-                onRoleSelect = { viewModel.changeRole(it, userState.username) },
+                onRoleSelect = { viewModel.changeRole(it, userState.username, userState.userId) },
                 lobbyUiState = lobbyUiState,
             )
 
@@ -173,7 +173,7 @@ fun LobbyScreen(
                 gradient = redGradient,
                 textColor = AppRedLight,
                 title = "RED TEAM",
-                onRoleSelect = { viewModel.changeRole(it, userState.username) },
+                onRoleSelect = { viewModel.changeRole(it, userState.username, userState.userId) },
                 lobbyUiState = lobbyUiState,
             )
         }
@@ -409,7 +409,7 @@ fun GameSettingsColumn(
                         }
                     }
                 }
-                viewModel.leaveLobby(username = userState.username, onResult = onResult)
+                viewModel.leaveLobby(userId = userState.userId, onResult = onResult)
             },
             modifier =
                 Modifier

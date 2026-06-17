@@ -24,6 +24,8 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
+private const val ID_NOT_FOUND = "No valid ID found."
+
 @HiltViewModel
 class LobbyViewModel
     @Inject
@@ -98,7 +100,7 @@ class LobbyViewModel
         }
 
         fun leaveLobby(
-            userId: UUID,
+            userId: UUID?,
             onResult: (Boolean) -> Unit,
         ) {
             val lobbyCode = _state.value.lobbyCode
@@ -107,6 +109,10 @@ class LobbyViewModel
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a lobby, leaving not possible")
                 onResult(successful)
+                return
+            }
+            if(userId == null) {
+                setError(ID_NOT_FOUND)
                 return
             }
 
@@ -136,11 +142,15 @@ class LobbyViewModel
             role: Role,
             team: Team,
             username: String,
-            userId: UUID
+            userId: UUID?
         ) {
             val lobbyCode = _state.value.lobbyCode
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a Lobby")
+                return
+            }
+            if(userId == null) {
+                setError(ID_NOT_FOUND)
                 return
             }
 
@@ -165,7 +175,7 @@ class LobbyViewModel
         fun changeRole(
             role: PlayerRoles,
             username: String,
-            userId: UUID
+            userId: UUID?
         ) {
             when (role) {
                 PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username, userId)
@@ -224,8 +234,12 @@ class LobbyViewModel
             return player.isHost
         }
 
-        fun sendStartGame(username: String, userId: UUID) {
+        fun sendStartGame(username: String, userId: UUID?) {
             val lobbyCode = _state.value.lobbyCode.orEmpty()
+            if(userId == null) {
+                setError(ID_NOT_FOUND)
+                return
+            }
             if (!username.isBlank() && lobbyCode.isNotEmpty() && getIsHost(username)) {
                 viewModelScope.launch {
                     try {
