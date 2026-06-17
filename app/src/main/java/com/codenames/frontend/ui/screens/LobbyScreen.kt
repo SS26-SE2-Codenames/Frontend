@@ -40,7 +40,6 @@ import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppBlack
 import com.codenames.frontend.ui.theme.AppBlueLight
-import com.codenames.frontend.ui.theme.AppMutedDark
 import com.codenames.frontend.ui.theme.AppRedLight
 import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
@@ -351,25 +350,13 @@ fun GameSettingsColumn(
                 text = "GAME SETTINGS",
                 color = AppWhite,
                 fontWeight = FontWeight.Bold,
-                fontSize = dimensions.smallFontSize,
+                fontSize = dimensions.buttonFontSize,
                 modifier = Modifier.padding(bottom = dimensions.itemSpacing),
             )
 
-            AppButton(
-                text = "TIMER: OFF",
-                onClick = { /* TODO: Timer Logik */ },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(dimensions.secondaryButtonHeight)
-                        .padding(bottom = dimensions.smallSpacing),
-                style =
-                    AppButtonStyle(
-                        containerColor = AppMutedDark,
-                        contentColor = AppWhite,
-                        fontSize = dimensions.smallFontSize,
-                        lineHeight = dimensions.bodyFontSize,
-                    ),
+            Text(
+                text = "Upgrade to pro to see all features!",
+                color = AppWhite,
             )
         }
 

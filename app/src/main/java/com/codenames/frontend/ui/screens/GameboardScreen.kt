@@ -157,7 +157,6 @@ fun GameboardScreen(
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val isActiveSpymaster = userRole == currentTurn && isSpymaster
     val canEndTurn = userRole == currentTurn && !isSpymaster && remainingGuesses > 0
-    val canSelectCards = canEndTurn
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -172,7 +171,7 @@ fun GameboardScreen(
 
     val onInputChange: (String) -> Unit = { hintInput = it }
 
-    val currentCanSelectCards by rememberUpdatedState(canSelectCards)
+    val currentCanSelectCards by rememberUpdatedState(canEndTurn)
     val currentSelectedCardPositions by rememberUpdatedState(selectedCardPositions)
 
     val shakeDetector =
@@ -257,7 +256,7 @@ fun GameboardScreen(
                     ),
                 selectionState =
                     BoardSelectionState(
-                        canSelectCards = canSelectCards,
+                        canSelectCards = canEndTurn,
                         selectedCardPositions = selectedCardPositions,
                         remainingGuesses = remainingGuesses,
                     ),
@@ -315,7 +314,7 @@ fun GameboardScreen(
         )
 
         DeselectAllButton(
-            isVisible = canSelectCards && selectedCardPositions.isNotEmpty(),
+            isVisible = canEndTurn && selectedCardPositions.isNotEmpty(),
             onClick = { selectedCardPositions = emptyList() },
             modifier =
                 Modifier
