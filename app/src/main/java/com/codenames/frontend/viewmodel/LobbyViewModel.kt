@@ -20,13 +20,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class LobbyViewModel
     @Inject
     constructor(
         private val repository: LobbyRepository,
+        private val sessionViewModel: SessionViewModel
     ) : ViewModel() {
         private val _state = MutableStateFlow(LobbyUiState())
         val state: StateFlow<LobbyUiState> = _state
@@ -49,6 +52,9 @@ class LobbyViewModel
                     _state.update {
                         response.toLobbyState()
                     }
+                    if(response.uuid != null) {
+                        sessionViewModel.setUserId(UUID.fromString(response.uuid))
+                    }
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
                     setError(e)
@@ -60,6 +66,7 @@ class LobbyViewModel
 
         fun joinLobby(
             username: String,
+            userId: UUID? = null,
             lobbyCode: String,
         ) {
             val inLobby = !_state.value.lobbyCode.isNullOrBlank()
@@ -72,13 +79,16 @@ class LobbyViewModel
                 setLoading(true)
 
                 try {
-                    val response = repository.joinLobby(username, lobbyCode)
+                    val response = repository.joinLobby(username, lobbyCode, userId)
 
                     _state.update {
                         response.toLobbyState()
                     }
                     updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
+                    if(response.uuid != null) {
+                        sessionViewModel.setUserId(UUID.fromString(response.uuid))
+                    }
                 } catch (e: Exception) {
                     setError(e)
                 } finally {
@@ -88,7 +98,7 @@ class LobbyViewModel
         }
 
         fun leaveLobby(
-            username: String,
+            userId: UUID,
             onResult: (Boolean) -> Unit,
         ) {
             val lobbyCode = _state.value.lobbyCode
@@ -104,7 +114,7 @@ class LobbyViewModel
                 setLoading(true)
 
                 try {
-                    val response = repository.leaveLobby(lobbyCode, username)
+                    val response = repository.leaveLobby(lobbyCode, userId)
                     _state.update {
                         response.toLobbyState()
                     }
@@ -126,6 +136,7 @@ class LobbyViewModel
             role: Role,
             team: Team,
             username: String,
+            userId: UUID
         ) {
             val lobbyCode = _state.value.lobbyCode
             if (lobbyCode.isNullOrBlank()) {
@@ -137,7 +148,7 @@ class LobbyViewModel
                 setLoading(true)
 
                 try {
-                    val response = repository.changeRole(username, lobbyCode, role, team)
+                    val response = repository.changeRole(username, userId, lobbyCode, role, team)
 
                     _state.update {
                         response.toLobbyState()
@@ -154,12 +165,13 @@ class LobbyViewModel
         fun changeRole(
             role: PlayerRoles,
             username: String,
+            userId: UUID
         ) {
             when (role) {
-                PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username)
-                PlayerRoles.RED_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.RED, username = username)
-                PlayerRoles.BLUE_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.BLUE, username = username)
-                PlayerRoles.RED_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.RED, username = username)
+                PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username, userId)
+                PlayerRoles.RED_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.RED, username = username, userId)
+                PlayerRoles.BLUE_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.BLUE, username = username, userId)
+                PlayerRoles.RED_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.RED, username = username, userId)
                 else -> setError("Invalid role")
             }
         }
@@ -212,13 +224,13 @@ class LobbyViewModel
             return player.isHost
         }
 
-        fun sendStartGame(username: String) {
+        fun sendStartGame(username: String, userId: UUID) {
             val lobbyCode = _state.value.lobbyCode.orEmpty()
-            if (!username.isBlank() && !lobbyCode.isEmpty() && getIsHost(username)) {
+            if (!username.isBlank() && lobbyCode.isNotEmpty() && getIsHost(username)) {
                 viewModelScope.launch {
                     try {
                         setLoading(true)
-                        val response = repository.sendStartGame(lobbyCode, username)
+                        val response = repository.sendStartGame(lobbyCode, userId)
                         _state.update {
                             response.toLobbyState()
                         }
@@ -297,7 +309,7 @@ class LobbyViewModel
                             return@launch
                         }
 
-                        delay(pollingTime)
+                        delay(pollingTime.milliseconds)
                     }
                 }
         }
