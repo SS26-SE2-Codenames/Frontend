@@ -167,10 +167,7 @@ class GameViewModel
                         positions = positions,
                     )
                 } catch (e: Exception) {
-                    _connectionState.value =
-                        ConnectionState.Error(
-                            e.message ?: CONNECTION_ERROR_MESSAGE,
-                        )
+                    setConnectionError(e)
                 }
             }
         }
