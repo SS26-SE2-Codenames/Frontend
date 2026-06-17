@@ -40,7 +40,6 @@ import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppBlack
 import com.codenames.frontend.ui.theme.AppBlueLight
-import com.codenames.frontend.ui.theme.AppMutedDark
 import com.codenames.frontend.ui.theme.AppRedLight
 import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
@@ -74,7 +73,7 @@ fun LobbyScreen(
     val connectionState by gameViewModel.connectionState.collectAsState()
 
     val onStartGame = {
-        viewModel.sendStartGame(userState.username)
+        viewModel.sendStartGame(userState.username, userState.userId)
     }
 
     LaunchedEffect(userState.userId) {
@@ -150,7 +149,7 @@ fun LobbyScreen(
                 gradient = blueGradient,
                 textColor = AppBlueLight,
                 title = "BLUE TEAM",
-                onRoleSelect = { viewModel.changeRole(it, userState.username) },
+                onRoleSelect = { viewModel.changeRole(it, userState.username, userState.userId) },
                 lobbyUiState = lobbyUiState,
             )
 
@@ -173,7 +172,7 @@ fun LobbyScreen(
                 gradient = redGradient,
                 textColor = AppRedLight,
                 title = "RED TEAM",
-                onRoleSelect = { viewModel.changeRole(it, userState.username) },
+                onRoleSelect = { viewModel.changeRole(it, userState.username, userState.userId) },
                 lobbyUiState = lobbyUiState,
             )
         }
@@ -351,25 +350,13 @@ fun GameSettingsColumn(
                 text = "GAME SETTINGS",
                 color = AppWhite,
                 fontWeight = FontWeight.Bold,
-                fontSize = dimensions.smallFontSize,
+                fontSize = dimensions.buttonFontSize,
                 modifier = Modifier.padding(bottom = dimensions.itemSpacing),
             )
 
-            AppButton(
-                text = "TIMER: OFF",
-                onClick = { /* TODO: Timer Logik */ },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(dimensions.secondaryButtonHeight)
-                        .padding(bottom = dimensions.smallSpacing),
-                style =
-                    AppButtonStyle(
-                        containerColor = AppMutedDark,
-                        contentColor = AppWhite,
-                        fontSize = dimensions.smallFontSize,
-                        lineHeight = dimensions.bodyFontSize,
-                    ),
+            Text(
+                text = "Upgrade to pro to see all features!",
+                color = AppWhite,
             )
         }
 
@@ -409,7 +396,7 @@ fun GameSettingsColumn(
                         }
                     }
                 }
-                viewModel.leaveLobby(username = userState.username, onResult = onResult)
+                viewModel.leaveLobby(userId = userState.userId, onResult = onResult)
             },
             modifier =
                 Modifier

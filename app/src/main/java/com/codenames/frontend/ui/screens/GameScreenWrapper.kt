@@ -75,5 +75,10 @@ fun GameScreenWrapper(
         onSettingsClick = {
             navController.navigate(Screen.Settings.route)
         },
+        onReturnToHome = {
+            navController.navigate(Screen.Start.route)
+            lobbyViewModel.cleanup()
+            gameViewModel.resetGameState()
+        },
     )
 }

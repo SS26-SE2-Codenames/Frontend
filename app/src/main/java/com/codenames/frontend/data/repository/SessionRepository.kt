@@ -37,4 +37,8 @@ class SessionRepository
         suspend fun clearLobbyData() {
             dataStore.clearSessionData()
         }
+
+        suspend fun clearUserId() {
+            dataStore.removeUserId()
+        }
     }

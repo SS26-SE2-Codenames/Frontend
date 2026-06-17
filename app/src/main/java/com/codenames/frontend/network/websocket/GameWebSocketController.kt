@@ -23,6 +23,10 @@ class GameWebSocketController
             webSocketSessionManager.connectStomp()
         }
 
+        suspend fun disconnect() {
+            webSocketSessionManager.disconnect()
+        }
+
         suspend fun startGame(msg: StartGameMessage) {
             webSocketSessionManager.getSession().convertAndSend("/app/start-game", msg, StartGameMessage.serializer())
         }

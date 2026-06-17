@@ -87,4 +87,19 @@ class UserPreferencesDataStoreTest {
             assertNull(result.lobbyRole)
             assertNull(result.lobbyTeam)
         }
+
+    @Test
+    fun removeUserId_removesUserId() =
+        runBlocking {
+            dataStore.saveUserData(
+                username = "User",
+                userId = UUID.randomUUID(),
+            )
+
+            dataStore.removeUserId()
+
+            val result = dataStore.userData.first()
+
+            assertNull(result.userId)
+        }
 }

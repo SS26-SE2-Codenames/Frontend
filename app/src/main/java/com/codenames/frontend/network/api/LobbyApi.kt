@@ -29,7 +29,7 @@ interface LobbyApi {
     @GET("lobby/{lobbyCode}/leave")
     suspend fun leaveLobby(
         @Path("lobbyCode") lobbyCode: String,
-        @Query("username") username: String,
+        @Query("uuid") uuid: String,
     ): LobbyResponse
 
     @POST("lobby/{lobbyCode}/select-position")
@@ -41,6 +41,6 @@ interface LobbyApi {
     @GET("lobby/{lobbyCode}/start-game")
     suspend fun startGame(
         @Path("lobbyCode") lobbyCode: String,
-        @Query("username") username: String,
+        @Query("uuid") uuid: String,
     ): LobbyResponse
 }

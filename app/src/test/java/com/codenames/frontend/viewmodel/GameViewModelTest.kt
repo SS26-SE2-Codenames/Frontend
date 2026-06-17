@@ -568,7 +568,7 @@ class GameViewModelTest {
     fun testSendRejoinMessage_sendsMessage() =
         runTest {
             coEvery {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             } just Runs
 
             val rejoinState = RejoinState.Available(SessionState(lobbyCode, Role.OPERATIVE, Team.RED))
@@ -578,7 +578,7 @@ class GameViewModelTest {
             advanceUntilIdle()
 
             coVerify {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             }
         }
 
@@ -586,7 +586,7 @@ class GameViewModelTest {
     fun testSendRejoinMessage_ignoresWithoutRejoinState() =
         runTest {
             coEvery {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             } just Runs
 
             val rejoinState = null
@@ -596,7 +596,7 @@ class GameViewModelTest {
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             }
         }
 
@@ -604,7 +604,7 @@ class GameViewModelTest {
     fun testSendRejoinMessage_ignoresNullValuesInRejoinState() =
         runTest {
             coEvery {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             } just Runs
 
             val rejoinState = RejoinState.Available(SessionState(null, null, null))
@@ -614,7 +614,7 @@ class GameViewModelTest {
             advanceUntilIdle()
 
             coVerify(exactly = 0) {
-                gameRepository.sendRejoin(any(), any(), any(), any(), any())
+                gameRepository.sendRejoin(any(), any(), any())
             }
         }
 
@@ -653,6 +653,29 @@ class GameViewModelTest {
             viewModel.clearError()
 
             assertEquals(ConnectionState.IDLE, viewModel.connectionState.value)
+        }
+
+    @Test
+    fun resetGameState_resetsGameState() =
+        runTest {
+            mockkStatic(Log::class)
+            every { Log.d(any(), any()) } returns 0
+
+            coEvery { client.disconnect() } just Runs
+
+            viewModel.handleMessage(testMessage)
+
+            advanceUntilIdle()
+
+            viewModel.resetGameState()
+
+            advanceUntilIdle()
+
+            val compareMessage = GameState()
+
+            assertEquals(compareMessage.cards, viewModel.uiState.value.cards)
+            assertEquals(compareMessage.winner, viewModel.uiState.value.winner)
+            assertEquals(compareMessage.currentTurn, viewModel.uiState.value.currentTurn)
         }
 
     @Test

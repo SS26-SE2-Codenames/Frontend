@@ -205,7 +205,7 @@ class GameViewModel
             if (lobbyCode != null && team != null && role != null) {
                 viewModelScope.launch {
                     try {
-                        gameRepository.sendRejoin(username, userId, lobbyCode, role, team)
+                        gameRepository.sendRejoin(username, userId, lobbyCode)
                     } catch (e: Exception) {
                         setConnectionError(e)
                     }
@@ -229,6 +229,15 @@ class GameViewModel
         fun clearError() {
             if (_connectionState.value is ConnectionState.Error) {
                 _connectionState.value = ConnectionState.IDLE
+            }
+        }
+
+        fun resetGameState() {
+            viewModelScope.launch {
+                _uiState.update {
+                    GameState()
+                }
+                handler.disconnect()
             }
         }
 

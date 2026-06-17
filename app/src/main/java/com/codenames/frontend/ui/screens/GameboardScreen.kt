@@ -132,6 +132,7 @@ fun GameboardScreen(
     onPassTurn: () -> Unit = {},
     onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
+    onReturnToHome: (() -> Unit),
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
@@ -157,7 +158,6 @@ fun GameboardScreen(
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val isActiveSpymaster = userRole == currentTurn && isSpymaster
     val canEndTurn = userRole == currentTurn && !isSpymaster && remainingGuesses > 0
-    val canSelectCards = canEndTurn
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -172,8 +172,12 @@ fun GameboardScreen(
 
     val onInputChange: (String) -> Unit = { hintInput = it }
 
-    val currentCanSelectCards by rememberUpdatedState(canSelectCards)
+    val currentCanSelectCards by rememberUpdatedState(canEndTurn)
     val currentSelectedCardPositions by rememberUpdatedState(selectedCardPositions)
+
+    val gameOver = gameState.winner != null
+
+    val backgroundTeam = if (winner != null) getPlayerRoleFromTeam(winner) else currentTurn
 
     val shakeDetector =
         remember {
@@ -206,7 +210,7 @@ fun GameboardScreen(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(getTeamBackgroundColor(currentTurn)),
+                .background(getTeamBackgroundColor(backgroundTeam)),
     ) {
         Column(
             modifier =
@@ -257,7 +261,7 @@ fun GameboardScreen(
                     ),
                 selectionState =
                     BoardSelectionState(
-                        canSelectCards = canSelectCards,
+                        canSelectCards = canEndTurn,
                         selectedCardPositions = selectedCardPositions,
                         remainingGuesses = remainingGuesses,
                     ),
@@ -277,18 +281,19 @@ fun GameboardScreen(
                         .weight(1f)
                         .fillMaxWidth(),
             )
-
-            HintSection(
-                isActiveSpymaster,
-                currentHint,
-                hintInput,
-                countInput,
-                onHintChange = onHintChange,
-                onInputChange,
-                onCountChange = { countInput = it },
-                keyboardController,
-                focusManager,
-            )
+            if (!gameOver) {
+                HintSection(
+                    isActiveSpymaster,
+                    currentHint,
+                    hintInput,
+                    countInput,
+                    onHintChange = onHintChange,
+                    onInputChange,
+                    onCountChange = { countInput = it },
+                    keyboardController,
+                    focusManager,
+                )
+            }
         }
 
         GameChatOverlay(
@@ -315,7 +320,7 @@ fun GameboardScreen(
         )
 
         DeselectAllButton(
-            isVisible = canSelectCards && selectedCardPositions.isNotEmpty(),
+            isVisible = canEndTurn && selectedCardPositions.isNotEmpty(),
             onClick = { selectedCardPositions = emptyList() },
             modifier =
                 Modifier
@@ -326,6 +331,22 @@ fun GameboardScreen(
                         bottom = dimensions.screenPadding,
                     ),
         )
+
+        if (gameOver) {
+            AppButton(
+                onClick = onReturnToHome,
+                text = "Return to home screen",
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(
+                            start = dimensions.screenPadding,
+                            end = dimensions.screenPadding,
+                            bottom = dimensions.screenPadding,
+                        ),
+                style = AppButtonStyle(backgroundBrush = greenGradient),
+            )
+        }
 
         onSettingsClick?.let { openSettings ->
             SettingsCornerButton(
@@ -1094,4 +1115,10 @@ fun getTeamBackgroundColor(currentTurn: PlayerRoles): Color =
         PlayerRoles.BLUE_OPERATIVE, PlayerRoles.BLUE_SPYMASTER -> AppBlueTeamBackground
         PlayerRoles.RED_OPERATIVE, PlayerRoles.RED_SPYMASTER -> AppRedTeamBackground
         PlayerRoles.NONE -> AppBackground
+    }
+
+fun getPlayerRoleFromTeam(color: Team): PlayerRoles =
+    when (color) {
+        Team.RED -> PlayerRoles.RED_SPYMASTER
+        Team.BLUE -> PlayerRoles.BLUE_SPYMASTER
     }

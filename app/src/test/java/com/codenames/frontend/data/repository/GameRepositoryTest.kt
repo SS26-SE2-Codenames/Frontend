@@ -11,6 +11,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
+import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GameRepositoryTest {
@@ -95,5 +96,20 @@ class GameRepositoryTest {
             gameRepository.passTurn(lobbyCode, currentTurn)
 
             coVerify { webSocketHandler.passTurn(any()) }
+        }
+
+    @Test
+    fun testSendRejoin() =
+        runTest {
+            val username = "User"
+            val lobbyCode = "ABCDE"
+            val userId = UUID.randomUUID()
+            coEvery { webSocketHandler.sendReconnectMessage(any()) } just Runs
+
+            gameRepository.sendRejoin(username, userId, lobbyCode)
+
+            coVerify {
+                webSocketHandler.sendReconnectMessage(any())
+            }
         }
 }
