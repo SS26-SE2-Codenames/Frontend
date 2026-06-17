@@ -2,6 +2,7 @@ package com.codenames.frontend.data.repository
 
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
+import com.codenames.frontend.network.dto.CheatCardMessage
 import com.codenames.frontend.network.dto.ClueMessageDto
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.PassTurnMessage
@@ -72,5 +73,20 @@ class GameRepository
         ) {
             val msg = WebSocketJoinMessage(username, lobbyCode)
             webSocketHandler.sendReconnectMessage(msg)
+        }
+
+        suspend fun requestCheat(
+            lobbyCode: String,
+            username: String,
+            positions: List<Int>,
+        ) {
+            val msg =
+                CheatCardMessage(
+                    lobbyCode = lobbyCode,
+                    username = username,
+                    positions = positions,
+                )
+
+            webSocketHandler.sendCheat(msg)
         }
     }

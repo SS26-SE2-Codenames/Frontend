@@ -14,6 +14,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -28,12 +29,15 @@ import org.junit.Test
 class ChatViewModelTest {
     private val dispatcher = StandardTestDispatcher()
 
+    private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ChatRepository
     private lateinit var viewModel: ChatViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
+
+        Dispatchers.setMain(testDispatcher)
 
         repository = mockk(relaxed = true)
 
@@ -47,6 +51,10 @@ class ChatViewModelTest {
 
         every {
             repository.observeOperativeChat(any(), any(), any())
+        } returns emptyFlow()
+
+        every {
+            repository.observeSystemMessages(any())
         } returns emptyFlow()
 
         viewModel = ChatViewModel(repository)
@@ -242,6 +250,47 @@ class ChatViewModelTest {
 
             assertEquals("Anna", first.sender)
             assertEquals("Hallo", first.text)
+        }
+
+    @Test
+    fun subscribeToChats_systemMessage_updatesOperativeMessages() =
+        runTest {
+            val msg =
+                ChatDomainModel(
+                    sender = "System",
+                    text = "London is correct",
+                    isFromMe = false,
+                )
+
+            every {
+                repository.observeSystemMessages("Max")
+            } returns flowOf(msg)
+
+            every {
+                repository.observeLobbyChat(any(), any())
+            } returns emptyFlow()
+
+            every {
+                repository.observeTeamChat(any(), any(), any())
+            } returns emptyFlow()
+
+            every {
+                repository.observeOperativeChat(any(), any(), any())
+            } returns emptyFlow()
+
+            viewModel.subscribeToChats(
+                username = "Max",
+                lobbyCode = "ABCD",
+                team = "RED",
+                role = Role.OPERATIVE.name,
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(
+                1,
+                viewModel.chatState.value.operativeMessages.size,
+            )
         }
 
     @Test

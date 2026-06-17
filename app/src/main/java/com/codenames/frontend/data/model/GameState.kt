@@ -15,4 +15,6 @@ data class GameState(
     val currentBlueFound: Int = 0,
     val chatLists: ChatLists = ChatLists(),
     val availableChatTabs: List<ChatTab> = listOf(ChatTab.GLOBAL),
+    val redTeamCheatUsed: Boolean = false,
+    val blueTeamCheatUsed: Boolean = false,
 )

@@ -1112,7 +1112,10 @@ class LobbyViewModelTest {
             advanceTimeBy(1)
             viewModel.stopPollingForTest()
 
-            assertEquals(listOf(ChatTab.GLOBAL, ChatTab.TEAM), viewModel.getAvailableChatTabsForUser("Alice"))
+            assertEquals(
+                listOf(ChatTab.GLOBAL, ChatTab.TEAM, ChatTab.OPERATIVES),
+                viewModel.getAvailableChatTabsForUser("Alice"),
+            )
         }
 
     @Test

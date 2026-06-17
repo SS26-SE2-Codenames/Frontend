@@ -13,4 +13,6 @@ data class GameMessage(
     val cardList: List<CardDto> = emptyList(),
     val error: String? = null,
     val remainingGuesses: Int = 0,
+    val redTeamCheatUsed: Boolean = false,
+    val blueTeamCheatUsed: Boolean = false,
 )
