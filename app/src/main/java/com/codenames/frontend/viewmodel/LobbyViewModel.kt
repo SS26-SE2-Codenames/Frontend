@@ -55,7 +55,7 @@ class LobbyViewModel
                         response.toLobbyState()
                     }
                     if(response.uuid != null) {
-                        sessionViewModel.setUserId(UUID.fromString(response.uuid))
+                        sessionViewModel.persistUserId(UUID.fromString(response.uuid))
                     }
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
@@ -89,7 +89,7 @@ class LobbyViewModel
                     updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
                     if(response.uuid != null) {
-                        sessionViewModel.setUserId(UUID.fromString(response.uuid))
+                        sessionViewModel.persistUserId(UUID.fromString(response.uuid))
                     }
                 } catch (e: Exception) {
                     setError(e)

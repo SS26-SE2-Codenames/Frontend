@@ -117,7 +117,6 @@ fun UserNameScreen(
                 onClick = {
                     if (username.isBlank()) return@AppButton
                     viewModel.setUsername(username)
-                    viewModel.setUserId(UUID.randomUUID()) // ONLY FOR TESTING!!!!
                     navController.navigate(Screen.Start.route)
                 },
                 modifier =
