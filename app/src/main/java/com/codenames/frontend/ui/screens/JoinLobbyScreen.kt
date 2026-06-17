@@ -171,16 +171,6 @@ fun JoinlobbyScreen(
                     modifier = Modifier.padding(top = dimensions.itemSpacing),
                 )
             }
-
-            /* old error line, replaced by error pop-up
-            state.error?.let { error ->
-                Text(
-                    text = error,
-                    color = AppRed,
-                    fontSize = dimensions.bodyFontSize,
-                    modifier = Modifier.padding(top = dimensions.itemSpacing),
-                )
-            }*/
         }
 
         SettingsCornerButton(

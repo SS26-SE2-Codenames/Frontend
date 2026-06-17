@@ -117,16 +117,6 @@ fun StartScreen(
                     modifier = Modifier.padding(top = dimensions.itemSpacing),
                 )
             }
-
-            /* old error line, replaced by error pop-up
-            lobbyState.error?.let { error ->
-                Text(
-                    text = error,
-                    color = AppRed,
-                    fontSize = dimensions.bodyFontSize,
-                    modifier = Modifier.padding(top = dimensions.itemSpacing),
-                )
-            }*/
         }
 
         SettingsCornerButton(

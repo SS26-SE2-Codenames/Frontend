@@ -178,19 +178,6 @@ fun LobbyScreen(
             )
         }
 
-        /* old error line, replaced by error pop-up
-        lobbyUiState.error?.let { error ->
-            Text(
-                text = error,
-                color = AppRed,
-                fontSize = dimensions.bodyFontSize,
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = dimensions.screenPadding),
-            )
-        } */
-
         SettingsCornerButton(
             onClick = {
                 navController.navigate(Screen.Settings.route)
