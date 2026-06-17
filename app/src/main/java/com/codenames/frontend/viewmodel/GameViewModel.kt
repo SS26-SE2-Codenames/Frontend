@@ -232,6 +232,17 @@ class GameViewModel
             }
         }
 
+        fun resetGameState() {
+            viewModelScope.launch {
+                _uiState.update {
+                    GameState()
+                }
+            }
+            viewModelScope.launch {
+                handler.disconnect()
+            }
+        }
+
         private fun setConnectionError(error: Throwable) {
             _connectionState.value = ConnectionState.Error(ErrorMessageMapper.toUserMessage(error))
         }

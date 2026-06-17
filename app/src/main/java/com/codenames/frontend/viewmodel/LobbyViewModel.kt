@@ -258,7 +258,7 @@ class LobbyViewModel
             }
         }
 
-        private fun cleanup() {
+        fun cleanup() {
             _state.update {
                 it.copy(
                     lobbyCode = null,
@@ -269,6 +269,8 @@ class LobbyViewModel
                     redSpymasters = emptyList(),
                 )
             }
+            stopPolling()
+            clearError()
         }
 
         private fun updateUiState(players: List<Player>) {

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -132,6 +133,7 @@ fun GameboardScreen(
     onPassTurn: () -> Unit = {},
     onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
+    onReturnToHome: (() -> Unit)
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
@@ -173,6 +175,8 @@ fun GameboardScreen(
 
     val currentCanSelectCards by rememberUpdatedState(canEndTurn)
     val currentSelectedCardPositions by rememberUpdatedState(selectedCardPositions)
+
+    val gameOver = gameState.winner != null
 
     val shakeDetector =
         remember {
@@ -325,6 +329,21 @@ fun GameboardScreen(
                         bottom = dimensions.screenPadding,
                     ),
         )
+
+        if(gameOver) {
+            AppButton(
+                onClick = onReturnToHome,
+                text = "Return to home screen",
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(
+                            start = dimensions.screenPadding,
+                            end = dimensions.screenPadding,
+                            bottom = dimensions.screenPadding,
+                        ),
+            )
+        }
 
         onSettingsClick?.let { openSettings ->
             SettingsCornerButton(
