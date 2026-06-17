@@ -79,6 +79,6 @@ fun GameScreenWrapper(
             navController.navigate(Screen.Start.route)
             lobbyViewModel.cleanup()
             gameViewModel.resetGameState()
-        }
+        },
     )
 }

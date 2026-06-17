@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -133,7 +132,7 @@ fun GameboardScreen(
     onPassTurn: () -> Unit = {},
     onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
-    onReturnToHome: (() -> Unit)
+    onReturnToHome: (() -> Unit),
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
@@ -178,6 +177,8 @@ fun GameboardScreen(
 
     val gameOver = gameState.winner != null
 
+    val backgroundTeam = if (winner != null) getPlayerRoleFromTeam(winner) else currentTurn
+
     val shakeDetector =
         remember {
             ShakeDetector {
@@ -209,7 +210,7 @@ fun GameboardScreen(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(getTeamBackgroundColor(currentTurn)),
+                .background(getTeamBackgroundColor(backgroundTeam)),
     ) {
         Column(
             modifier =
@@ -280,18 +281,19 @@ fun GameboardScreen(
                         .weight(1f)
                         .fillMaxWidth(),
             )
-
-            HintSection(
-                isActiveSpymaster,
-                currentHint,
-                hintInput,
-                countInput,
-                onHintChange = onHintChange,
-                onInputChange,
-                onCountChange = { countInput = it },
-                keyboardController,
-                focusManager,
-            )
+            if (!gameOver) {
+                HintSection(
+                    isActiveSpymaster,
+                    currentHint,
+                    hintInput,
+                    countInput,
+                    onHintChange = onHintChange,
+                    onInputChange,
+                    onCountChange = { countInput = it },
+                    keyboardController,
+                    focusManager,
+                )
+            }
         }
 
         GameChatOverlay(
@@ -330,7 +332,7 @@ fun GameboardScreen(
                     ),
         )
 
-        if(gameOver) {
+        if (gameOver) {
             AppButton(
                 onClick = onReturnToHome,
                 text = "Return to home screen",
@@ -342,6 +344,7 @@ fun GameboardScreen(
                             end = dimensions.screenPadding,
                             bottom = dimensions.screenPadding,
                         ),
+                style = AppButtonStyle(backgroundBrush = greenGradient),
             )
         }
 
@@ -1112,4 +1115,10 @@ fun getTeamBackgroundColor(currentTurn: PlayerRoles): Color =
         PlayerRoles.BLUE_OPERATIVE, PlayerRoles.BLUE_SPYMASTER -> AppBlueTeamBackground
         PlayerRoles.RED_OPERATIVE, PlayerRoles.RED_SPYMASTER -> AppRedTeamBackground
         PlayerRoles.NONE -> AppBackground
+    }
+
+fun getPlayerRoleFromTeam(color: Team): PlayerRoles =
+    when (color) {
+        Team.RED -> PlayerRoles.RED_SPYMASTER
+        Team.BLUE -> PlayerRoles.BLUE_SPYMASTER
     }
