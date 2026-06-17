@@ -183,7 +183,7 @@ class GameViewModel
             if (lobbyCode != null && team != null && role != null) {
                 viewModelScope.launch {
                     try {
-                        gameRepository.sendRejoin(username, userId, lobbyCode, role, team)
+                        gameRepository.sendRejoin(username, userId, lobbyCode)
                     } catch (e: Exception) {
                         setConnectionError(e)
                     }
