@@ -2,6 +2,7 @@ package com.codenames.frontend.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.codenames.frontend.data.error.ErrorMessageMapper
 import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.Role
@@ -23,6 +24,9 @@ class ChatViewModel
         private val _chatState = MutableStateFlow(ChatLists())
         val chatState: StateFlow<ChatLists> = _chatState
 
+        private val _errorMessage = MutableStateFlow<String?>(null)
+        val errorMessage: StateFlow<String?> = _errorMessage
+
         fun subscribeToChats(
             username: String,
             lobbyCode: String,
@@ -30,48 +34,60 @@ class ChatViewModel
             role: String,
         ) {
             viewModelScope.launch {
-                chatRepository
-                    .observeLobbyChat(
-                        lobbyCode = lobbyCode,
-                        currentUsername = username,
-                    ).collect { msg ->
-                        _chatState.update {
-                            it.copy(
-                                lobbyMessages = it.lobbyMessages + msg,
-                            )
+                try {
+                    chatRepository
+                        .observeLobbyChat(
+                            lobbyCode = lobbyCode,
+                            currentUsername = username,
+                        ).collect { msg ->
+                            _chatState.update {
+                                it.copy(
+                                    lobbyMessages = it.lobbyMessages + msg,
+                                )
+                            }
                         }
-                    }
+                } catch (e: Exception) {
+                    setError(e)
+                }
             }
 
             viewModelScope.launch {
-                chatRepository
-                    .observeTeamChat(
-                        lobbyCode = lobbyCode,
-                        team = team,
-                        currentUsername = username,
-                    ).collect { msg ->
-                        _chatState.update {
-                            it.copy(
-                                teamMessages = it.teamMessages + msg,
-                            )
-                        }
-                    }
-            }
-
-            if (role == Role.OPERATIVE.name) {
-                viewModelScope.launch {
+                try {
                     chatRepository
-                        .observeOperativeChat(
+                        .observeTeamChat(
                             lobbyCode = lobbyCode,
                             team = team,
                             currentUsername = username,
                         ).collect { msg ->
                             _chatState.update {
                                 it.copy(
-                                    operativeMessages = it.operativeMessages + msg,
+                                    teamMessages = it.teamMessages + msg,
                                 )
                             }
                         }
+                } catch (e: Exception) {
+                    setError(e)
+                }
+            }
+
+            if (role == Role.OPERATIVE.name) {
+                viewModelScope.launch {
+                    try {
+                        chatRepository
+                            .observeOperativeChat(
+                                lobbyCode = lobbyCode,
+                                team = team,
+                                currentUsername = username,
+                            ).collect { msg ->
+                                _chatState.update {
+                                    it.copy(
+                                        operativeMessages = it.operativeMessages + msg,
+                                    )
+                                }
+                            }
+                    } catch (e: Exception) {
+                        setError(e)
+                    }
                 }
             }
         }
@@ -82,11 +98,15 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendLobbyMessage(
-                    lobbyCode = lobbyCode,
-                    username = username,
-                    text = content,
-                )
+                try {
+                    chatRepository.sendLobbyMessage(
+                        lobbyCode = lobbyCode,
+                        username = username,
+                        text = content,
+                    )
+                } catch (e: Exception) {
+                    setError(e)
+                }
             }
         }
 
@@ -97,12 +117,16 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendTeamMessage(
-                    lobbyCode = lobbyCode,
-                    team = team,
-                    username = username,
-                    text = content,
-                )
+                try {
+                    chatRepository.sendTeamMessage(
+                        lobbyCode = lobbyCode,
+                        team = team,
+                        username = username,
+                        text = content,
+                    )
+                } catch (e: Exception) {
+                    setError(e)
+                }
             }
         }
 
@@ -113,12 +137,16 @@ class ChatViewModel
             content: String,
         ) {
             viewModelScope.launch {
-                chatRepository.sendOperativeMessage(
-                    lobbyCode = lobbyCode,
-                    team = team,
-                    username = username,
-                    text = content,
-                )
+                try {
+                    chatRepository.sendOperativeMessage(
+                        lobbyCode = lobbyCode,
+                        team = team,
+                        username = username,
+                        text = content,
+                    )
+                } catch (e: Exception) {
+                    setError(e)
+                }
             }
         }
 
@@ -162,5 +190,13 @@ class ChatViewModel
                         )
                     }
             }
+        }
+
+        fun clearError() {
+            _errorMessage.value = null
+        }
+
+        private fun setError(error: Throwable) {
+            _errorMessage.value = ErrorMessageMapper.toUserMessage(error)
         }
     }

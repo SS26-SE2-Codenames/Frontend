@@ -41,7 +41,6 @@ import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppBlack
 import com.codenames.frontend.ui.theme.AppBlueLight
 import com.codenames.frontend.ui.theme.AppMutedDark
-import com.codenames.frontend.ui.theme.AppRed
 import com.codenames.frontend.ui.theme.AppRedLight
 import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
@@ -176,18 +175,6 @@ fun LobbyScreen(
                 title = "RED TEAM",
                 onRoleSelect = { viewModel.changeRole(it, userState.username) },
                 lobbyUiState = lobbyUiState,
-            )
-        }
-
-        lobbyUiState.error?.let { error ->
-            Text(
-                text = error,
-                color = AppRed,
-                fontSize = dimensions.bodyFontSize,
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = dimensions.screenPadding),
             )
         }
 

@@ -3,6 +3,7 @@ package com.codenames.frontend.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.codenames.frontend.data.error.ErrorMessageMapper
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.RejoinState
 import com.codenames.frontend.data.model.enums.ConnectionState
@@ -23,8 +24,6 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
-private const val CONNECTION_ERROR_MESSAGE = "Connection error"
-
 @HiltViewModel
 class GameViewModel
     @Inject
@@ -36,6 +35,7 @@ class GameViewModel
 
         private val _uiState = MutableStateFlow(GameState())
         val uiState: StateFlow<GameState> = _uiState
+
         private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.IDLE)
         val connectionState: StateFlow<ConnectionState> = _connectionState
 
@@ -69,7 +69,7 @@ class GameViewModel
                             sendGameStart(lobbyCode)
                         }
                     } catch (e: Exception) {
-                        _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                        setConnectionError(e)
                     }
                 }
         }
@@ -79,7 +79,11 @@ class GameViewModel
                 return
             }
             viewModelScope.launch {
-                gameRepository.startGame(lobbyCode)
+                try {
+                    gameRepository.startGame(lobbyCode)
+                } catch (e: Exception) {
+                    setConnectionError(e)
+                }
             }
         }
 
@@ -99,7 +103,7 @@ class GameViewModel
                 try {
                     gameRepository.submitClue(lobbyCode, word, count, team)
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                    setConnectionError(e)
                 }
             }
         }
@@ -119,7 +123,7 @@ class GameViewModel
                 try {
                     gameRepository.submitGuess(lobbyCode, position, team)
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                    setConnectionError(e)
                 }
             }
         }
@@ -141,7 +145,7 @@ class GameViewModel
                         gameRepository.submitGuess(lobbyCode, position, team)
                     }
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                    setConnectionError(e)
                 }
             }
         }
@@ -160,7 +164,7 @@ class GameViewModel
                 try {
                     gameRepository.passTurn(lobbyCode, team)
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: CONNECTION_ERROR_MESSAGE)
+                    setConnectionError(e)
                 }
             }
         }
@@ -178,9 +182,36 @@ class GameViewModel
 
             if (lobbyCode != null && team != null && role != null) {
                 viewModelScope.launch {
-                    gameRepository.sendRejoin(username, userId, lobbyCode, role, team)
+                    try {
+                        gameRepository.sendRejoin(username, userId, lobbyCode, role, team)
+                    } catch (e: Exception) {
+                        setConnectionError(e)
+                    }
                 }
             }
+        }
+
+        fun handleMessage(message: GameMessage) {
+            if (!message.error.isNullOrBlank()) {
+                _connectionState.value = ConnectionState.Error(message.error)
+                return
+            }
+
+            val state = message.toGameState()
+            Log.d("GameViewModel", "New Game State: $state")
+            _uiState.update {
+                state
+            }
+        }
+
+        fun clearError() {
+            if (_connectionState.value is ConnectionState.Error) {
+                _connectionState.value = ConnectionState.IDLE
+            }
+        }
+
+        private fun setConnectionError(error: Throwable) {
+            _connectionState.value = ConnectionState.Error(ErrorMessageMapper.toUserMessage(error))
         }
 
         private fun Team.isActiveOperativeTurn(turn: PlayerRoles): Boolean =
@@ -190,12 +221,4 @@ class GameViewModel
         private fun Team.isActiveSpymasterTurn(turn: PlayerRoles): Boolean =
             (this == Team.BLUE && turn == PlayerRoles.BLUE_SPYMASTER) ||
                 (this == Team.RED && turn == PlayerRoles.RED_SPYMASTER)
-
-        fun handleMessage(message: GameMessage) {
-            val state = message.toGameState()
-            Log.d("GameViewModel", "New Game State: $state")
-            _uiState.update {
-                state
-            }
-        }
     }

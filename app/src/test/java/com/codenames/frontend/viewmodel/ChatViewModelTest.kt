@@ -5,24 +5,36 @@ import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.repository.ChatRepository
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
+    private val dispatcher = StandardTestDispatcher()
+
     private lateinit var repository: ChatRepository
     private lateinit var viewModel: ChatViewModel
 
     @Before
     fun setup() {
+        Dispatchers.setMain(dispatcher)
+
         repository = mockk(relaxed = true)
 
         every {
@@ -40,6 +52,11 @@ class ChatViewModelTest {
         viewModel = ChatViewModel(repository)
     }
 
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
     @Test
     fun sendChatMessage_global_sendsLobbyMessage() =
         runTest {
@@ -51,6 +68,8 @@ class ChatViewModelTest {
                 content = "Hallo",
                 availableChatTabs = listOf(ChatTab.GLOBAL),
             )
+
+            advanceUntilIdle()
 
             coVerify {
                 repository.sendLobbyMessage(
@@ -76,6 +95,8 @@ class ChatViewModelTest {
                         ChatTab.TEAM,
                     ),
             )
+
+            advanceUntilIdle()
 
             coVerify {
                 repository.sendTeamMessage(
@@ -104,6 +125,8 @@ class ChatViewModelTest {
                     ),
             )
 
+            advanceUntilIdle()
+
             coVerify {
                 repository.sendOperativeMessage(
                     "ABCD",
@@ -130,6 +153,8 @@ class ChatViewModelTest {
                     ),
             )
 
+            advanceUntilIdle()
+
             coVerify(exactly = 0) {
                 repository.sendOperativeMessage(
                     any(),
@@ -151,6 +176,8 @@ class ChatViewModelTest {
                 content = "Hallo",
                 availableChatTabs = listOf(ChatTab.GLOBAL),
             )
+
+            advanceUntilIdle()
 
             coVerify(exactly = 0) {
                 repository.sendLobbyMessage(any(), any(), any())
@@ -208,10 +235,6 @@ class ChatViewModelTest {
             advanceUntilIdle()
 
             val messages = viewModel.chatState.value.lobbyMessages
-            if (messages.isNotEmpty()) {
-                println("First sender: ${messages.first().sender}")
-                println("First text: ${messages.first().text}")
-            }
 
             assertEquals(1, messages.size)
 
@@ -219,5 +242,51 @@ class ChatViewModelTest {
 
             assertEquals("Anna", first.sender)
             assertEquals("Hallo", first.text)
+        }
+
+    @Test
+    fun sendLobbyMessage_whenRepositoryThrows_setsErrorMessage() =
+        runTest {
+            coEvery {
+                repository.sendLobbyMessage(any(), any(), any())
+            } throws RuntimeException("Chat message could not be sent")
+
+            viewModel.sendLobbyMessage(
+                lobbyCode = "ABCD",
+                username = "Max",
+                content = "Hallo",
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(
+                "Chat message could not be sent",
+                viewModel.errorMessage.value,
+            )
+        }
+
+    @Test
+    fun clearError_resetsErrorMessage() =
+        runTest {
+            coEvery {
+                repository.sendLobbyMessage(any(), any(), any())
+            } throws RuntimeException("Chat message could not be sent")
+
+            viewModel.sendLobbyMessage(
+                lobbyCode = "ABCD",
+                username = "Max",
+                content = "Hallo",
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(
+                "Chat message could not be sent",
+                viewModel.errorMessage.value,
+            )
+
+            viewModel.clearError()
+
+            assertNull(viewModel.errorMessage.value)
         }
 }

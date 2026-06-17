@@ -3,6 +3,7 @@ package com.codenames.frontend.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.codenames.frontend.data.error.ErrorMessageMapper
 import com.codenames.frontend.data.model.LobbyUiState
 import com.codenames.frontend.data.model.Player
 import com.codenames.frontend.data.model.enums.ChatTab
@@ -50,7 +51,7 @@ class LobbyViewModel
                     }
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
-                    setError(e.message)
+                    setError(e)
                 } finally {
                     setLoading(false)
                 }
@@ -79,7 +80,7 @@ class LobbyViewModel
                     updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
-                    setError(e.message)
+                    setError(e)
                 } finally {
                     setLoading(false)
                 }
@@ -111,7 +112,7 @@ class LobbyViewModel
                     stopPolling()
                     successful = true
                 } catch (e: Exception) {
-                    setError(e.message)
+                    setError(e)
                     successful = false
                 } finally {
                     setLoading(false)
@@ -143,7 +144,7 @@ class LobbyViewModel
                     }
                     updateUiState(_state.value.players)
                 } catch (e: Exception) {
-                    setError(e.message)
+                    setError(e)
                 } finally {
                     setLoading(false)
                 }
@@ -223,7 +224,7 @@ class LobbyViewModel
                         }
                         updateUiState(_state.value.players)
                     } catch (e: Exception) {
-                        setError(e.message)
+                        setError(e)
                     } finally {
                         Log.d("LobbyViewModel", "Game start sent. Current state: ${_state.value}")
                         setLoading(false)
@@ -234,6 +235,12 @@ class LobbyViewModel
 
         fun startUpdateAfterRejoin(lobbyCode: String) {
             startPolling(lobbyCode)
+        }
+
+        fun clearError() {
+            _state.update {
+                it.copy(error = null)
+            }
         }
 
         private fun cleanup() {
@@ -286,7 +293,7 @@ class LobbyViewModel
                             }
                             updateUiState(_state.value.players)
                         } catch (e: Exception) {
-                            setError(e.message)
+                            setError(e)
                             return@launch
                         }
 
@@ -298,6 +305,10 @@ class LobbyViewModel
         private fun stopPolling() {
             pollingJob?.cancel()
             pollingJob = null
+        }
+
+        private fun setError(error: Throwable) {
+            setError(ErrorMessageMapper.toUserMessage(error))
         }
 
         private fun setError(msg: String?) {
@@ -319,7 +330,6 @@ class LobbyViewModel
             }
         }
 
-        // for testing polling
         internal fun startPollingForTest(lobbyCode: String) {
             startPolling(lobbyCode)
         }
