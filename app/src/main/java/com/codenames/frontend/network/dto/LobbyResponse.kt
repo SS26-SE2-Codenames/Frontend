@@ -8,4 +8,5 @@ data class LobbyResponse(
     val playerList: List<PlayerDto>? = emptyList(),
     val isStarted: Boolean = false,
     val message: String = "",
+    val uuid: String? = null
 )

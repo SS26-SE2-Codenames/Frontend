@@ -10,4 +10,5 @@ data class PlayerDto(
     val role: Role? = null,
     val team: Team? = null,
     val isHost: Boolean,
+    val uuid: String? = null
 )
