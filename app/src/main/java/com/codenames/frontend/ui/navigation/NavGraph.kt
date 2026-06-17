@@ -3,10 +3,14 @@ package com.codenames.frontend.ui.navigation
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.codenames.frontend.data.model.enums.ConnectionState
+import com.codenames.frontend.ui.composables.ErrorDialog
 import com.codenames.frontend.ui.screens.GameScreenWrapper
 import com.codenames.frontend.ui.screens.GameSettingsScreen
 import com.codenames.frontend.ui.screens.JoinlobbyScreen
@@ -30,6 +34,15 @@ fun NavGraph(
     chatViewModel: ChatViewModel = hiltViewModel(),
 ) {
     val navController = rememberNavController()
+
+    val lobbyState by lobbyViewModel.state.collectAsState()
+    val connectionState by gameViewModel.connectionState.collectAsState()
+    val chatErrorMessage by chatViewModel.errorMessage.collectAsState()
+
+    val errorMessage: String? =
+        lobbyState.error
+            ?: (connectionState as? ConnectionState.Error)?.message
+            ?: chatErrorMessage
 
     @Suppress("UnusedBoxWithConstraintsScope")
     BoxWithConstraints {
@@ -91,6 +104,17 @@ fun NavGraph(
                 composable(Screen.Settings.route) {
                     SettingsScreen(navController)
                 }
+            }
+
+            if (errorMessage != null) {
+                ErrorDialog(
+                    message = errorMessage,
+                    onDismiss = {
+                        lobbyViewModel.clearError()
+                        gameViewModel.clearError()
+                        chatViewModel.clearError()
+                    },
+                )
             }
         }
     }

@@ -12,7 +12,7 @@ import com.codenames.frontend.ui.roles.PlayerRoles
 fun LobbyResponse.toLobbyState(): LobbyUiState =
     LobbyUiState(
         lobbyCode = lobbyCode,
-        players = playerList.map { it.toUi() },
+        players = playerList.orEmpty().map { it.toUi() },
         isGameStarted = isStarted,
     )
 
@@ -54,6 +54,9 @@ fun GameMessage.getCurrentTurn(): PlayerRoles {
         if (currentPhase == Role.SPYMASTER) return PlayerRoles.RED_SPYMASTER
         return PlayerRoles.RED_OPERATIVE
     }
-    if (currentPhase == Role.SPYMASTER) return PlayerRoles.BLUE_SPYMASTER
-    return PlayerRoles.BLUE_OPERATIVE
+    if (currentTurn == Team.BLUE) {
+        if (currentPhase == Role.SPYMASTER) return PlayerRoles.BLUE_SPYMASTER
+        return PlayerRoles.BLUE_OPERATIVE
+    }
+    return PlayerRoles.NONE
 }
