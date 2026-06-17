@@ -9,6 +9,7 @@ import com.codenames.frontend.data.repository.SessionRepository
 import com.codenames.frontend.network.dto.LobbyResponse
 import com.codenames.frontend.network.dto.PlayerDto
 import com.codenames.frontend.ui.roles.PlayerRoles
+import io.mockk.Awaits
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -34,6 +35,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.UUID
+import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -504,6 +506,28 @@ class LobbyViewModelTest {
             assertEquals(null, state.lobbyCode)
             assertFalse(state.isLoading)
             assertEquals("Not in a lobby, leaving not possible", state.error)
+        }
+
+    @Test
+    fun testLeaveLobby_nullIdSetsError() =
+        runTest {
+            val viewModel = LobbyViewModel(repository, sessionRepository)
+            val username = "User"
+            val lobbyCode = "ABCDE"
+            val onResult = { bool: Boolean -> }
+
+            coEvery {
+                repository.joinLobby(username, lobbyCode)
+            } just Awaits
+            coEvery { sessionRepository.clearUserId() } just Runs
+
+            viewModel.joinLobby(username, lobbyCode)
+
+            advanceUntilIdle()
+
+            viewModel.leaveLobby(null, onResult)
+
+            assertNotNull(viewModel.state.value.error)
         }
 
     @Test
