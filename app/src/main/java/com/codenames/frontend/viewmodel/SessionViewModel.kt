@@ -40,14 +40,6 @@ class SessionViewModel
             }
         }
 
-        fun setUserId(userId: UUID) {
-            _userState.update {
-                it.copy(
-                    userId = userId,
-                )
-            }
-        }
-
         fun persistLobbyState(
             lobbyCode: String,
             role: Role,
@@ -67,6 +59,15 @@ class SessionViewModel
                 sessionRepository.saveUser(
                     _userState.value.username,
                     _userState.value.userId ?: return@launch,
+                )
+            }
+        }
+
+        fun persistUserId(userId: UUID) {
+            viewModelScope.launch {
+                sessionRepository.saveUser(
+                    _userState.value.username,
+                    userId,
                 )
             }
         }

@@ -5,6 +5,7 @@ import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.api.LobbyApi
 import com.codenames.frontend.network.dto.LobbyResponse
 import com.codenames.frontend.network.dto.PlayerDto
+import java.util.UUID
 import javax.inject.Inject
 
 class LobbyRepository
@@ -16,28 +17,32 @@ class LobbyRepository
 
         suspend fun leaveLobby(
             lobbyCode: String,
-            username: String,
-        ): LobbyResponse = api.leaveLobby(lobbyCode, username)
+            userId: UUID,
+        ): LobbyResponse = api.leaveLobby(lobbyCode, userId.toString())
 
         suspend fun joinLobby(
             username: String,
             lobbyCode: String,
-        ): LobbyResponse = api.joinLobby(lobbyCode, username)
+        ): LobbyResponse {
+            val msg = api.joinLobby(lobbyCode, username)
+            return msg
+        }
 
         suspend fun getLobbyInfo(lobbyCode: String): LobbyResponse = api.getLobbyInfo(lobbyCode)
 
         suspend fun changeRole(
             username: String,
+            userId: UUID,
             lobbyCode: String,
             role: Role,
             team: Team,
         ): LobbyResponse {
-            val player = PlayerDto(username, role, team, false)
+            val player = PlayerDto(username, role, team, false, userId.toString())
             return api.changeRole(lobbyCode, player)
         }
 
         suspend fun sendStartGame(
             lobbyCode: String,
-            username: String,
-        ): LobbyResponse = api.startGame(lobbyCode, username)
+            userId: UUID,
+        ): LobbyResponse = api.startGame(lobbyCode, userId.toString())
     }

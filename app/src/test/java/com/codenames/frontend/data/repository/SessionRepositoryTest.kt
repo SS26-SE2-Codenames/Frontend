@@ -64,4 +64,14 @@ class SessionRepositoryTest {
                 dataStore.clearSessionData()
             }
         }
+
+    @Test
+    fun `clearUserId delegates to datastore`() =
+        runTest {
+            repository.clearUserId()
+
+            coVerify {
+                dataStore.removeUserId()
+            }
+        }
 }

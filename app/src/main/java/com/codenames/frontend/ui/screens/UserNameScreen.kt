@@ -38,7 +38,6 @@ import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
-import java.util.UUID
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -117,7 +116,6 @@ fun UserNameScreen(
                 onClick = {
                     if (username.isBlank()) return@AppButton
                     viewModel.setUsername(username)
-                    viewModel.setUserId(UUID.randomUUID()) // ONLY FOR TESTING!!!!
                     navController.navigate(Screen.Start.route)
                 },
                 modifier =

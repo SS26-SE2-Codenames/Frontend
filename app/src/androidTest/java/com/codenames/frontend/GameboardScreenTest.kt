@@ -48,6 +48,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -71,6 +72,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -91,6 +93,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -122,6 +125,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -156,6 +160,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -179,6 +184,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -205,6 +211,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -236,6 +243,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -258,6 +266,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -279,6 +288,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -300,6 +310,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = {},
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -324,6 +335,7 @@ class GameboardScreenTest {
                 onReveal = {},
                 onPassTurn = { passTurnClicks++ },
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -355,6 +367,7 @@ class GameboardScreenTest {
                 onHintChange = { _, _ -> },
                 onReveal = { positions -> revealedPositions = positions },
                 onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 

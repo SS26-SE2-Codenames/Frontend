@@ -75,28 +75,20 @@ class SessionViewModelTest {
     }
 
     @Test
-    fun `setUserId updates user id`() {
-        val uuid = UUID.randomUUID()
-
-        viewModel.setUserId(uuid)
-
-        assertEquals(uuid, viewModel.userState.value.userId)
-    }
-
-    @Test
-    fun `persistUserState saves user`() =
+    fun `persistUserState saves username`() =
         runTest {
             val uuid = UUID.randomUUID()
 
+            viewModel.persistUserId(uuid)
+
             viewModel.setUsername("Max")
-            viewModel.setUserId(uuid)
 
             viewModel.persistUserState()
 
             advanceUntilIdle()
 
             coVerify {
-                sessionRepository.saveUser("Max", uuid)
+                sessionRepository.saveUser("Max", any())
             }
         }
 

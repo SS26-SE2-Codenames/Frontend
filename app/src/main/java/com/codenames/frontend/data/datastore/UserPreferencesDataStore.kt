@@ -80,4 +80,10 @@ class UserPreferencesDataStore
                 prefs.remove(PreferencesKeys.LOBBY_TEAM)
             }
         }
+
+        suspend fun removeUserId() {
+            context.dataStore.edit { prefs ->
+                prefs.remove(PreferencesKeys.USER_ID)
+            }
+        }
     }
