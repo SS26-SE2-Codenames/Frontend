@@ -3,6 +3,7 @@ package com.codenames.frontend.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.codenames.frontend.data.error.ErrorMessageMapper
 import com.codenames.frontend.data.model.LobbyUiState
 import com.codenames.frontend.data.model.Player
 import com.codenames.frontend.data.model.enums.ChatTab
@@ -10,6 +11,7 @@ import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toLobbyState
 import com.codenames.frontend.data.repository.LobbyRepository
+import com.codenames.frontend.data.repository.SessionRepository
 import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -19,13 +21,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
+
+private const val ID_NOT_FOUND = "No valid ID found."
 
 @HiltViewModel
 class LobbyViewModel
     @Inject
     constructor(
         private val repository: LobbyRepository,
+        private val sessionRepository: SessionRepository,
     ) : ViewModel() {
         private val _state = MutableStateFlow(LobbyUiState())
         val state: StateFlow<LobbyUiState> = _state
@@ -41,16 +48,16 @@ class LobbyViewModel
             }
             viewModelScope.launch {
                 setLoading(true)
-
+                sessionRepository.clearUserId()
                 try {
                     val response = repository.createLobby(username)
-
                     _state.update {
                         response.toLobbyState()
                     }
+                    if (response.uuid != null) sessionRepository.saveUser(username, UUID.fromString(response.uuid))
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
-                    setError(e.message)
+                    setError(e)
                 } finally {
                     setLoading(false)
                 }
@@ -70,16 +77,19 @@ class LobbyViewModel
             viewModelScope.launch {
                 setLoading(true)
 
+                sessionRepository.clearUserId()
+
                 try {
                     val response = repository.joinLobby(username, lobbyCode)
 
                     _state.update {
                         response.toLobbyState()
                     }
+                    if (response.uuid != null) sessionRepository.saveUser(username, UUID.fromString(response.uuid))
                     updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
-                    setError(e.message)
+                    setError(e)
                 } finally {
                     setLoading(false)
                 }
@@ -87,7 +97,7 @@ class LobbyViewModel
         }
 
         fun leaveLobby(
-            username: String,
+            userId: UUID?,
             onResult: (Boolean) -> Unit,
         ) {
             val lobbyCode = _state.value.lobbyCode
@@ -98,12 +108,16 @@ class LobbyViewModel
                 onResult(successful)
                 return
             }
+            if (userId == null) {
+                setError(ID_NOT_FOUND)
+                return
+            }
 
             viewModelScope.launch {
                 setLoading(true)
 
                 try {
-                    val response = repository.leaveLobby(lobbyCode, username)
+                    val response = repository.leaveLobby(lobbyCode, userId)
                     _state.update {
                         response.toLobbyState()
                     }
@@ -111,7 +125,7 @@ class LobbyViewModel
                     stopPolling()
                     successful = true
                 } catch (e: Exception) {
-                    setError(e.message)
+                    setError(e)
                     successful = false
                 } finally {
                     setLoading(false)
@@ -125,10 +139,15 @@ class LobbyViewModel
             role: Role,
             team: Team,
             username: String,
+            userId: UUID?,
         ) {
             val lobbyCode = _state.value.lobbyCode
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a Lobby")
+                return
+            }
+            if (userId == null) {
+                setError(ID_NOT_FOUND)
                 return
             }
 
@@ -136,14 +155,14 @@ class LobbyViewModel
                 setLoading(true)
 
                 try {
-                    val response = repository.changeRole(username, lobbyCode, role, team)
+                    val response = repository.changeRole(username, userId, lobbyCode, role, team)
 
                     _state.update {
                         response.toLobbyState()
                     }
                     updateUiState(_state.value.players)
                 } catch (e: Exception) {
-                    setError(e.message)
+                    setError(e)
                 } finally {
                     setLoading(false)
                 }
@@ -153,12 +172,13 @@ class LobbyViewModel
         fun changeRole(
             role: PlayerRoles,
             username: String,
+            userId: UUID?,
         ) {
             when (role) {
-                PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username)
-                PlayerRoles.RED_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.RED, username = username)
-                PlayerRoles.BLUE_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.BLUE, username = username)
-                PlayerRoles.RED_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.RED, username = username)
+                PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username, userId)
+                PlayerRoles.RED_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.RED, username = username, userId)
+                PlayerRoles.BLUE_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.BLUE, username = username, userId)
+                PlayerRoles.RED_OPERATIVE -> changeRole(role = Role.OPERATIVE, team = Team.RED, username = username, userId)
                 else -> setError("Invalid role")
             }
         }
@@ -193,37 +213,33 @@ class LobbyViewModel
         private fun canUseOperativesChat(
             team: Team?,
             role: Role?,
-        ): Boolean {
-            if (team == null || role != Role.OPERATIVE) {
-                return false
-            }
-
-            val sameTeamOperativeCount =
-                _state.value.players.count { player ->
-                    player.team == team && player.role == Role.OPERATIVE
-                }
-
-            return sameTeamOperativeCount > 1
-        }
+        ): Boolean = team != null && role == Role.OPERATIVE
 
         fun getIsHost(username: String): Boolean {
             val player: Player = _state.value.players.firstOrNull { it.name == username } ?: return false
             return player.isHost
         }
 
-        fun sendStartGame(username: String) {
+        fun sendStartGame(
+            username: String,
+            userId: UUID?,
+        ) {
             val lobbyCode = _state.value.lobbyCode.orEmpty()
-            if (!username.isBlank() && !lobbyCode.isEmpty() && getIsHost(username)) {
+            if (userId == null) {
+                setError(ID_NOT_FOUND)
+                return
+            }
+            if (!username.isBlank() && lobbyCode.isNotEmpty() && getIsHost(username)) {
                 viewModelScope.launch {
                     try {
                         setLoading(true)
-                        val response = repository.sendStartGame(lobbyCode, username)
+                        val response = repository.sendStartGame(lobbyCode, userId)
                         _state.update {
                             response.toLobbyState()
                         }
                         updateUiState(_state.value.players)
                     } catch (e: Exception) {
-                        setError(e.message)
+                        setError(e)
                     } finally {
                         Log.d("LobbyViewModel", "Game start sent. Current state: ${_state.value}")
                         setLoading(false)
@@ -232,7 +248,17 @@ class LobbyViewModel
             }
         }
 
-        private fun cleanup() {
+        fun startUpdateAfterRejoin(lobbyCode: String) {
+            startPolling(lobbyCode)
+        }
+
+        fun clearError() {
+            _state.update {
+                it.copy(error = null)
+            }
+        }
+
+        fun cleanup() {
             _state.update {
                 it.copy(
                     lobbyCode = null,
@@ -243,6 +269,8 @@ class LobbyViewModel
                     redSpymasters = emptyList(),
                 )
             }
+            stopPolling()
+            clearError()
         }
 
         private fun updateUiState(players: List<Player>) {
@@ -282,11 +310,11 @@ class LobbyViewModel
                             }
                             updateUiState(_state.value.players)
                         } catch (e: Exception) {
-                            setError(e.message)
+                            setError(e)
                             return@launch
                         }
 
-                        delay(pollingTime)
+                        delay(pollingTime.milliseconds)
                     }
                 }
         }
@@ -294,6 +322,10 @@ class LobbyViewModel
         private fun stopPolling() {
             pollingJob?.cancel()
             pollingJob = null
+        }
+
+        private fun setError(error: Throwable) {
+            setError(ErrorMessageMapper.toUserMessage(error))
         }
 
         private fun setError(msg: String?) {
@@ -315,7 +347,6 @@ class LobbyViewModel
             }
         }
 
-        // for testing polling
         internal fun startPollingForTest(lobbyCode: String) {
             startPolling(lobbyCode)
         }

@@ -1,10 +1,12 @@
 package com.codenames.frontend.ui.screens
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.viewmodel.ChatViewModel
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
@@ -15,19 +17,27 @@ fun GameScreenWrapper(
     navController: NavHostController,
     lobbyViewModel: LobbyViewModel,
     gameViewModel: GameViewModel,
+    chatViewModel: ChatViewModel,
     sessionViewModel: SessionViewModel,
 ) {
     val lobbyState by lobbyViewModel.state.collectAsState()
     val gameState by gameViewModel.uiState.collectAsState()
-    val chatState by gameViewModel.chatState.collectAsState()
-    val usernameState by sessionViewModel.username.collectAsState()
+    val chatState by chatViewModel.chatState.collectAsState()
+    val userState by sessionViewModel.userState.collectAsState()
 
-    val username = usernameState.username
+    val username = userState.username
     val lobbyCode = lobbyState.lobbyCode.orEmpty()
     val currentPlayer = lobbyState.players.firstOrNull { it.name == username }
     val team = currentPlayer?.team
     val userRole = lobbyViewModel.getRoleForUser(username)
     val availableChatTabs = lobbyViewModel.getAvailableChatTabsForUser(username)
+    val winner = gameState.winner
+
+    LaunchedEffect(winner) {
+        if (winner != null) {
+            sessionViewModel.clearLobby()
+        }
+    }
 
     GameboardScreen(
         userRole = userRole,
@@ -37,13 +47,23 @@ fun GameScreenWrapper(
                 availableChatTabs = availableChatTabs,
             ),
         onHintChange = { word, count ->
-            gameViewModel.submitClue(lobbyCode, word, count)
+            gameViewModel.submitClue(lobbyCode, word, count, team)
         },
-        onReveal = {
-            // TODO: Send guess through GameViewModel once backend endpoint exists.
+        onReveal = { positions ->
+            gameViewModel.submitGuesses(lobbyCode, positions, team)
+        },
+        onPassTurn = {
+            gameViewModel.passTurn(lobbyCode, team)
+        },
+        onCheatRequest = { positions ->
+            gameViewModel.requestCheat(
+                lobbyCode = lobbyCode,
+                username = username,
+                positions = positions,
+            )
         },
         onSendChatMessage = { tab, message ->
-            gameViewModel.sendChatMessage(
+            chatViewModel.sendChatMessage(
                 tab = tab,
                 lobbyCode = lobbyCode,
                 username = username,
@@ -54,6 +74,11 @@ fun GameScreenWrapper(
         },
         onSettingsClick = {
             navController.navigate(Screen.Settings.route)
+        },
+        onReturnToHome = {
+            navController.navigate(Screen.Start.route)
+            lobbyViewModel.cleanup()
+            gameViewModel.resetGameState()
         },
     )
 }

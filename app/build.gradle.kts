@@ -1,3 +1,17 @@
+import java.util.Properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val serverUrl: String? =
+    localProperties.getProperty(
+        "SERVER_URL",
+        "se2-demo.aau.at:53213",
+    )
+
 plugins {
     id("com.android.application")
     alias(libs.plugins.kotlin.compose)
@@ -81,6 +95,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
             include("jacoco/testDebugUnitTest.exec")
             include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
             include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec.ec")
+            include("outputs/androidTest-results/connected/**/*.ec")
+            include("outputs/code_coverage/**/connected/**/*.ec")
         },
     )
 }
@@ -102,15 +118,26 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "SERVER_URL",
+            "\"$serverUrl\"",
+        )
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+        }
+
+        debug {
+            enableUnitTestCoverage = true
+            enableAndroidTestCoverage = true
         }
     }
     compileOptions {
@@ -119,6 +146,19 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("pixel6Api34") {
+                    device = "Pixel 6"
+                    apiLevel = 34
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
     }
 }
 
@@ -129,6 +169,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
+
+    // Android Data Store
+    implementation(libs.androidx.datastore.preferences)
 
     // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))

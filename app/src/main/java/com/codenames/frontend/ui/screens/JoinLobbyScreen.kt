@@ -21,15 +21,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
@@ -40,6 +37,10 @@ import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.inputs.AppTextFieldType
 import com.codenames.frontend.ui.navigation.Screen
+import com.codenames.frontend.ui.theme.AppBackground
+import com.codenames.frontend.ui.theme.AppInk
+import com.codenames.frontend.ui.theme.AppWhite
+import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
@@ -68,17 +69,17 @@ fun JoinlobbyScreen(
 ) {
     ForceLandscape()
 
+    val dimensions = LocalResponsiveDimensions.current
     var lobbyId by rememberSaveable { mutableStateOf("") }
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
     val state by viewModel.state.collectAsState()
-    val username by sessionViewModel.username.collectAsState()
+    val userState by sessionViewModel.userState.collectAsState()
 
     val joinEnabled = isLobbyIdValid(lobbyId)
 
-    // Navigation wird ausgeführt, wenn alle notwendigen states im Lobby UI state gesetzt sind. Wird bei jeder rekomposition der UI durchlaufen
     LaunchedEffect(state.lobbyCode, state.error, state.isLoading) {
         if (!state.isLoading && state.error == null && state.lobbyCode != null) {
             navController.navigate(Screen.Lobby.route)
@@ -91,20 +92,20 @@ fun JoinlobbyScreen(
         keyboardController?.hide()
         focusManager.clearFocus()
 
-        viewModel.joinLobby(username.username, lobbyId)
+        viewModel.joinLobby(userState.username, lobbyId)
     }
 
     Box(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color(0xFFf0d8ce)),
+                .background(AppBackground),
     ) {
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(dimensions.screenPadding),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -115,8 +116,8 @@ fun JoinlobbyScreen(
                 },
                 modifier =
                     Modifier
-                        .fillMaxWidth(0.5f)
-                        .padding(bottom = 16.dp)
+                        .fillMaxWidth(if (dimensions.isNarrowWidth) 0.7f else 0.5f)
+                        .padding(bottom = dimensions.itemSpacing)
                         .testTag(JOIN_LOBBY_INPUT_TAG),
                 state =
                     AppTextFieldState(
@@ -126,9 +127,9 @@ fun JoinlobbyScreen(
                 style =
                     AppTextFieldStyle(
                         type = AppTextFieldType.SECONDARY,
-                        contentColor = Color.White,
-                        fontSize = 20.sp,
-                        lineHeight = 24.sp,
+                        contentColor = AppWhite,
+                        fontSize = dimensions.bodyFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
                     ),
                 keyboard =
                     AppTextFieldKeyboard(
@@ -150,33 +151,24 @@ fun JoinlobbyScreen(
                 onClick = { submitJoin() },
                 modifier =
                     Modifier
-                        .width(220.dp)
-                        .height(80.dp)
+                        .width(dimensions.primaryButtonWidth)
+                        .height(dimensions.primaryButtonHeight)
                         .testTag(JOIN_LOBBY_BUTTON_TAG),
                 style =
                     AppButtonStyle(
                         enabled = joinEnabled,
                         backgroundBrush = blueGradient,
-                        fontSize = 26.sp,
-                        lineHeight = 30.sp,
+                        fontSize = dimensions.buttonFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
                     ),
             )
 
             if (state.isLoading) {
                 Text(
                     text = "Joining...",
-                    color = Color(0xFF383330),
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(top = 12.dp),
-                )
-            }
-
-            state.error?.let { error ->
-                Text(
-                    text = error,
-                    color = Color(0xFFCF5530),
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(top = 12.dp),
+                    color = AppInk,
+                    fontSize = dimensions.bodyFontSize,
+                    modifier = Modifier.padding(top = dimensions.itemSpacing),
                 )
             }
         }

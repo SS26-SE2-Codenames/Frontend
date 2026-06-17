@@ -1,10 +1,11 @@
 package com.codenames.frontend.network.dto
 
+import com.codenames.frontend.data.model.enums.Team
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class GuessMessage(
-    val username: String,
-    val word: String,
-    val number: Int,
+    val lobbyCode: String,
+    val position: Int,
+    val currentTurn: Team,
 )

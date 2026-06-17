@@ -1,7 +1,7 @@
 package com.codenames.frontend.data.repository
 
 import com.codenames.frontend.network.dto.ChatMessageDto
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.ChatWebSocketController
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -21,64 +21,114 @@ import org.junit.Test
 import kotlin.test.assertFailsWith
 
 class ChatRepositoryTest {
-    private lateinit var webSocketHandler: GameWebSocketHandler
+    private lateinit var chatSocketHandler: ChatWebSocketController
     private lateinit var repository: ChatRepository
 
-    private val testTopic = "/topic/chat"
+    private val testLobbyCode = "ABCD"
+    private val testTeam = "RED"
+
+    private val lobbyTopic = "/topic/chat/$testLobbyCode"
+    private val teamTopic = "/topic/chat/$testLobbyCode/$testTeam"
+    private val operativeTopic = "/topic/chat/$testLobbyCode/$testTeam/operative"
     private val testUser = "TestUser"
     private val testContent = "Hello World"
     private val testDto = ChatMessageDto(senderUsername = testUser, content = testContent)
 
     @Before
     fun setup() {
-        webSocketHandler = mockk()
-        repository = ChatRepository(webSocketHandler)
+        chatSocketHandler = mockk()
+        repository = ChatRepository(chatSocketHandler)
         // Suspend methods use coroutines (lighter version of thread) -> instead of every, we use coEvery
-        coEvery { webSocketHandler.subscribeToChat(testTopic) } returns flowOf(testDto)
+        coEvery { chatSocketHandler.subscribeToChat(any()) } returns flowOf(testDto)
     }
 
     @Test
     fun testObserveChat_correctContent() =
         runTest {
             // Since we mock the function to return a flow, we can call toList and grab all the contents
-            val result = repository.observeChat(testTopic, testUser).toList()
+            val result =
+                repository
+                    .observeLobbyChat(
+                        testLobbyCode,
+                        testUser,
+                    ).toList()
             assertEquals(testContent, result[0].text)
         }
 
     @Test
     fun testObserveChat_correctUser() =
         runTest {
-            val result = repository.observeChat(testTopic, testUser).toList()
+            val result =
+                repository
+                    .observeLobbyChat(
+                        testLobbyCode,
+                        testUser,
+                    ).toList()
             assertEquals(testUser, result[0].sender)
         }
 
     @Test
     fun testObserveChat_fromMe() =
         runTest {
-            val result = repository.observeChat(testTopic, testUser).toList()
+            val result =
+                repository
+                    .observeLobbyChat(
+                        testLobbyCode,
+                        testUser,
+                    ).toList()
             assertTrue(result[0].isFromMe)
         }
 
     @Test
     fun testObserveChat_notFromMe() =
         runTest {
-            val result = repository.observeChat(testTopic, "NotTestUser").toList()
+            val result =
+                repository
+                    .observeLobbyChat(
+                        testLobbyCode,
+                        "NotTestUser",
+                    ).toList()
             assertFalse(result[0].isFromMe)
         }
 
     @Test
     fun testSendMessage() =
         runTest {
-            coEvery { webSocketHandler.sendChatMessage(testTopic, testDto) } just Runs
-            repository.sendMessage(testTopic, testUser, testContent)
-            coVerify { webSocketHandler.sendChatMessage(testTopic, testDto) }
+            coEvery {
+                chatSocketHandler.sendChatMessage(
+                    "/app/chat/$testLobbyCode",
+                    testDto,
+                )
+            } just Runs
+
+            repository.sendLobbyMessage(
+                testLobbyCode,
+                testUser,
+                testContent,
+            )
+
+            coVerify {
+                chatSocketHandler.sendChatMessage(
+                    "/app/chat/$testLobbyCode",
+                    testDto,
+                )
+            }
         }
 
     @Test
     fun testObserveChat_emptyFlow() =
         runTest {
-            coEvery { webSocketHandler.subscribeToChat(testTopic) } returns emptyFlow()
-            val result = repository.observeChat(testTopic, testUser).toList()
+            coEvery {
+                chatSocketHandler.subscribeToChat(lobbyTopic)
+            } returns emptyFlow()
+
+            val result =
+                repository
+                    .observeLobbyChat(
+                        testLobbyCode,
+                        testUser,
+                    ).toList()
+
             assertTrue(result.isEmpty())
         }
 
@@ -90,18 +140,33 @@ class ChatRepositoryTest {
                     ChatMessageDto(testUser, "First"),
                     ChatMessageDto("OtherUser", "Second"),
                 )
-            coEvery { webSocketHandler.subscribeToChat(testTopic) } returns dtos
+            coEvery {
+                chatSocketHandler.subscribeToChat(lobbyTopic)
+            } returns dtos
 
-            val result = repository.observeChat(testTopic, testUser).toList()
+            val result =
+                repository
+                    .observeLobbyChat(
+                        testLobbyCode,
+                        testUser,
+                    ).toList()
+
             assertEquals(2, result.size)
         }
 
     @Test
     fun testObserveChat_webSocketError() =
         runTest {
-            coEvery { webSocketHandler.subscribeToChat(any()) } throws RuntimeException()
+            coEvery {
+                chatSocketHandler.subscribeToChat(any())
+            } throws RuntimeException()
+
             assertFailsWith<RuntimeException> {
-                repository.observeChat(testTopic, testUser).toList()
+                repository
+                    .observeLobbyChat(
+                        testLobbyCode,
+                        testUser,
+                    ).toList()
             }
         }
 
@@ -113,9 +178,15 @@ class ChatRepositoryTest {
                     emit(testDto)
                     throw RuntimeException("Connection Lost")
                 }
-            coEvery { webSocketHandler.subscribeToChat(testTopic) } returns flowWithError
+            coEvery {
+                chatSocketHandler.subscribeToChat(lobbyTopic)
+            } returns flowWithError
 
-            val flow = repository.observeChat(testTopic, testUser)
+            val flow =
+                repository.observeLobbyChat(
+                    testLobbyCode,
+                    testUser,
+                )
             assertFailsWith<RuntimeException> {
                 flow.toList()
             }
@@ -130,11 +201,140 @@ class ChatRepositoryTest {
                     ChatMessageDto(testUser, "First"),
                     ChatMessageDto("OtherUser", "Second"),
                 )
-            coEvery { webSocketHandler.subscribeToChat(testTopic) } returns dtos
+            coEvery {
+                chatSocketHandler.subscribeToChat(lobbyTopic)
+            } returns dtos
 
-            // take() will consume x elements and cancel the flow
-            val result = repository.observeChat(testTopic, testUser).take(1).toList()
+            val result =
+                repository
+                    .observeLobbyChat(
+                        testLobbyCode,
+                        testUser,
+                    ).take(1)
+                    .toList()
 
             assertEquals(1, result.size)
+        }
+
+    @Test
+    fun testObserveTeamChat_correctMapping() =
+        runTest {
+            val dto = ChatMessageDto(testUser, testContent)
+
+            coEvery { chatSocketHandler.subscribeToChat(teamTopic) } returns flowOf(dto)
+
+            val result =
+                repository
+                    .observeTeamChat(testLobbyCode, testTeam, testUser)
+                    .toList()
+
+            assertEquals(testContent, result[0].text)
+            assertEquals(testUser, result[0].sender)
+        }
+
+    @Test
+    fun testObserveOperativeChat_correctTopicAndMapping() =
+        runTest {
+            val dto = ChatMessageDto(testUser, testContent)
+
+            coEvery { chatSocketHandler.subscribeToChat(operativeTopic) } returns flowOf(dto)
+
+            val result =
+                repository
+                    .observeOperativeChat(testLobbyCode, testTeam, testUser)
+                    .toList()
+
+            assertEquals(testContent, result[0].text)
+            assertEquals(testUser, result[0].sender)
+        }
+
+    @Test
+    fun testObserveTeamChat_usesCorrectTopic() =
+        runTest {
+            coEvery { chatSocketHandler.subscribeToChat(teamTopic) } returns flowOf(testDto)
+
+            repository.observeTeamChat(testLobbyCode, testTeam, testUser).toList()
+
+            coVerify { chatSocketHandler.subscribeToChat(teamTopic) }
+        }
+
+    @Test
+    fun testObserveOperativeChat_usesCorrectTopic() =
+        runTest {
+            coEvery { chatSocketHandler.subscribeToChat(operativeTopic) } returns flowOf(testDto)
+
+            repository.observeOperativeChat(testLobbyCode, testTeam, testUser).toList()
+
+            coVerify { chatSocketHandler.subscribeToChat(operativeTopic) }
+        }
+
+    @Test
+    fun testSendTeamMessage_callsCorrectDestination() =
+        runTest {
+            val dto = ChatMessageDto(testUser, testContent)
+
+            coEvery {
+                chatSocketHandler.sendChatMessage(teamTopic.replace("/topic", "/app"), dto)
+            } just Runs
+
+            repository.sendTeamMessage(testLobbyCode, testTeam, testUser, testContent)
+
+            coVerify {
+                chatSocketHandler.sendChatMessage(
+                    "/app/chat/$testLobbyCode/$testTeam",
+                    dto,
+                )
+            }
+        }
+
+    @Test
+    fun testSendOperativeMessage_callsCorrectDestination() =
+        runTest {
+            val dto = ChatMessageDto(testUser, testContent)
+
+            coEvery {
+                chatSocketHandler.sendChatMessage("/app/chat/$testLobbyCode/$testTeam/operative", dto)
+            } just Runs
+
+            repository.sendOperativeMessage(testLobbyCode, testTeam, testUser, testContent)
+
+            coVerify {
+                chatSocketHandler.sendChatMessage(
+                    "/app/chat/$testLobbyCode/$testTeam/operative",
+                    dto,
+                )
+            }
+        }
+
+    @Test
+    fun testObserveTeamChat_emptyFlow() =
+        runTest {
+            coEvery { chatSocketHandler.subscribeToChat(teamTopic) } returns emptyFlow()
+
+            val result = repository.observeTeamChat(testLobbyCode, testTeam, testUser).toList()
+
+            assertTrue(result.isEmpty())
+        }
+
+    @Test
+    fun testObserveSystemMessages_correctMapping() =
+        runTest {
+            val dto =
+                ChatMessageDto(
+                    "System",
+                    "London is correct",
+                )
+
+            coEvery {
+                chatSocketHandler.subscribeToSystemMessages()
+            } returns flowOf(dto)
+
+            val result =
+                repository
+                    .observeSystemMessages(testUser)
+                    .toList()
+
+            assertEquals("System", result[0].sender)
+            assertEquals("London is correct", result[0].text)
         }
 }

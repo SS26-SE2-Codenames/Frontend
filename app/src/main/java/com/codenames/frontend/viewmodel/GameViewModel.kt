@@ -3,18 +3,15 @@ package com.codenames.frontend.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.codenames.frontend.data.model.ChatLists
+import com.codenames.frontend.data.error.ErrorMessageMapper
 import com.codenames.frontend.data.model.GameState
-import com.codenames.frontend.data.model.enums.CardType
-import com.codenames.frontend.data.model.enums.ChatTab
+import com.codenames.frontend.data.model.RejoinState
 import com.codenames.frontend.data.model.enums.ConnectionState
-import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toGameState
-import com.codenames.frontend.data.repository.ChatRepository
 import com.codenames.frontend.data.repository.GameRepository
 import com.codenames.frontend.network.dto.GameMessage
-import com.codenames.frontend.network.websocket.GameWebSocketHandler
+import com.codenames.frontend.network.websocket.GameWebSocketController
 import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -23,14 +20,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class GameViewModel
     @Inject
     constructor(
-        private val client: GameWebSocketHandler,
-        private val chatRepository: ChatRepository,
+        private val handler: GameWebSocketController,
         private val gameRepository: GameRepository,
     ) : ViewModel() {
         private var job: Job? = null
@@ -38,17 +36,11 @@ class GameViewModel
         private val _uiState = MutableStateFlow(GameState())
         val uiState: StateFlow<GameState> = _uiState
 
-        private val _chatState = MutableStateFlow(ChatLists())
-        val chatState: StateFlow<ChatLists> = _chatState
-
         private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.IDLE)
         val connectionState: StateFlow<ConnectionState> = _connectionState
 
         fun connect(
-            username: String,
             lobbyCode: String,
-            team: String,
-            role: String,
             isHost: Boolean = false,
         ) {
             job?.cancel()
@@ -58,52 +50,26 @@ class GameViewModel
                     _connectionState.value = ConnectionState.CONNECTING
 
                     try {
-                        client.connectStomp()
+                        handler.connectStomp()
 
                         Log.d("GameViewModel", "Connection successful")
 
                         _connectionState.value = ConnectionState.CONNECTED
 
                         launch {
-                            client
+                            handler
                                 .subscribeToLobby(lobbyCode)
                                 .collect { handleMessage(it) }
                         }
 
                         Log.d("GameViewModel", "Subscribed to Lobby")
 
-                        launch {
-                            chatRepository.observeChat("/topic/chat/$lobbyCode", username).collect { msg ->
-                                _chatState.update { currentState ->
-                                    currentState.copy(lobbyMessages = currentState.lobbyMessages + msg)
-                                }
-                            }
-                        }
-
-                        launch {
-                            chatRepository.observeChat("/topic/chat/$lobbyCode/$team", username).collect { msg ->
-                                _chatState.update { currentState ->
-                                    currentState.copy(teamMessages = currentState.teamMessages + msg)
-                                }
-                            }
-                        }
-
-                        if (role == Role.OPERATIVE.name) {
-                            launch {
-                                chatRepository.observeChat("/topic/chat/$lobbyCode/$team/operative", username).collect { msg ->
-                                    _chatState.update { currentState ->
-                                        currentState.copy(operativeMessages = currentState.operativeMessages + msg)
-                                    }
-                                }
-                            }
-                        }
-
                         if (isHost) {
-                            delay(2000)
+                            delay(3000.milliseconds)
                             sendGameStart(lobbyCode)
                         }
                     } catch (e: Exception) {
-                        _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                        setConnectionError(e)
                     }
                 }
         }
@@ -113,39 +79,11 @@ class GameViewModel
                 return
             }
             viewModelScope.launch {
-                gameRepository.startGame(lobbyCode)
-            }
-        }
-
-        fun sendLobbyMessage(
-            lobbyCode: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode", username, content)
-            }
-        }
-
-        fun sendTeamMessage(
-            lobbyCode: String,
-            team: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode/$team", username, content)
-            }
-        }
-
-        fun sendOperativeMessage(
-            lobbyCode: String,
-            team: String,
-            username: String,
-            content: String,
-        ) {
-            viewModelScope.launch {
-                chatRepository.sendMessage("/app/chat/$lobbyCode/$team/operative", username, content)
+                try {
+                    gameRepository.startGame(lobbyCode)
+                } catch (e: Exception) {
+                    setConnectionError(e)
+                }
             }
         }
 
@@ -153,82 +91,165 @@ class GameViewModel
             lobbyCode: String,
             word: String,
             count: Int,
+            team: Team?,
         ) {
-            if (lobbyCode.isBlank()) {
+            if (lobbyCode.isBlank() || team == null) {
                 return
             }
 
             val turn = uiState.value.currentTurn
-            if (turn != PlayerRoles.BLUE_SPYMASTER && turn != PlayerRoles.RED_SPYMASTER) return
-
-            val team = if (turn == PlayerRoles.BLUE_SPYMASTER) Team.BLUE else Team.RED
+            if (!team.isActiveSpymasterTurn(turn)) return
             viewModelScope.launch {
                 try {
-                    client.sendClue(lobbyCode, word, count, team)
+                    gameRepository.submitClue(lobbyCode, word, count, team)
                 } catch (e: Exception) {
-                    _connectionState.value = ConnectionState.Error(e.message ?: "Connection error")
+                    setConnectionError(e)
                 }
             }
         }
 
-        fun sendChatMessage(
-            tab: ChatTab,
+        fun submitGuess(
             lobbyCode: String,
-            username: String,
+            position: Int,
             team: Team?,
-            content: String,
-            availableChatTabs: List<ChatTab>,
         ) {
-            if (lobbyCode.isBlank()) {
+            if (lobbyCode.isBlank() || team == null) {
                 return
             }
 
-            when (tab) {
-                ChatTab.GLOBAL ->
-                    sendLobbyMessage(
+            val turn = uiState.value.currentTurn
+            if (!team.isActiveOperativeTurn(turn)) return
+            viewModelScope.launch {
+                try {
+                    gameRepository.submitGuess(lobbyCode, position, team)
+                } catch (e: Exception) {
+                    setConnectionError(e)
+                }
+            }
+        }
+
+        fun submitGuesses(
+            lobbyCode: String,
+            positions: List<Int>,
+            team: Team?,
+        ) {
+            if (lobbyCode.isBlank() || positions.isEmpty() || team == null) {
+                return
+            }
+
+            val turn = uiState.value.currentTurn
+            if (!team.isActiveOperativeTurn(turn)) return
+            viewModelScope.launch {
+                try {
+                    positions.forEach { position ->
+                        gameRepository.submitGuess(lobbyCode, position, team)
+                    }
+                } catch (e: Exception) {
+                    setConnectionError(e)
+                }
+            }
+        }
+
+        fun requestCheat(
+            lobbyCode: String,
+            username: String,
+            positions: List<Int>,
+        ) {
+            if (lobbyCode.isBlank() || positions.isEmpty()) {
+                return
+            }
+
+            viewModelScope.launch {
+                try {
+                    gameRepository.requestCheat(
                         lobbyCode = lobbyCode,
                         username = username,
-                        content = content,
+                        positions = positions,
                     )
+                } catch (e: Exception) {
+                    setConnectionError(e)
+                }
+            }
+        }
 
-                ChatTab.TEAM ->
-                    if (team != null) {
-                        sendTeamMessage(
-                            lobbyCode = lobbyCode,
-                            team = team.name,
-                            username = username,
-                            content = content,
-                        )
-                    }
+        fun passTurn(
+            lobbyCode: String,
+            team: Team?,
+        ) {
+            if (lobbyCode.isBlank() || team == null) {
+                return
+            }
 
-                ChatTab.OPERATIVES ->
-                    if (team != null && ChatTab.OPERATIVES in availableChatTabs) {
-                        sendOperativeMessage(
-                            lobbyCode = lobbyCode,
-                            team = team.name,
-                            username = username,
-                            content = content,
-                        )
+            val turn = uiState.value.currentTurn
+            if (!team.isActiveOperativeTurn(turn)) return
+            viewModelScope.launch {
+                try {
+                    gameRepository.passTurn(lobbyCode, team)
+                } catch (e: Exception) {
+                    setConnectionError(e)
+                }
+            }
+        }
+
+        fun rejoinGame(
+            username: String,
+            userId: UUID,
+            rejoinState: RejoinState.Available?,
+        ) {
+            if (rejoinState == null) return
+
+            val lobbyCode = rejoinState.sessionState.lobbyCode
+            val team = rejoinState.sessionState.lobbyTeam
+            val role = rejoinState.sessionState.lobbyRole
+
+            if (lobbyCode != null && team != null && role != null) {
+                viewModelScope.launch {
+                    try {
+                        gameRepository.sendRejoin(username, userId, lobbyCode)
+                    } catch (e: Exception) {
+                        setConnectionError(e)
                     }
+                }
             }
         }
 
         fun handleMessage(message: GameMessage) {
+            if (!message.error.isNullOrBlank()) {
+                _connectionState.value = ConnectionState.Error(message.error)
+                return
+            }
+
             val state = message.toGameState()
+            Log.d("GameViewModel", "New Game State: $state")
             _uiState.update {
                 state
             }
-            Log.d("GameViewModel", "Updated game state: $state")
         }
 
-        fun getCurrentFound(team: CardType): Int {
-            val cards = _uiState.value.cards
-            var count = 0
-            for (card in cards) {
-                if (card.type == team && card.revealed) {
-                    count++
-                }
+        fun clearError() {
+            if (_connectionState.value is ConnectionState.Error) {
+                _connectionState.value = ConnectionState.IDLE
             }
-            return count
         }
+
+        fun resetGameState() {
+            viewModelScope.launch {
+                _uiState.update {
+                    GameState()
+                }
+                handler.disconnect()
+            }
+        }
+
+        private fun setConnectionError(error: Throwable) {
+            _connectionState.value = ConnectionState.Error(ErrorMessageMapper.toUserMessage(error))
+        }
+
+        private fun Team.isActiveOperativeTurn(turn: PlayerRoles): Boolean =
+            (this == Team.BLUE && turn == PlayerRoles.BLUE_OPERATIVE) ||
+                (this == Team.RED && turn == PlayerRoles.RED_OPERATIVE)
+
+        private fun Team.isActiveSpymasterTurn(turn: PlayerRoles): Boolean =
+            (this == Team.BLUE && turn == PlayerRoles.BLUE_SPYMASTER) ||
+                (this == Team.RED && turn == PlayerRoles.RED_SPYMASTER)
     }

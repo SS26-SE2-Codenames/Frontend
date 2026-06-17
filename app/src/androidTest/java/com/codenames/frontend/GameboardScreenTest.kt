@@ -14,6 +14,7 @@ import com.codenames.frontend.data.model.enums.CardType
 import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.screens.GameboardScreen
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -39,21 +40,23 @@ class GameboardScreenTest {
                         currentHint = "EAGLE",
                         currentTurn = PlayerRoles.BLUE_OPERATIVE,
                         remainingGuesses = 3,
+                        numGuesses = 3,
                         currentBlueFound = 0,
                         currentRedFound = 1,
                         cards = cards,
                     ),
                 onHintChange = { _, _ -> },
                 onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
         composeRule.onNodeWithText("BERLIN").assertIsDisplayed()
         composeRule.onNodeWithText("ROME").assertIsDisplayed()
-        composeRule.onNodeWithText("Turn: BLUE_OPERATIVE | Guesses: 3").assertIsDisplayed()
+        composeRule.onNodeWithText("Turn: BLUE_OPERATIVE | Remaining Guesses: 3/3").assertIsDisplayed()
         composeRule.onNodeWithText("0 FOUND").assertIsDisplayed()
         composeRule.onNodeWithText("1 FOUND").assertIsDisplayed()
-        composeRule.onAllNodesWithText("Hint: EAGLE").assertCountEquals(0)
     }
 
     @Test
@@ -68,10 +71,33 @@ class GameboardScreenTest {
                     ),
                 onHintChange = { _, _ -> },
                 onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
         composeRule.onNodeWithText("Hint: EAGLE").assertIsDisplayed()
+    }
+
+    @Test
+    fun inactiveSpymasterCannotEnterClue() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_SPYMASTER,
+                gameState =
+                    GameState(
+                        currentHint = "",
+                        currentTurn = PlayerRoles.RED_SPYMASTER,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("SEND").assertCountEquals(0)
     }
 
     @Test
@@ -98,6 +124,8 @@ class GameboardScreenTest {
                     ),
                 onHintChange = { _, _ -> },
                 onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -131,6 +159,8 @@ class GameboardScreenTest {
                     ),
                 onHintChange = { _, _ -> },
                 onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
@@ -153,10 +183,200 @@ class GameboardScreenTest {
                     ),
                 onHintChange = { _, _ -> },
                 onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
             )
         }
 
         composeRule.onNodeWithText("Chat").performClick()
         composeRule.onAllNodesWithText("Operatives").assertCountEquals(0)
+    }
+
+    @Test
+    fun operativeCanSelectAndDeselectCards() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards =
+                            listOf(
+                                GameCard("BERLIN", CardType.BLUE),
+                                GameCard("ROME", CardType.RED),
+                            ),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("Deselect all").assertCountEquals(0)
+
+        composeRule.onNodeWithText("BERLIN").performClick()
+        composeRule.onNodeWithText("Deselect all").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Deselect all").performClick()
+        composeRule.onAllNodesWithText("Deselect all").assertCountEquals(0)
+    }
+
+    @Test
+    fun inactiveOperativeCannotSelectCards() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.RED_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards =
+                            listOf(
+                                GameCard("BERLIN", CardType.BLUE),
+                                GameCard("ROME", CardType.RED),
+                            ),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        composeRule.onNodeWithText("BERLIN").performClick()
+        composeRule.onAllNodesWithText("Deselect all").assertCountEquals(0)
+    }
+
+    @Test
+    fun activeOperativeSeesEndTurnButton() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        composeRule.onNodeWithText("End Turn").assertIsDisplayed()
+    }
+
+    @Test
+    fun spymasterDoesNotSeeEndTurnButton() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_SPYMASTER,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("End Turn").assertCountEquals(0)
+    }
+
+    @Test
+    fun inactiveOperativeDoesNotSeeEndTurnButton() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.RED_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("End Turn").assertCountEquals(0)
+    }
+
+    @Test
+    fun endTurnButtonCallsPassTurn() {
+        var passTurnClicks = 0
+
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards = listOf(GameCard("BERLIN", CardType.BLUE)),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onPassTurn = { passTurnClicks++ },
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        composeRule.onNodeWithText("End Turn").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(1, passTurnClicks)
+        }
+    }
+
+    @Test
+    fun clickingSelectedCardRevealsOnlyThatCard() {
+        var revealedPositions = emptyList<Int>()
+
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "EAGLE",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 2,
+                        cards =
+                            listOf(
+                                GameCard("BERLIN", CardType.BLUE),
+                                GameCard("ROME", CardType.RED),
+                            ),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = { positions -> revealedPositions = positions },
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        composeRule.onNodeWithText("BERLIN").performClick()
+        composeRule.onNodeWithText("ROME").performClick()
+        composeRule.onNodeWithText("BERLIN").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(listOf(0), revealedPositions)
+        }
     }
 }
