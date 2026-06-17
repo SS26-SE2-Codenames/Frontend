@@ -6,7 +6,7 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val serverUrl =
+val serverUrl: String? =
     localProperties.getProperty(
         "SERVER_URL",
         "se2-demo.aau.at:53213",
