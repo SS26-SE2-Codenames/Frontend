@@ -92,7 +92,7 @@ fun JoinlobbyScreen(
         keyboardController?.hide()
         focusManager.clearFocus()
 
-        viewModel.joinLobby(userState.username, userState.userId, lobbyId)
+        viewModel.joinLobby(userState.username, lobbyId)
     }
 
     Box(

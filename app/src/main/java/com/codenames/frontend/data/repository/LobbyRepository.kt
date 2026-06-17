@@ -1,5 +1,6 @@
 package com.codenames.frontend.data.repository
 
+import android.util.Log
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.api.LobbyApi
@@ -23,11 +24,11 @@ class LobbyRepository
         suspend fun joinLobby(
             username: String,
             lobbyCode: String,
-            userId: UUID?
         ): LobbyResponse {
-            var id : String? = userId.toString()
-            if(id.equals("null")) id = null
-            return api.joinLobby(lobbyCode, username, id)
+            Log.d("LobbyRepository", "Joining lobby $lobbyCode ")
+            val msg =  api.joinLobby(lobbyCode, username)
+            Log.d("LobbyRepository", "Got Lobby Join message: $msg")
+            return msg
         }
 
         suspend fun getLobbyInfo(lobbyCode: String): LobbyResponse = api.getLobbyInfo(lobbyCode)
