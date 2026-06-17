@@ -9,7 +9,6 @@ import com.codenames.frontend.data.repository.SessionRepository
 import com.codenames.frontend.network.dto.LobbyResponse
 import com.codenames.frontend.network.dto.PlayerDto
 import com.codenames.frontend.ui.roles.PlayerRoles
-import io.mockk.Awaits
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -509,16 +508,23 @@ class LobbyViewModelTest {
         }
 
     @Test
-    fun testLeaveLobby_nullIdSetsError() =
+    fun testLeaveLobby_nullIdDoesNothing() =
         runTest {
             val viewModel = LobbyViewModel(repository, sessionRepository)
             val username = "User"
             val lobbyCode = "ABCDE"
             val onResult = { bool: Boolean -> }
 
+            val response =
+                LobbyResponse(
+                    lobbyCode = "ABCDE",
+                    playerList = listOf(PlayerDto("User", null, Team.RED, true)),
+                    false,
+                )
+
             coEvery {
                 repository.joinLobby(username, lobbyCode)
-            } just Awaits
+            } returns response
             coEvery { sessionRepository.clearUserId() } just Runs
 
             viewModel.joinLobby(username, lobbyCode)
@@ -774,6 +780,18 @@ class LobbyViewModelTest {
 
             coVerify(exactly = 0) {
                 repository.sendStartGame(any(), any())
+            }
+        }
+
+    @Test
+    fun sendStartGame_NullId_doesNothing() =
+        runTest {
+            val viewModel = LobbyViewModel(repository, sessionRepository)
+
+            viewModel.sendStartGame("User", null)
+            advanceUntilIdle()
+            coVerify(exactly = 0) {
+                repository.sendStartGame("User", any())
             }
         }
 
