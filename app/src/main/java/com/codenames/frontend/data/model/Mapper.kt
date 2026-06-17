@@ -37,6 +37,8 @@ fun GameMessage.toGameState(): GameState {
         remainingGuesses = remainingGuesses,
         currentRedFound = cards.count { it.type == CardType.RED && it.revealed },
         currentBlueFound = cards.count { it.type == CardType.BLUE && it.revealed },
+        redTeamCheatUsed = redTeamCheatUsed,
+        blueTeamCheatUsed = blueTeamCheatUsed,
     )
 }
 

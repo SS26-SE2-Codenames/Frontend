@@ -315,4 +315,26 @@ class ChatRepositoryTest {
 
             assertTrue(result.isEmpty())
         }
+
+    @Test
+    fun testObserveSystemMessages_correctMapping() =
+        runTest {
+            val dto =
+                ChatMessageDto(
+                    "System",
+                    "London is correct",
+                )
+
+            coEvery {
+                chatSocketHandler.subscribeToSystemMessages()
+            } returns flowOf(dto)
+
+            val result =
+                repository
+                    .observeSystemMessages(testUser)
+                    .toList()
+
+            assertEquals("System", result[0].sender)
+            assertEquals("London is correct", result[0].text)
+        }
 }

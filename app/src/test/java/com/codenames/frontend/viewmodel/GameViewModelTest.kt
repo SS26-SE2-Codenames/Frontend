@@ -654,4 +654,78 @@ class GameViewModelTest {
 
             assertEquals(ConnectionState.IDLE, viewModel.connectionState.value)
         }
+
+    @Test
+    fun requestCheat_callsRepository() =
+        runTest {
+            viewModel.requestCheat(
+                lobbyCode = "ABCD",
+                username = "Max",
+                positions = listOf(1, 3, 5),
+            )
+
+            advanceUntilIdle()
+
+            coVerify {
+                gameRepository.requestCheat(
+                    "ABCD",
+                    "Max",
+                    listOf(1, 3, 5),
+                )
+            }
+        }
+
+    @Test
+    fun requestCheat_emptyPositions_doesNothing() =
+        runTest {
+            viewModel.requestCheat(
+                lobbyCode = "ABCD",
+                username = "Max",
+                positions = emptyList(),
+            )
+
+            coVerify(exactly = 0) {
+                gameRepository.requestCheat(
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
+        }
+
+    @Test
+    fun requestCheat_blankLobbyCode_doesNothing() =
+        runTest {
+            viewModel.requestCheat(
+                lobbyCode = "",
+                username = "Max",
+                positions = listOf(1, 2, 3),
+            )
+
+            coVerify(exactly = 0) {
+                gameRepository.requestCheat(
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
+        }
+
+    @Test
+    fun requestCheat_repositoryThrows() =
+        runTest {
+            coEvery {
+                gameRepository.requestCheat(any(), any(), any())
+            } throws RuntimeException()
+
+            viewModel.requestCheat(
+                "ABCD",
+                "Max",
+                listOf(1, 2, 3),
+            )
+
+            advanceUntilIdle()
+
+            assertTrue(viewModel.connectionState.value is ConnectionState.Error)
+        }
 }

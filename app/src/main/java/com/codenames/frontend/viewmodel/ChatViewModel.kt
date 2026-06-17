@@ -89,6 +89,19 @@ class ChatViewModel
                         setError(e)
                     }
                 }
+
+                viewModelScope.launch {
+                    chatRepository
+                        .observeSystemMessages(
+                            currentUsername = username,
+                        ).collect { msg ->
+                            _chatState.update {
+                                it.copy(
+                                    operativeMessages = it.operativeMessages + msg,
+                                )
+                            }
+                        }
+                }
             }
         }
 

@@ -63,6 +63,28 @@ class GameRepositoryTest {
         }
 
     @Test
+    fun testRequestCheat() =
+        runTest {
+            val lobbyCode = "ABCDE"
+            val username = "Max"
+            val positions = listOf(1, 3, 5)
+
+            coEvery {
+                webSocketHandler.sendCheat(any())
+            } just Runs
+
+            gameRepository.requestCheat(
+                lobbyCode,
+                username,
+                positions,
+            )
+
+            coVerify {
+                webSocketHandler.sendCheat(any())
+            }
+        }
+
+    @Test
     fun testPassTurn() =
         runTest {
             val lobbyCode = "ABCDE"

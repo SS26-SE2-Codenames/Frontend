@@ -150,6 +150,28 @@ class GameViewModel
             }
         }
 
+        fun requestCheat(
+            lobbyCode: String,
+            username: String,
+            positions: List<Int>,
+        ) {
+            if (lobbyCode.isBlank() || positions.isEmpty()) {
+                return
+            }
+
+            viewModelScope.launch {
+                try {
+                    gameRepository.requestCheat(
+                        lobbyCode = lobbyCode,
+                        username = username,
+                        positions = positions,
+                    )
+                } catch (e: Exception) {
+                    setConnectionError(e)
+                }
+            }
+        }
+
         fun passTurn(
             lobbyCode: String,
             team: Team?,

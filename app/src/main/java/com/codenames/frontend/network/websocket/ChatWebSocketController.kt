@@ -20,6 +20,13 @@ class ChatWebSocketController
                 ChatMessageDto.serializer(),
             )
 
+        @Suppress("kotlin:S6309")
+        suspend fun subscribeToSystemMessages(): Flow<ChatMessageDto> =
+            webSocketSessionManager.getSession().subscribe(
+                "/user/queue/system",
+                ChatMessageDto.serializer(),
+            )
+
         suspend fun sendChatMessage(
             destination: String,
             msg: ChatMessageDto,
