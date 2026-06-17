@@ -32,7 +32,7 @@ class LobbyViewModel
     @Inject
     constructor(
         private val repository: LobbyRepository,
-        private val sessionRepository: SessionRepository
+        private val sessionRepository: SessionRepository,
     ) : ViewModel() {
         private val _state = MutableStateFlow(LobbyUiState())
         val state: StateFlow<LobbyUiState> = _state
@@ -54,7 +54,7 @@ class LobbyViewModel
                     _state.update {
                         response.toLobbyState()
                     }
-                    if(response.uuid != null) sessionRepository.saveUser(username, UUID.fromString(response.uuid))
+                    if (response.uuid != null) sessionRepository.saveUser(username, UUID.fromString(response.uuid))
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
                     setError(e)
@@ -85,7 +85,7 @@ class LobbyViewModel
                     _state.update {
                         response.toLobbyState()
                     }
-                    if(response.uuid != null)  sessionRepository.saveUser(username, UUID.fromString(response.uuid))
+                    if (response.uuid != null) sessionRepository.saveUser(username, UUID.fromString(response.uuid))
                     updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
@@ -108,7 +108,7 @@ class LobbyViewModel
                 onResult(successful)
                 return
             }
-            if(userId == null) {
+            if (userId == null) {
                 setError(ID_NOT_FOUND)
                 return
             }
@@ -139,14 +139,14 @@ class LobbyViewModel
             role: Role,
             team: Team,
             username: String,
-            userId: UUID?
+            userId: UUID?,
         ) {
             val lobbyCode = _state.value.lobbyCode
             if (lobbyCode.isNullOrBlank()) {
                 setError("Not in a Lobby")
                 return
             }
-            if(userId == null) {
+            if (userId == null) {
                 setError(ID_NOT_FOUND)
                 return
             }
@@ -172,7 +172,7 @@ class LobbyViewModel
         fun changeRole(
             role: PlayerRoles,
             username: String,
-            userId: UUID?
+            userId: UUID?,
         ) {
             when (role) {
                 PlayerRoles.BLUE_SPYMASTER -> changeRole(role = Role.SPYMASTER, team = Team.BLUE, username = username, userId)
@@ -220,9 +220,12 @@ class LobbyViewModel
             return player.isHost
         }
 
-        fun sendStartGame(username: String, userId: UUID?) {
+        fun sendStartGame(
+            username: String,
+            userId: UUID?,
+        ) {
             val lobbyCode = _state.value.lobbyCode.orEmpty()
-            if(userId == null) {
+            if (userId == null) {
                 setError(ID_NOT_FOUND)
                 return
             }

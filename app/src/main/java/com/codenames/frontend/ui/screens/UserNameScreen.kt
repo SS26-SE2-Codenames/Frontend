@@ -38,7 +38,6 @@ import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
-import java.util.UUID
 
 @Suppress("ktlint:standard:function-naming")
 @Composable

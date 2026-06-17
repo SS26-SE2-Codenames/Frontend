@@ -1,6 +1,5 @@
 package com.codenames.frontend.data.repository
 
-import android.util.Log
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.api.LobbyApi
@@ -25,7 +24,7 @@ class LobbyRepository
             username: String,
             lobbyCode: String,
         ): LobbyResponse {
-            val msg =  api.joinLobby(lobbyCode, username)
+            val msg = api.joinLobby(lobbyCode, username)
             return msg
         }
 

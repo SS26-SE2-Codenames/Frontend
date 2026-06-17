@@ -41,16 +41,16 @@ class SessionViewModel
         }
 
         fun persistLobbyState(
-                lobbyCode: String,
-                role: Role,
-                team: Team,
-            ) {
+            lobbyCode: String,
+            role: Role,
+            team: Team,
+        ) {
             viewModelScope.launch {
                 sessionRepository.saveLobby(
                     lobbyCode,
                     role,
                     team,
-                    )
+                )
             }
         }
 
@@ -67,7 +67,7 @@ class SessionViewModel
             viewModelScope.launch {
                 sessionRepository.saveUser(
                     _userState.value.username,
-                    userId
+                    userId,
                 )
             }
         }

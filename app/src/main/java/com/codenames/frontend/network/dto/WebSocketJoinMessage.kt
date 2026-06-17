@@ -9,5 +9,5 @@ data class WebSocketJoinMessage(
     val username: String,
     @SerialName("code")
     val lobbyCode: String,
-    val uuid: String
+    val uuid: String,
 )

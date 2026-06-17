@@ -45,7 +45,6 @@ class LobbyViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
-
     }
 
     @After
@@ -105,7 +104,6 @@ class LobbyViewModelTest {
     @Test
     fun testJoinLobby_success() =
         runTest {
-
             val response =
                 LobbyResponse(
                     lobbyCode = "1234",
@@ -141,7 +139,6 @@ class LobbyViewModelTest {
     @Test
     fun testJoinLobby_error() =
         runTest {
-
             coEvery { repository.joinLobby(any(), any()) } throws RuntimeException("Network error")
             coEvery { sessionRepository.clearUserId() } just Runs
 
@@ -162,7 +159,6 @@ class LobbyViewModelTest {
     @Test
     fun testLeaveLobby_success() =
         runTest {
-
             val response =
                 LobbyResponse(
                     lobbyCode = "1234",
@@ -188,7 +184,7 @@ class LobbyViewModelTest {
 
             viewModel.joinLobby("User", "1234")
             advanceTimeBy(2000.milliseconds)
-            viewModel.leaveLobby(userId = userId , onResult = {})
+            viewModel.leaveLobby(userId = userId, onResult = {})
 
             advanceTimeBy(2000.milliseconds)
 
@@ -204,7 +200,6 @@ class LobbyViewModelTest {
     @Test
     fun testLeaveLobby_error() =
         runTest {
-
             val response =
                 LobbyResponse(
                     lobbyCode = "1234",
@@ -238,7 +233,6 @@ class LobbyViewModelTest {
     @Test
     fun testChangeRole_success() =
         runTest {
-
             val newRole = Role.OPERATIVE
             val newTeam = Team.RED
             val username = "User"
@@ -286,7 +280,6 @@ class LobbyViewModelTest {
     @Test
     fun testChangeRole_error() =
         runTest {
-
             val response =
                 LobbyResponse(
                     lobbyCode = "1234",
@@ -301,7 +294,7 @@ class LobbyViewModelTest {
                     any(),
                     any(),
                     any(),
-                    any()
+                    any(),
                 )
             } throws RuntimeException("Network error")
 
@@ -328,7 +321,6 @@ class LobbyViewModelTest {
     @Test
     fun testSetError_WithEmptyValue() =
         runTest {
-
             coEvery { repository.createLobby(any()) } throws RuntimeException("")
             coEvery { sessionRepository.clearUserId() } just Runs
 
@@ -349,7 +341,6 @@ class LobbyViewModelTest {
     @Test
     fun testSetError_WithNullValue() =
         runTest {
-
             coEvery { repository.createLobby(any()) } throws RuntimeException()
             coEvery { sessionRepository.clearUserId() } just Runs
 
@@ -371,7 +362,6 @@ class LobbyViewModelTest {
     @Test
     fun testPolling_callsRepositoryRepeatedly() =
         runTest {
-
             coEvery { repository.getLobbyInfo(any()) } returns
                 LobbyResponse(
                     lobbyCode = "1234",
@@ -415,7 +405,6 @@ class LobbyViewModelTest {
     @Test
     fun testPolling_doesNotStartTwice() =
         runTest {
-
             coEvery { repository.getLobbyInfo("1234") } returns
                 LobbyResponse(
                     lobbyCode = "1234",
@@ -444,7 +433,6 @@ class LobbyViewModelTest {
     @Test
     fun testCreateLobby_alreadyInLobby() =
         runTest {
-
             val response =
                 LobbyResponse(
                     lobbyCode = "1234",
@@ -505,7 +493,6 @@ class LobbyViewModelTest {
     @Test
     fun testLeaveLobby_notInLobby() =
         runTest {
-
             val viewModel = LobbyViewModel(repository, sessionRepository)
 
             viewModel.leaveLobby(UUID.randomUUID(), onResult = {})
@@ -549,7 +536,7 @@ class LobbyViewModelTest {
     fun changeRole_DelegatesCorrectly2() {
         val viewModel = spyk<LobbyViewModel>(LobbyViewModel(repository, sessionRepository), recordPrivateCalls = true)
 
-    viewModel.changeRole(PlayerRoles.RED_OPERATIVE, "Bob", UUID.randomUUID())
+        viewModel.changeRole(PlayerRoles.RED_OPERATIVE, "Bob", UUID.randomUUID())
 
         verify {
             viewModel.changeRole(Role.OPERATIVE, Team.RED, "Bob", any())
@@ -642,7 +629,7 @@ class LobbyViewModelTest {
                     false,
                 )
 
-        val userId = UUID.randomUUID()
+            val userId = UUID.randomUUID()
 
             coEvery {
                 repository.joinLobby("Max", "ABCD")
@@ -666,7 +653,7 @@ class LobbyViewModelTest {
                 role = Role.SPYMASTER,
                 team = Team.RED,
                 username = "Max",
-                userId = userId
+                userId = userId,
             )
 
             advanceUntilIdle()
@@ -695,7 +682,7 @@ class LobbyViewModelTest {
                 role = Role.SPYMASTER,
                 team = Team.RED,
                 username = "Max",
-                userId = UUID.randomUUID()
+                userId = UUID.randomUUID(),
             )
 
             advanceUntilIdle()
@@ -733,7 +720,7 @@ class LobbyViewModelTest {
         runTest {
             val viewModel = LobbyViewModel(repository, sessionRepository)
 
-        viewModel.changeRole(PlayerRoles.NONE, "User", UUID.randomUUID())
+            viewModel.changeRole(PlayerRoles.NONE, "User", UUID.randomUUID())
 
             advanceUntilIdle()
 
@@ -909,7 +896,6 @@ class LobbyViewModelTest {
     @Test
     fun getIsHost_returnsFalseForNonHost() =
         runTest {
-
             val response =
                 LobbyResponse(
                     lobbyCode = "12345",
@@ -1154,7 +1140,6 @@ class LobbyViewModelTest {
     @Test
     fun clearError_resetsError() =
         runTest {
-
             coEvery { repository.createLobby(any()) } throws RuntimeException("Network error")
             coEvery { sessionRepository.clearUserId() } just Runs
 
