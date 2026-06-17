@@ -11,6 +11,7 @@ import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.data.model.toLobbyState
 import com.codenames.frontend.data.repository.LobbyRepository
+import com.codenames.frontend.data.repository.SessionRepository
 import com.codenames.frontend.ui.roles.PlayerRoles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -31,7 +32,7 @@ class LobbyViewModel
     @Inject
     constructor(
         private val repository: LobbyRepository,
-        private val sessionViewModel: SessionViewModel
+        private val sessionRepository: SessionRepository
     ) : ViewModel() {
         private val _state = MutableStateFlow(LobbyUiState())
         val state: StateFlow<LobbyUiState> = _state
@@ -50,13 +51,10 @@ class LobbyViewModel
 
                 try {
                     val response = repository.createLobby(username)
-
                     _state.update {
                         response.toLobbyState()
                     }
-                    if(response.uuid != null) {
-                        sessionViewModel.persistUserId(UUID.fromString(response.uuid))
-                    }
+                    if(response.uuid != null) sessionRepository.saveUser(username, UUID.fromString(response.uuid))
                     startPolling(response.lobbyCode)
                 } catch (e: Exception) {
                     setError(e)
@@ -86,11 +84,9 @@ class LobbyViewModel
                     _state.update {
                         response.toLobbyState()
                     }
+                    if(response.uuid != null)  sessionRepository.saveUser(username, UUID.fromString(response.uuid))
                     updateUiState(_state.value.players)
                     startPolling(response.lobbyCode)
-                    if(response.uuid != null) {
-                        sessionViewModel.persistUserId(UUID.fromString(response.uuid))
-                    }
                 } catch (e: Exception) {
                     setError(e)
                 } finally {
