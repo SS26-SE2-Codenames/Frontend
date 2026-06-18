@@ -6,10 +6,10 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val serverUrl =
+val serverUrl: String? =
     localProperties.getProperty(
         "SERVER_URL",
-        "http://10.0.2.2:8080",
+        "se2-demo.aau.at:53213",
     )
 
 plugins {
