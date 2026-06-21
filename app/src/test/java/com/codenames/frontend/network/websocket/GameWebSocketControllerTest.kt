@@ -3,6 +3,7 @@ package com.codenames.frontend.network.websocket
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.CheatCardMessage
 import com.codenames.frontend.network.dto.ClueMessageDto
+import com.codenames.frontend.network.dto.ExposeCheatMessage
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.PassTurnMessage
@@ -146,6 +147,22 @@ class GameWebSocketControllerTest {
                     "/app/cheat",
                     cheatMessage,
                     CheatCardMessage.serializer(),
+                )
+            }
+        }
+
+    @Test
+    fun testExposeCheat() =
+        runTest {
+            val message = ExposeCheatMessage("LOBBY123", "Max")
+
+            wsClient.exposeCheat(message)
+
+            coVerify {
+                session.convertAndSend(
+                    "/app/expose-cheat",
+                    message,
+                    ExposeCheatMessage.serializer(),
                 )
             }
         }
