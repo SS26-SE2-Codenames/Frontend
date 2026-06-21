@@ -86,6 +86,16 @@ class GameRepositoryTest {
         }
 
     @Test
+    fun testExposeCheat() =
+        runTest {
+            coEvery { webSocketHandler.exposeCheat(any()) } just Runs
+
+            gameRepository.exposeCheat("ABCDE", "Max")
+
+            coVerify { webSocketHandler.exposeCheat(any()) }
+        }
+
+    @Test
     fun testPassTurn() =
         runTest {
             val lobbyCode = "ABCDE"
