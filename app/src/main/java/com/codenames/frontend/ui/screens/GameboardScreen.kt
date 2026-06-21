@@ -112,24 +112,28 @@ private data class ChatOverlayState(
     val messages: ChatLists,
     val selectedTab: ChatTab,
     val availableTabs: List<ChatTab>,
+    val canExposeCheat: Boolean,
 )
 
 private data class ChatOverlayActions(
     val onTabSelected: (ChatTab) -> Unit,
     val onInputChange: (String) -> Unit,
     val onSendMessage: (ChatTab, String) -> Unit,
+    val onExposeCheat: () -> Unit,
 )
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun GameboardScreen(
     userRole: PlayerRoles,
+    isExposeCheatAvailable: Boolean = true,
     gameState: GameState,
     onHintChange: (String, Int) -> Unit,
     onReveal: (List<Int>) -> Unit,
     onCheatRequest: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
     onPassTurn: () -> Unit = {},
+    onExposeCheat: () -> Unit = {},
     onSendChatMessage: (ChatTab, String) -> Unit = { _, _ -> },
     onSettingsClick: (() -> Unit)? = null,
     onReturnToHome: (() -> Unit),
@@ -157,7 +161,8 @@ fun GameboardScreen(
     val isSpymaster =
         userRole == PlayerRoles.BLUE_SPYMASTER || userRole == PlayerRoles.RED_SPYMASTER
     val isActiveSpymaster = userRole == currentTurn && isSpymaster
-    val canEndTurn = userRole == currentTurn && !isSpymaster && remainingGuesses > 0
+    val isActiveOperative = userRole == currentTurn && !isSpymaster
+    val canEndTurn = isActiveOperative && remainingGuesses > 0
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -304,12 +309,14 @@ fun GameboardScreen(
                     messages = chatLists,
                     selectedTab = selectedChatTab,
                     availableTabs = availableChatTabs,
+                    canExposeCheat = isActiveOperative && isExposeCheatAvailable,
                 ),
             actions =
                 ChatOverlayActions(
                     onTabSelected = { selectedChatTab = it },
                     onInputChange = { chatInput = it },
                     onSendMessage = onSendChatMessage,
+                    onExposeCheat = onExposeCheat,
                 ),
             modifier =
                 Modifier
@@ -568,6 +575,8 @@ private fun GameChatOverlay(
             onTabSelected = actions.onTabSelected,
             onChatInputChange = actions.onInputChange,
             onSendClick = actions.onSendMessage,
+            canExposeCheat = state.canExposeCheat,
+            onExposeCheat = actions.onExposeCheat,
             modifier = modifier,
         )
     }
@@ -655,6 +664,8 @@ fun ChatWindow(
     onTabSelected: (ChatTab) -> Unit,
     onChatInputChange: (String) -> Unit,
     onSendClick: (ChatTab, String) -> Unit,
+    canExposeCheat: Boolean = false,
+    onExposeCheat: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val dimensions = LocalResponsiveDimensions.current
@@ -706,6 +717,25 @@ fun ChatWindow(
         )
 
         Spacer(modifier = Modifier.height(dimensions.itemSpacing))
+
+        if (selectedTab == ChatTab.OPERATIVES && canExposeCheat) {
+            AppButton(
+                text = "Expose Cheat",
+                onClick = onExposeCheat,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(dimensions.secondaryButtonHeight),
+                style =
+                    AppButtonStyle(
+                        containerColor = AppRed,
+                        contentColor = AppWhite,
+                        fontSize = dimensions.smallFontSize,
+                    ),
+            )
+
+            Spacer(modifier = Modifier.height(dimensions.itemSpacing))
+        }
 
         Row(
             modifier =
