@@ -172,6 +172,23 @@ class GameViewModel
             }
         }
 
+        fun exposeCheat(
+            lobbyCode: String,
+            username: String,
+        ) {
+            if (lobbyCode.isBlank() || username.isBlank()) {
+                return
+            }
+
+            viewModelScope.launch {
+                try {
+                    gameRepository.exposeCheat(lobbyCode, username)
+                } catch (e: Exception) {
+                    setConnectionError(e)
+                }
+            }
+        }
+
         fun passTurn(
             lobbyCode: String,
             team: Team?,

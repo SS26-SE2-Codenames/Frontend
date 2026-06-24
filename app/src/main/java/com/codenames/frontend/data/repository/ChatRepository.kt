@@ -1,6 +1,8 @@
 package com.codenames.frontend.data.repository
 
 import com.codenames.frontend.data.model.ChatDomainModel
+import com.codenames.frontend.data.model.enums.ChatMessageType
+import com.codenames.frontend.data.model.enums.CheatExposureResult
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.websocket.ChatWebSocketController
 import kotlinx.coroutines.flow.Flow
@@ -50,8 +52,9 @@ class ChatRepository
                     emit(
                         ChatDomainModel(
                             sender = dto.senderUsername,
-                            text = dto.content,
+                            text = dto.toDisplayText(),
                             isFromMe = dto.senderUsername == currentUsername,
+                            cheatExposureResult = dto.toCheatExposureResult(),
                         ),
                     )
                 }
@@ -117,10 +120,33 @@ class ChatRepository
                         emit(
                             ChatDomainModel(
                                 sender = dto.senderUsername,
-                                text = dto.content,
+                                text = dto.toDisplayText(),
                                 isFromMe = dto.senderUsername == currentUsername,
+                                cheatExposureResult = dto.toCheatExposureResult(),
                             ),
                         )
                     }
+            }
+
+        private fun ChatMessageDto.toCheatExposureResult(): CheatExposureResult? =
+            if (type == ChatMessageType.SYSTEM) {
+                when (content) {
+                    "EXPOSE_CORRECT" -> CheatExposureResult.CORRECT
+                    "EXPOSE_WRONG" -> CheatExposureResult.WRONG
+                    else -> null
+                }
+            } else {
+                null
+            }
+
+        private fun ChatMessageDto.toDisplayText(): String =
+            if (type == ChatMessageType.SYSTEM) {
+                when (content) {
+                    "EXPOSE_CORRECT" -> "Cheat exposed correctly. The opposing team's next turn is skipped."
+                    "EXPOSE_WRONG" -> "Wrong accusation. Your team's turn ends."
+                    else -> content
+                }
+            } else {
+                content
             }
     }

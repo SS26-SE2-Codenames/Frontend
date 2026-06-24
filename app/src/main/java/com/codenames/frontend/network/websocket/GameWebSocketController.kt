@@ -2,6 +2,7 @@ package com.codenames.frontend.network.websocket
 
 import com.codenames.frontend.network.dto.CheatCardMessage
 import com.codenames.frontend.network.dto.ClueMessageDto
+import com.codenames.frontend.network.dto.ExposeCheatMessage
 import com.codenames.frontend.network.dto.GameMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.PassTurnMessage
@@ -56,6 +57,14 @@ class GameWebSocketController
                 "/app/cheat",
                 msg,
                 CheatCardMessage.serializer(),
+            )
+        }
+
+        suspend fun exposeCheat(msg: ExposeCheatMessage) {
+            webSocketSessionManager.getSession().convertAndSend(
+                "/app/expose-cheat",
+                msg,
+                ExposeCheatMessage.serializer(),
             )
         }
     }

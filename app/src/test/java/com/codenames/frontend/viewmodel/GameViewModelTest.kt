@@ -751,4 +751,34 @@ class GameViewModelTest {
 
             assertTrue(viewModel.connectionState.value is ConnectionState.Error)
         }
+
+    @Test
+    fun exposeCheat_callsRepository() =
+        runTest {
+            viewModel.exposeCheat("ABCD", "Max")
+
+            advanceUntilIdle()
+
+            coVerify { gameRepository.exposeCheat("ABCD", "Max") }
+        }
+
+    @Test
+    fun exposeCheat_invalidInput_doesNothing() =
+        runTest {
+            viewModel.exposeCheat("", "Max")
+            viewModel.exposeCheat("ABCD", "")
+
+            coVerify(exactly = 0) { gameRepository.exposeCheat(any(), any()) }
+        }
+
+    @Test
+    fun exposeCheat_repositoryThrows() =
+        runTest {
+            coEvery { gameRepository.exposeCheat(any(), any()) } throws RuntimeException()
+
+            viewModel.exposeCheat("ABCD", "Max")
+            advanceUntilIdle()
+
+            assertTrue(viewModel.connectionState.value is ConnectionState.Error)
+        }
 }

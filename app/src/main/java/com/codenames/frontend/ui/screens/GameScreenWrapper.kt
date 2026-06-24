@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
+import com.codenames.frontend.data.model.enums.CheatExposureResult
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.viewmodel.ChatViewModel
 import com.codenames.frontend.viewmodel.GameViewModel
@@ -32,6 +33,10 @@ fun GameScreenWrapper(
     val userRole = lobbyViewModel.getRoleForUser(username)
     val availableChatTabs = lobbyViewModel.getAvailableChatTabsForUser(username)
     val winner = gameState.winner
+    val cheatSuccessfullyExposed =
+        chatState.operativeMessages.any {
+            it.cheatExposureResult == CheatExposureResult.CORRECT
+        }
 
     LaunchedEffect(winner) {
         if (winner != null) {
@@ -41,6 +46,7 @@ fun GameScreenWrapper(
 
     GameboardScreen(
         userRole = userRole,
+        isExposeCheatAvailable = !cheatSuccessfullyExposed,
         gameState =
             gameState.copy(
                 chatLists = chatState,
@@ -60,6 +66,12 @@ fun GameScreenWrapper(
                 lobbyCode = lobbyCode,
                 username = username,
                 positions = positions,
+            )
+        },
+        onExposeCheat = {
+            gameViewModel.exposeCheat(
+                lobbyCode = lobbyCode,
+                username = username,
             )
         },
         onSendChatMessage = { tab, message ->
