@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.composables.ErrorDialog
+import com.codenames.frontend.ui.screens.ForceLandscape
 import com.codenames.frontend.ui.screens.GameScreenWrapper
 import com.codenames.frontend.ui.screens.GameSettingsScreen
 import com.codenames.frontend.ui.screens.JoinlobbyScreen
@@ -38,11 +39,13 @@ fun NavGraph(
     val lobbyState by lobbyViewModel.state.collectAsState()
     val connectionState by gameViewModel.connectionState.collectAsState()
     val chatErrorMessage by chatViewModel.errorMessage.collectAsState()
+    val gameErrorMessage by gameViewModel.errorMessage.collectAsState()
 
     val errorMessage: String? =
         lobbyState.error
             ?: (connectionState as? ConnectionState.Error)?.message
             ?: chatErrorMessage
+            ?: gameErrorMessage
 
     @Suppress("UnusedBoxWithConstraintsScope")
     BoxWithConstraints {
@@ -51,6 +54,7 @@ fun NavGraph(
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
             )
+        ForceLandscape()
 
         CompositionLocalProvider(LocalResponsiveDimensions provides responsiveDimensions) {
             NavHost(
@@ -58,7 +62,7 @@ fun NavGraph(
                 startDestination = Screen.Username.route,
             ) {
                 composable(Screen.Username.route) {
-                    UserNameScreen(navController, sessionViewModel, gameViewModel, lobbyViewModel)
+                    UserNameScreen(navController, sessionViewModel, gameViewModel, lobbyViewModel, chatViewModel)
                 }
 
                 composable(Screen.Start.route) {
@@ -112,6 +116,7 @@ fun NavGraph(
                     onDismiss = {
                         lobbyViewModel.clearError()
                         gameViewModel.clearError()
+                        gameViewModel.clearErrorState()
                         chatViewModel.clearError()
                     },
                 )

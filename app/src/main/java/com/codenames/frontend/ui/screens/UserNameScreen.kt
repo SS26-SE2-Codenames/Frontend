@@ -35,6 +35,7 @@ import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
+import com.codenames.frontend.viewmodel.ChatViewModel
 import com.codenames.frontend.viewmodel.GameViewModel
 import com.codenames.frontend.viewmodel.LobbyViewModel
 import com.codenames.frontend.viewmodel.SessionViewModel
@@ -46,6 +47,7 @@ fun UserNameScreen(
     viewModel: SessionViewModel,
     gameViewModel: GameViewModel,
     lobbyViewModel: LobbyViewModel,
+    chatViewModel: ChatViewModel,
 ) {
     val userState by viewModel.userState.collectAsState()
     val rejoinState by viewModel.rejoinSessionState.collectAsState()
@@ -65,6 +67,7 @@ fun UserNameScreen(
             viewModel,
             gameViewModel,
             lobbyViewModel,
+            chatViewModel,
             RejoinUiState(
                 availableRejoinState = availableRejoinState,
                 connectionState = connectionState,
@@ -188,6 +191,7 @@ fun HandleRejoinEffects(
     viewModel: SessionViewModel,
     gameViewModel: GameViewModel,
     lobbyViewModel: LobbyViewModel,
+    chatViewModel: ChatViewModel,
     rejoinUiState: RejoinUiState,
 ) {
     val connectionState = rejoinUiState.connectionState
@@ -203,6 +207,14 @@ fun HandleRejoinEffects(
 
     LaunchedEffect(canRejoin) {
         if (!canRejoin) return@LaunchedEffect
+        if (availableRejoinState.sessionState.lobbyRole != null && availableRejoinState.sessionState.lobbyTeam != null) {
+            chatViewModel.subscribeToChats(
+                username,
+                lobbyCode,
+                availableRejoinState.sessionState.lobbyTeam.name,
+                availableRejoinState.sessionState.lobbyRole.name,
+            )
+        }
 
         gameViewModel.rejoinGame(username, userId, availableRejoinState)
         lobbyViewModel.startUpdateAfterRejoin(lobbyCode)

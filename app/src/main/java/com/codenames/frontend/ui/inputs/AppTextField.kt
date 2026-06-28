@@ -152,6 +152,10 @@ private fun PrimaryAppTextField(
                 focusedPlaceholderColor = contentColor.copy(alpha = 0.6f),
                 unfocusedPlaceholderColor = contentColor.copy(alpha = 0.6f),
                 cursorColor = contentColor,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
             ),
     )
 }

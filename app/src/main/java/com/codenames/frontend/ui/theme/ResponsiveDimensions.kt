@@ -15,6 +15,7 @@ data class ResponsiveDimensions(
     val sectionSpacing: Dp,
     val itemSpacing: Dp,
     val smallSpacing: Dp,
+    val largeSpacing: Dp,
     val cornerButtonSize: Dp,
     val returnButtonWidth: Dp,
     val primaryButtonWidth: Dp,
@@ -38,6 +39,7 @@ data class ResponsiveDimensions(
     val bodyFontSize: TextUnit,
     val smallFontSize: TextUnit,
     val cardFontSize: TextUnit,
+    val smallCardFontSize: TextUnit,
     val gameBoardTopSpacing: Dp,
 )
 
@@ -61,8 +63,9 @@ fun responsiveDimensionsFor(
         isNarrowWidth = isNarrowWidth,
         screenPadding = compactDp(isCompactHeight, compact = 10.dp, regular = 16.dp),
         sectionSpacing = compactDp(isCompactHeight, compact = 10.dp, regular = 16.dp),
-        itemSpacing = compactDp(isCompactHeight, compact = 6.dp, regular = 10.dp),
-        smallSpacing = 6.dp,
+        itemSpacing = compactDp(isCompactHeight, compact = 6.dp, regular = 12.dp),
+        smallSpacing = compactDp(isCompactHeight, compact = 6.dp, regular = 12.dp),
+        largeSpacing = compactDp(isCompactHeight, compact = 44.dp, regular = 52.dp),
         cornerButtonSize = compactDp(isCompactHeight, compact = 44.dp, regular = 52.dp),
         returnButtonWidth = narrowDp(isNarrowWidth, narrow = 112.dp, regular = 132.dp),
         primaryButtonWidth = (maxWidth * 0.22f).coerceIn(150.dp, 220.dp),
@@ -77,7 +80,7 @@ fun responsiveDimensionsFor(
         gameChatHeightFraction = compactFloat(isCompactHeight, compact = 0.86f, regular = 0.90f),
         gameStatusBarHeight = compactDp(isCompactHeight, compact = 24.dp, regular = 32.dp),
         gameHintCountWidth = compactDp(isCompactHeight, compact = 96.dp, regular = 112.dp),
-        gameHintInputHeight = compactDp(isCompactHeight, compact = 72.dp, regular = 80.dp),
+        gameHintInputHeight = compactDp(isCompactHeight, compact = 64.dp, regular = 72.dp),
         gameHintInputWeight = narrowFloat(isNarrowWidth, narrow = 0.50f, regular = 0.62f),
         gameHintSendButtonWidth = compactDp(isCompactHeight, compact = 96.dp, regular = 112.dp),
         buttonFontSize = compactSp(isCompactHeight, compact = 18, regular = 22),
@@ -86,6 +89,7 @@ fun responsiveDimensionsFor(
         bodyFontSize = compactSp(isCompactHeight, compact = 16, regular = 20),
         smallFontSize = compactSp(isCompactHeight, compact = 10, regular = 12),
         cardFontSize = compactSp(isCompactHeight, compact = 16, regular = 18),
+        smallCardFontSize = compactSp(isCompactHeight, compact = 12, regular = 16),
         gameBoardTopSpacing = compactDp(isCompactHeight, compact = 2.dp, regular = 4.dp),
     )
 }

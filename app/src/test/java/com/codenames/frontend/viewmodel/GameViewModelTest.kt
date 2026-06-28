@@ -1,6 +1,8 @@
 package com.codenames.frontend.viewmodel
 
 import android.util.Log
+import com.codenames.frontend.data.error.ErrorMessageMapper
+import com.codenames.frontend.data.model.GameCard
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.RejoinState
 import com.codenames.frontend.data.model.SessionState
@@ -32,10 +34,12 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.UUID
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GameViewModelTest {
@@ -781,4 +785,59 @@ class GameViewModelTest {
 
             assertTrue(viewModel.connectionState.value is ConnectionState.Error)
         }
+
+    @Test
+    fun validateWord_returnsFalse_whenWordContainsSpace() {
+        val cards = emptyList<GameCard>()
+
+        val result = viewModel.validateWord("hello world", cards)
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun validateWord_returnsFalse_whenWordAlreadyExists() {
+        val cards =
+            listOf(
+                GameCard(word = "Apple", type = CardType.NEUTRAL),
+            )
+
+        val result = viewModel.validateWord("Apple", cards)
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun validateWord_returnsTrue_whenWordIsValid() {
+        val cards =
+            listOf(
+                GameCard(word = "Apple", type = CardType.BLUE),
+                GameCard(word = "Tree", type = CardType.BLUE),
+            )
+
+        val result = viewModel.validateWord("House", cards)
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun clearErrorState_setsErrorMessageToNull() {
+        viewModel.setErrorState(IllegalArgumentException("Some Error"))
+
+        viewModel.clearErrorState()
+
+        assertNull(viewModel.errorMessage.value)
+    }
+
+    @Test
+    fun setErrorState_mapsExceptionToUserMessage() {
+        val exception = IllegalArgumentException("Test")
+
+        viewModel.setErrorState(exception)
+
+        assertEquals(
+            ErrorMessageMapper.toUserMessage(exception),
+            viewModel.errorMessage.value,
+        )
+    }
 }

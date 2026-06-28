@@ -102,7 +102,7 @@ fun LobbyScreen(
         val lobbyCode = lobbyUiState.lobbyCode.orEmpty()
         val teamAndRole = currentRole.toTeamAndRole()
 
-        if (connectionState == ConnectionState.CONNECTED) {
+        if (connectionState == ConnectionState.CONNECTED && lobbyUiState.isGameStarted) {
             navController.navigate(Screen.Gameboard.route)
 
             if (lobbyCode.isNotBlank() && teamAndRole != null) {

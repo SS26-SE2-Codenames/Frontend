@@ -5,7 +5,6 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -37,7 +36,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
@@ -49,6 +47,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatLists
@@ -60,6 +59,7 @@ import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.AppButtonType
+import com.codenames.frontend.ui.buttons.AppSendButton
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.composables.GameBoardGrid
 import com.codenames.frontend.ui.inputs.AppTextField
@@ -664,9 +664,9 @@ fun ChatWindow(
     onTabSelected: (ChatTab) -> Unit,
     onChatInputChange: (String) -> Unit,
     onSendClick: (ChatTab, String) -> Unit,
+    modifier: Modifier = Modifier,
     canExposeCheat: Boolean = false,
     onExposeCheat: () -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
@@ -761,13 +761,12 @@ fun ChatWindow(
                     AppTextFieldStyle(
                         containerColor = AppSurface,
                         contentColor = AppInk,
-                        fontSize = dimensions.smallFontSize,
+                        fontSize = dimensions.bodyFontSize,
                         lineHeight = dimensions.bodyFontSize,
                     ),
             )
 
-            AppButton(
-                text = "Send",
+            AppSendButton(
                 onClick = {
                     val trimmedMessage = chatInput.trim()
                     if (trimmedMessage.isNotBlank()) {
@@ -777,7 +776,7 @@ fun ChatWindow(
                 },
                 modifier =
                     Modifier
-                        .width(dimensions.returnButtonWidth)
+                        .width(dimensions.cornerButtonSize)
                         .fillMaxHeight(),
                 style =
                     AppButtonStyle(
@@ -952,8 +951,9 @@ fun HintSection(
 
     if (isSpymaster) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(dimensions.smallSpacing),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.itemSpacing),
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = dimensions.largeSpacing),
         ) {
             AppTextField(
                 value = hintInput,
@@ -1003,10 +1003,16 @@ fun HintSection(
                         fontSize = dimensions.bodyFontSize,
                         lineHeight = dimensions.buttonLineHeight,
                     ),
+                keyboard =
+                    AppTextFieldKeyboard(
+                        options =
+                            KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                            ),
+                    ),
             )
 
-            AppButton(
-                text = "SEND",
+            AppSendButton(
                 onClick = {
                     val count = countInput.toIntOrNull() ?: 0
                     if (hintInput.isNotBlank()) {
@@ -1075,61 +1081,6 @@ fun TeamRoleBox(
             )
         }
     }
-}
-
-@Suppress("ktlint:standard:function-naming")
-@Composable
-fun CodenamesCard(
-    card: GameCard,
-    isSpymaster: Boolean,
-    isSelected: Boolean = false,
-    onClick: () -> Unit,
-) {
-    val dimensions = LocalResponsiveDimensions.current
-    val cardShape = RoundedCornerShape(12.dp)
-
-    val backgroundColor =
-        when {
-            card.revealed && card.type == CardType.NEUTRAL -> AppLightGray
-            card.revealed -> getColor(card.type)
-            isSpymaster -> getColor(card.type)
-            else -> AppSurface
-        }
-
-    val contentColor =
-        if (backgroundColor == AppSurface) {
-            AppInk
-        } else {
-            AppWhite
-        }
-
-    AppButton(
-        text = card.word,
-        onClick = onClick,
-        modifier =
-            Modifier
-                .aspectRatio(2f)
-                .then(
-                    if (isSelected) {
-                        Modifier.border(3.dp, AppGreen, cardShape)
-                    } else {
-                        Modifier
-                    },
-                ).then(
-                    if (card.revealed) {
-                        Modifier.alpha(0.75f)
-                    } else {
-                        Modifier
-                    },
-                ),
-        style =
-            AppButtonStyle(
-                containerColor = backgroundColor,
-                contentColor = contentColor,
-                fontSize = dimensions.cardFontSize,
-                shape = cardShape,
-            ),
-    )
 }
 
 fun getColor(type: CardType): Color =
