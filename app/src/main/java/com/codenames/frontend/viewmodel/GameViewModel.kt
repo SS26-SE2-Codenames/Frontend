@@ -277,7 +277,7 @@ class GameViewModel
             (this == Team.BLUE && turn == PlayerRoles.BLUE_SPYMASTER) ||
                 (this == Team.RED && turn == PlayerRoles.RED_SPYMASTER)
 
-        private fun validateWord(
+        fun validateWord(
             word: String,
             cards: List<GameCard>,
         ): Boolean {
@@ -294,7 +294,7 @@ class GameViewModel
             _errorMessage.value = null
         }
 
-        private fun setErrorState(error: Throwable) {
+        fun setErrorState(error: Throwable) {
             _errorMessage.value = ErrorMessageMapper.toUserMessage(error)
         }
     }
