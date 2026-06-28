@@ -140,7 +140,7 @@ fun CodenamesCard(
             AppButtonStyle(
                 containerColor = backgroundColor,
                 contentColor = contentColor,
-            fontSize = if(card.word.length < LINEBREAK_TRESHOLD ) dimensions.cardFontSize else dimensions.smallCardFontSize,
+                fontSize = if (card.word.length < LINEBREAK_TRESHOLD) dimensions.cardFontSize else dimensions.smallCardFontSize,
                 shape = cardShape,
             ),
     )

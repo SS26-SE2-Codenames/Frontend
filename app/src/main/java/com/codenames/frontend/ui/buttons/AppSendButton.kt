@@ -12,11 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.codenames.frontend.ui.theme.greenGradient
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun AppSendButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    style: AppButtonStyle = AppButtonStyle()
+    style: AppButtonStyle = AppButtonStyle(),
 ) {
     val resolvedContainerColor =
         when {
@@ -35,10 +36,11 @@ fun AppSendButton(
         onClick = onClick,
         enabled = style.enabled,
         modifier = modifier.background(style.backgroundBrush ?: greenGradient, shape = style.shape),
-        colors = IconButtonDefaults.iconButtonColors(
-            containerColor =  Color.Transparent,
-            contentColor = resolvedContentColor
-        )
+        colors =
+            IconButtonDefaults.iconButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = resolvedContentColor,
+            ),
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Send,

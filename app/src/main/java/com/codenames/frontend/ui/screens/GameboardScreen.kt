@@ -5,7 +5,6 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,7 +36,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
@@ -670,7 +667,6 @@ fun ChatWindow(
     modifier: Modifier = Modifier,
     canExposeCheat: Boolean = false,
     onExposeCheat: () -> Unit = {},
-
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
@@ -957,7 +953,7 @@ fun HintSection(
         Row(
             horizontalArrangement = Arrangement.spacedBy(dimensions.itemSpacing),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = dimensions.largeSpacing)
+            modifier = Modifier.padding(horizontal = dimensions.largeSpacing),
         ) {
             AppTextField(
                 value = hintInput,
@@ -1007,11 +1003,13 @@ fun HintSection(
                         fontSize = dimensions.bodyFontSize,
                         lineHeight = dimensions.buttonLineHeight,
                     ),
-                keyboard = AppTextFieldKeyboard(
-                    options = KeyboardOptions(
-                        keyboardType = KeyboardType.Number
-                    )
-                ),
+                keyboard =
+                    AppTextFieldKeyboard(
+                        options =
+                            KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                            ),
+                    ),
             )
 
             AppSendButton(
@@ -1025,13 +1023,15 @@ fun HintSection(
                         keyboardController?.hide()
                     }
                 },
-                modifier =  Modifier
-                    .width(dimensions.gameHintSendButtonWidth)
-                    .height(dimensions.gameHintInputHeight),
-                style =  AppButtonStyle(
-                    fontSize = dimensions.bodyFontSize,
-                    lineHeight = dimensions.buttonLineHeight,
-                )
+                modifier =
+                    Modifier
+                        .width(dimensions.gameHintSendButtonWidth)
+                        .height(dimensions.gameHintInputHeight),
+                style =
+                    AppButtonStyle(
+                        fontSize = dimensions.bodyFontSize,
+                        lineHeight = dimensions.buttonLineHeight,
+                    ),
             )
         }
     } else {

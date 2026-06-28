@@ -100,7 +100,7 @@ class GameViewModel
                 return
             }
 
-            if(!validateWord(word, uiState.value.cards)) {
+            if (!validateWord(word, uiState.value.cards)) {
                 setErrorState(IllegalArgumentException("The hint cannot contain any spaces or words on the board!"))
             }
 
@@ -277,10 +277,13 @@ class GameViewModel
             (this == Team.BLUE && turn == PlayerRoles.BLUE_SPYMASTER) ||
                 (this == Team.RED && turn == PlayerRoles.RED_SPYMASTER)
 
-        private fun validateWord(word: String, cards: List<GameCard>) : Boolean{
-            if(word.contains(" ")) return false
-            for(card in cards) {
-                if(card.word == word){
+        private fun validateWord(
+            word: String,
+            cards: List<GameCard>,
+        ): Boolean {
+            if (word.contains(" ")) return false
+            for (card in cards) {
+                if (card.word == word) {
                     return false
                 }
             }

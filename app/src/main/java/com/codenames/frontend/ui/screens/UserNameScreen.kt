@@ -47,7 +47,7 @@ fun UserNameScreen(
     viewModel: SessionViewModel,
     gameViewModel: GameViewModel,
     lobbyViewModel: LobbyViewModel,
-    chatViewModel: ChatViewModel
+    chatViewModel: ChatViewModel,
 ) {
     val userState by viewModel.userState.collectAsState()
     val rejoinState by viewModel.rejoinSessionState.collectAsState()
@@ -207,12 +207,12 @@ fun HandleRejoinEffects(
 
     LaunchedEffect(canRejoin) {
         if (!canRejoin) return@LaunchedEffect
-        if(availableRejoinState.sessionState.lobbyRole != null && availableRejoinState.sessionState.lobbyTeam != null) {
+        if (availableRejoinState.sessionState.lobbyRole != null && availableRejoinState.sessionState.lobbyTeam != null) {
             chatViewModel.subscribeToChats(
                 username,
                 lobbyCode,
                 availableRejoinState.sessionState.lobbyTeam.name,
-                availableRejoinState.sessionState.lobbyRole.name
+                availableRejoinState.sessionState.lobbyRole.name,
             )
         }
 
