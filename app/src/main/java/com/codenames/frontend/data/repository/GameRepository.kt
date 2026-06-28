@@ -3,6 +3,7 @@ package com.codenames.frontend.data.repository
 import com.codenames.frontend.data.model.enums.Team
 import com.codenames.frontend.network.dto.CheatCardMessage
 import com.codenames.frontend.network.dto.ClueMessageDto
+import com.codenames.frontend.network.dto.ExposeCheatMessage
 import com.codenames.frontend.network.dto.GuessMessage
 import com.codenames.frontend.network.dto.PassTurnMessage
 import com.codenames.frontend.network.dto.StartGameMessage
@@ -85,5 +86,13 @@ class GameRepository
                 )
 
             webSocketHandler.sendCheat(msg)
+        }
+
+        suspend fun exposeCheat(
+            lobbyCode: String,
+            username: String,
+        ) {
+            val msg = ExposeCheatMessage(lobbyCode, username)
+            webSocketHandler.exposeCheat(msg)
         }
     }

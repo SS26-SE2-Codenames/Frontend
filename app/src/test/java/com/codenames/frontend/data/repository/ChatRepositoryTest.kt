@@ -1,5 +1,7 @@
 package com.codenames.frontend.data.repository
 
+import com.codenames.frontend.data.model.enums.ChatMessageType
+import com.codenames.frontend.data.model.enums.CheatExposureResult
 import com.codenames.frontend.network.dto.ChatMessageDto
 import com.codenames.frontend.network.websocket.ChatWebSocketController
 import io.mockk.Runs
@@ -336,5 +338,32 @@ class ChatRepositoryTest {
 
             assertEquals("System", result[0].sender)
             assertEquals("London is correct", result[0].text)
+        }
+
+    @Test
+    fun testObserveOperativeChat_mapsCorrectExposeResult() =
+        runTest {
+            val dto = ChatMessageDto("System", "EXPOSE_CORRECT", ChatMessageType.SYSTEM)
+            coEvery { chatSocketHandler.subscribeToChat(operativeTopic) } returns flowOf(dto)
+
+            val result = repository.observeOperativeChat(testLobbyCode, testTeam, testUser).toList()
+
+            assertEquals(
+                "Cheat exposed correctly. The opposing team's next turn is skipped.",
+                result[0].text,
+            )
+            assertEquals(CheatExposureResult.CORRECT, result[0].cheatExposureResult)
+        }
+
+    @Test
+    fun testObserveOperativeChat_mapsWrongExposeResult() =
+        runTest {
+            val dto = ChatMessageDto("System", "EXPOSE_WRONG", ChatMessageType.SYSTEM)
+            coEvery { chatSocketHandler.subscribeToChat(operativeTopic) } returns flowOf(dto)
+
+            val result = repository.observeOperativeChat(testLobbyCode, testTeam, testUser).toList()
+
+            assertEquals("Wrong accusation. Your team's turn ends.", result[0].text)
+            assertEquals(CheatExposureResult.WRONG, result[0].cheatExposureResult)
         }
 }
