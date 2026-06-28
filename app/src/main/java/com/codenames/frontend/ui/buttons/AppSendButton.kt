@@ -19,12 +19,6 @@ fun AppSendButton(
     modifier: Modifier = Modifier,
     style: AppButtonStyle = AppButtonStyle(),
 ) {
-    val resolvedContainerColor =
-        when {
-            style.containerColor != Color.Unspecified -> style.containerColor
-            else -> MaterialTheme.colorScheme.primary
-        }
-
     val resolvedContentColor =
         when {
             style.contentColor != Color.Unspecified -> style.contentColor
