@@ -289,7 +289,7 @@ fun GameboardScreen(
                         .weight(1f)
                         .fillMaxWidth(),
             )
-            if (!gameOver && isSpymaster) {
+            if (!gameOver) {
                 HintSection(
                     isActiveSpymaster,
                     currentHint,
