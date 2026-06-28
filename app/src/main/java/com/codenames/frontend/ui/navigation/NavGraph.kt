@@ -38,11 +38,13 @@ fun NavGraph(
     val lobbyState by lobbyViewModel.state.collectAsState()
     val connectionState by gameViewModel.connectionState.collectAsState()
     val chatErrorMessage by chatViewModel.errorMessage.collectAsState()
+    val gameErrorMessage by gameViewModel.errorMessage.collectAsState()
 
     val errorMessage: String? =
         lobbyState.error
             ?: (connectionState as? ConnectionState.Error)?.message
             ?: chatErrorMessage
+            ?: gameErrorMessage
 
     @Suppress("UnusedBoxWithConstraintsScope")
     BoxWithConstraints {
@@ -112,6 +114,7 @@ fun NavGraph(
                     onDismiss = {
                         lobbyViewModel.clearError()
                         gameViewModel.clearError()
+                        gameViewModel.clearErrorState()
                         chatViewModel.clearError()
                     },
                 )

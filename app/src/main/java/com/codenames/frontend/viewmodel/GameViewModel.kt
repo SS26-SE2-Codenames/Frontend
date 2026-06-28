@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codenames.frontend.data.error.ErrorMessageMapper
+import com.codenames.frontend.data.model.GameCard
 import com.codenames.frontend.data.model.GameState
 import com.codenames.frontend.data.model.RejoinState
 import com.codenames.frontend.data.model.enums.ConnectionState
@@ -38,6 +39,8 @@ class GameViewModel
 
         private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.IDLE)
         val connectionState: StateFlow<ConnectionState> = _connectionState
+        private val _errorMessage = MutableStateFlow<String?>(null)
+        val errorMessage: StateFlow<String?> = _errorMessage
 
         fun connect(
             lobbyCode: String,
@@ -95,6 +98,10 @@ class GameViewModel
         ) {
             if (lobbyCode.isBlank() || team == null) {
                 return
+            }
+
+            if(!validateWord(word, uiState.value.cards)) {
+                setErrorState(IllegalArgumentException("The hint cannot contain any spaces or words on the board!"))
             }
 
             val turn = uiState.value.currentTurn
@@ -269,4 +276,22 @@ class GameViewModel
         private fun Team.isActiveSpymasterTurn(turn: PlayerRoles): Boolean =
             (this == Team.BLUE && turn == PlayerRoles.BLUE_SPYMASTER) ||
                 (this == Team.RED && turn == PlayerRoles.RED_SPYMASTER)
+
+        private fun validateWord(word: String, cards: List<GameCard>) : Boolean{
+            if(word.contains(" ")) return false
+            for(card in cards) {
+                if(card.word == word){
+                    return false
+                }
+            }
+            return true
+        }
+
+        fun clearErrorState() {
+            _errorMessage.value = null
+        }
+
+        private fun setErrorState(error: Throwable) {
+            _errorMessage.value = ErrorMessageMapper.toUserMessage(error)
+        }
     }
