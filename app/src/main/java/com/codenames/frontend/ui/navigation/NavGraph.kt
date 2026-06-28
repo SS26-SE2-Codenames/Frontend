@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.composables.ErrorDialog
+import com.codenames.frontend.ui.screens.ForceLandscape
 import com.codenames.frontend.ui.screens.GameScreenWrapper
 import com.codenames.frontend.ui.screens.GameSettingsScreen
 import com.codenames.frontend.ui.screens.JoinlobbyScreen
@@ -53,6 +54,7 @@ fun NavGraph(
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
             )
+        ForceLandscape()
 
         CompositionLocalProvider(LocalResponsiveDimensions provides responsiveDimensions) {
             NavHost(
