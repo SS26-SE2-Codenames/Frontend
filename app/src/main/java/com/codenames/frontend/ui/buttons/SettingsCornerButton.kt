@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +34,7 @@ fun BoxScope.SettingsCornerButton(onClick: () -> Unit) {
                 .height(dimensions.cornerButtonSize)
                 .zIndex(1f),
     ) {
-        androidx.compose.material3.IconButton(
+        IconButton(
             onClick = onClick,
             modifier = Modifier.fillMaxSize(),
             colors =
