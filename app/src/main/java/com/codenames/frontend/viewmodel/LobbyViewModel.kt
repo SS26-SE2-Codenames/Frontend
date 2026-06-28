@@ -260,14 +260,7 @@ class LobbyViewModel
 
         fun cleanup() {
             _state.update {
-                it.copy(
-                    lobbyCode = null,
-                    players = emptyList(),
-                    blueOperatives = emptyList(),
-                    blueSpymasters = emptyList(),
-                    redOperatives = emptyList(),
-                    redSpymasters = emptyList(),
-                )
+                LobbyUiState()
             }
             stopPolling()
             clearError()

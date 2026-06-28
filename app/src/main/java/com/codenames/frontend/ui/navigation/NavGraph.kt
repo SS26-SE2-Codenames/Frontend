@@ -58,7 +58,7 @@ fun NavGraph(
                 startDestination = Screen.Username.route,
             ) {
                 composable(Screen.Username.route) {
-                    UserNameScreen(navController, sessionViewModel, gameViewModel, lobbyViewModel)
+                    UserNameScreen(navController, sessionViewModel, gameViewModel, lobbyViewModel, chatViewModel)
                 }
 
                 composable(Screen.Start.route) {
