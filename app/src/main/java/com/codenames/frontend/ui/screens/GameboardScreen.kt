@@ -10,7 +10,6 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -47,13 +46,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatLists
@@ -515,30 +516,35 @@ private fun BoardContent(
     if (state.cards.isEmpty()) {
         WaitingForGameState(modifier = modifier)
     } else {
-        BoxWithConstraints(
+        val density = LocalDensity.current
+        var boardSize by remember { mutableStateOf(IntSize.Zero) }
+        val cardSpacingPx = with(density) { BOARD_CARD_SPACING.toPx() }
+
+        Box(
             modifier =
                 modifier
                     .clipToBounds()
+                    .onSizeChanged { boardSize = it }
                     .boardTransformInput(
                         onTransform = onTransform,
                         onTransformStart = onTransformStart,
                         onTransformEnd = onTransformEnd,
                     ),
         ) {
-            val boardMaxWidth = maxWidth
-            val boardMaxHeight = maxHeight
-
             val defaultScale =
-                remember(state.cards.size, boardMaxWidth, boardMaxHeight) {
+                remember(state.cards.size, boardSize, cardSpacingPx) {
                     calculateInitialBoardScale(
                         cardCount = state.cards.size,
-                        availableWidth = boardMaxWidth,
-                        availableHeight = boardMaxHeight,
+                        availableWidth = boardSize.width.toFloat(),
+                        availableHeight = boardSize.height.toFloat(),
+                        cardSpacing = cardSpacingPx,
                     )
                 }
 
-            LaunchedEffect(state.cards.size, boardMaxWidth, boardMaxHeight) {
-                onDefaultTransformReady(defaultScale)
+            LaunchedEffect(state.cards.size, boardSize, defaultScale) {
+                if (boardSize.width > 0 && boardSize.height > 0) {
+                    onDefaultTransformReady(defaultScale)
+                }
             }
 
             GameBoardGrid(
@@ -556,21 +562,22 @@ private fun BoardContent(
 
 private fun calculateInitialBoardScale(
     cardCount: Int,
-    availableWidth: Dp,
-    availableHeight: Dp,
+    availableWidth: Float,
+    availableHeight: Float,
+    cardSpacing: Float,
 ): Float {
-    if (cardCount <= 0 || availableWidth <= 0.dp || availableHeight <= 0.dp) {
+    if (cardCount <= 0 || availableWidth <= 0f || availableHeight <= 0f) {
         return 1f
     }
 
     val rowCount = ((cardCount + BOARD_COLUMNS - 1) / BOARD_COLUMNS).coerceAtLeast(1)
-    val horizontalSpacing = BOARD_CARD_SPACING * (BOARD_COLUMNS - 1).toFloat()
-    val verticalSpacing = BOARD_CARD_SPACING * (rowCount - 1).toFloat()
-    val cardWidth = (availableWidth - horizontalSpacing) / BOARD_COLUMNS.toFloat()
+    val horizontalSpacing = cardSpacing * (BOARD_COLUMNS - 1)
+    val verticalSpacing = cardSpacing * (rowCount - 1)
+    val cardWidth = ((availableWidth - horizontalSpacing) / BOARD_COLUMNS).coerceAtLeast(1f)
     val cardHeight = cardWidth / BOARD_CARD_ASPECT_RATIO
-    val boardHeight = (cardHeight * rowCount.toFloat()) + verticalSpacing
+    val boardHeight = (cardHeight * rowCount) + verticalSpacing
 
-    if (boardHeight <= 0.dp) {
+    if (boardHeight <= 0f) {
         return 1f
     }
 
