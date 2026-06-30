@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.codenames.frontend.data.model.GameCard
@@ -54,6 +55,7 @@ fun GameBoardGrid(
                         scaleY = scale,
                         translationX = offset.x,
                         translationY = offset.y,
+                        transformOrigin = TransformOrigin(0.5f, 0f),
                     ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {

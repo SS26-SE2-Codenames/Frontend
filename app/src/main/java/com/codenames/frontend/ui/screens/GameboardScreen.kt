@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -52,6 +53,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatLists
@@ -65,6 +67,7 @@ import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.AppButtonType
 import com.codenames.frontend.ui.buttons.AppSendButton
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
+import com.codenames.frontend.ui.composables.BOARD_COLUMNS
 import com.codenames.frontend.ui.composables.GameBoardGrid
 import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
@@ -109,6 +112,10 @@ private data class BoardSelectionState(
 )
 
 private const val CARD_CLICK_SUPPRESSION_DELAY_MS = 120L
+private const val MIN_BOARD_SCALE = 0.35f
+private const val MAX_BOARD_SCALE = 3f
+private const val BOARD_CARD_ASPECT_RATIO = 2f
+private val BOARD_CARD_SPACING = 8.dp
 
 private data class BoardTransformState(
     val scale: Float,
@@ -297,7 +304,7 @@ fun GameboardScreen(
                         suppressCardClicks = suppressCardClicks,
                     ),
                 onTransform = { pan, zoom ->
-                    scale = (scale * zoom).coerceIn(0.5f, 3f)
+                    scale = (scale * zoom).coerceIn(MIN_BOARD_SCALE, MAX_BOARD_SCALE)
                     offset += pan
                 },
                 onTransformStart = {
@@ -306,6 +313,10 @@ fun GameboardScreen(
                 },
                 onTransformEnd = {
                     isBoardTransforming = false
+                },
+                onDefaultTransformReady = { defaultScale ->
+                    scale = defaultScale
+                    offset = Offset.Zero
                 },
                 onSelectionChange = { selectedCardPositions = it },
                 onReveal = onReveal,
@@ -435,6 +446,7 @@ private fun GameBoardSection(
     onTransform: (Offset, Float) -> Unit,
     onTransformStart: () -> Unit,
     onTransformEnd: () -> Unit,
+    onDefaultTransformReady: (Float) -> Unit,
     onSelectionChange: (List<Int>) -> Unit,
     onReveal: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
@@ -454,6 +466,7 @@ private fun GameBoardSection(
             state = state,
             selectionState = selectionState,
             transformState = transformState,
+            onDefaultTransformReady = onDefaultTransformReady,
             onCardClick = { position ->
                 if (selectionState.canSelectCards && !transformState.suppressCardClicks) {
                     onSelectionChange(
@@ -496,18 +509,13 @@ private fun BoardContent(
     onTransform: (Offset, Float) -> Unit,
     onTransformStart: () -> Unit,
     onTransformEnd: () -> Unit,
+    onDefaultTransformReady: (Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (state.cards.isEmpty()) {
         WaitingForGameState(modifier = modifier)
     } else {
-        GameBoardGrid(
-            cards = state.cards,
-            scale = transformState.scale,
-            offset = transformState.offset,
-            isSpymaster = state.isSpymaster,
-            selectedCardPositions = selectionState.selectedCardPositions.toSet(),
-            onCardClick = onCardClick,
+        BoxWithConstraints(
             modifier =
                 modifier
                     .clipToBounds()
@@ -516,8 +524,57 @@ private fun BoardContent(
                         onTransformStart = onTransformStart,
                         onTransformEnd = onTransformEnd,
                     ),
-        )
+        ) {
+            val boardMaxWidth = maxWidth
+            val boardMaxHeight = maxHeight
+
+            val defaultScale =
+                remember(state.cards.size, boardMaxWidth, boardMaxHeight) {
+                    calculateInitialBoardScale(
+                        cardCount = state.cards.size,
+                        availableWidth = boardMaxWidth,
+                        availableHeight = boardMaxHeight,
+                    )
+                }
+
+            LaunchedEffect(state.cards.size, boardMaxWidth, boardMaxHeight) {
+                onDefaultTransformReady(defaultScale)
+            }
+
+            GameBoardGrid(
+                cards = state.cards,
+                scale = transformState.scale,
+                offset = transformState.offset,
+                isSpymaster = state.isSpymaster,
+                selectedCardPositions = selectionState.selectedCardPositions.toSet(),
+                onCardClick = onCardClick,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
+}
+
+private fun calculateInitialBoardScale(
+    cardCount: Int,
+    availableWidth: Dp,
+    availableHeight: Dp,
+): Float {
+    if (cardCount <= 0 || availableWidth <= 0.dp || availableHeight <= 0.dp) {
+        return 1f
+    }
+
+    val rowCount = ((cardCount + BOARD_COLUMNS - 1) / BOARD_COLUMNS).coerceAtLeast(1)
+    val horizontalSpacing = BOARD_CARD_SPACING * (BOARD_COLUMNS - 1).toFloat()
+    val verticalSpacing = BOARD_CARD_SPACING * (rowCount - 1).toFloat()
+    val cardWidth = (availableWidth - horizontalSpacing) / BOARD_COLUMNS.toFloat()
+    val cardHeight = cardWidth / BOARD_CARD_ASPECT_RATIO
+    val boardHeight = (cardHeight * rowCount.toFloat()) + verticalSpacing
+
+    if (boardHeight <= 0.dp) {
+        return 1f
+    }
+
+    return (availableHeight / boardHeight).coerceIn(MIN_BOARD_SCALE, 1f)
 }
 
 private fun Modifier.boardTransformInput(
