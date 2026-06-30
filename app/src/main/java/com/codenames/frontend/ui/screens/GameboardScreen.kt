@@ -5,7 +5,9 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +43,9 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -86,6 +90,9 @@ import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.util.ShakeDetector
+import kotlinx.coroutines.delay
+import kotlin.math.abs
+import kotlin.math.min
 
 private data class BoardSectionState(
     val userRole: PlayerRoles,
@@ -101,9 +108,12 @@ private data class BoardSelectionState(
     val remainingGuesses: Int,
 )
 
+private const val CARD_CLICK_SUPPRESSION_DELAY_MS = 120L
+
 private data class BoardTransformState(
     val scale: Float,
     val offset: Offset,
+    val suppressCardClicks: Boolean,
 )
 
 private data class ChatOverlayState(
@@ -174,6 +184,16 @@ fun GameboardScreen(
 
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
+
+    var isBoardTransforming by remember { mutableStateOf(false) }
+    var suppressCardClicks by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isBoardTransforming) {
+        if (!isBoardTransforming && suppressCardClicks) {
+            delay(CARD_CLICK_SUPPRESSION_DELAY_MS)
+            suppressCardClicks = false
+        }
+    }
 
     val onInputChange: (String) -> Unit = { hintInput = it }
 
@@ -274,10 +294,18 @@ fun GameboardScreen(
                     BoardTransformState(
                         scale = scale,
                         offset = offset,
+                        suppressCardClicks = suppressCardClicks,
                     ),
                 onTransform = { pan, zoom ->
                     scale = (scale * zoom).coerceIn(0.5f, 3f)
                     offset += pan
+                },
+                onTransformStart = {
+                    isBoardTransforming = true
+                    suppressCardClicks = true
+                },
+                onTransformEnd = {
+                    isBoardTransforming = false
                 },
                 onSelectionChange = { selectedCardPositions = it },
                 onReveal = onReveal,
@@ -405,6 +433,8 @@ private fun GameBoardSection(
     selectionState: BoardSelectionState,
     transformState: BoardTransformState,
     onTransform: (Offset, Float) -> Unit,
+    onTransformStart: () -> Unit,
+    onTransformEnd: () -> Unit,
     onSelectionChange: (List<Int>) -> Unit,
     onReveal: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
@@ -425,7 +455,7 @@ private fun GameBoardSection(
             selectionState = selectionState,
             transformState = transformState,
             onCardClick = { position ->
-                if (selectionState.canSelectCards) {
+                if (selectionState.canSelectCards && !transformState.suppressCardClicks) {
                     onSelectionChange(
                         updateSelectedCardPositions(
                             position = position,
@@ -437,6 +467,8 @@ private fun GameBoardSection(
                 }
             },
             onTransform = onTransform,
+            onTransformStart = onTransformStart,
+            onTransformEnd = onTransformEnd,
             modifier =
                 Modifier
                     .weight(1f)
@@ -462,6 +494,8 @@ private fun BoardContent(
     transformState: BoardTransformState,
     onCardClick: (Int) -> Unit,
     onTransform: (Offset, Float) -> Unit,
+    onTransformStart: () -> Unit,
+    onTransformEnd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (state.cards.isEmpty()) {
@@ -477,14 +511,69 @@ private fun BoardContent(
             modifier =
                 modifier
                     .clipToBounds()
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            onTransform(pan, zoom)
-                        }
-                    },
+                    .boardTransformInput(
+                        onTransform = onTransform,
+                        onTransformStart = onTransformStart,
+                        onTransformEnd = onTransformEnd,
+                    ),
         )
     }
 }
+
+private fun Modifier.boardTransformInput(
+    onTransform: (Offset, Float) -> Unit,
+    onTransformStart: () -> Unit,
+    onTransformEnd: () -> Unit,
+): Modifier =
+    pointerInput(onTransform, onTransformStart, onTransformEnd) {
+        awaitEachGesture {
+            var transformStarted = false
+            var pastTouchSlop = false
+            var accumulatedPan = Offset.Zero
+            var accumulatedZoom = 1f
+
+            try {
+                do {
+                    val event = awaitPointerEvent(pass = PointerEventPass.Initial)
+                    val pressedPointers = event.changes.count { it.pressed }
+
+                    if (pressedPointers >= 2) {
+                        val pan = event.calculatePan()
+                        val zoom = event.calculateZoom()
+
+                        accumulatedPan += pan
+                        accumulatedZoom *= zoom
+
+                        val zoomMotion =
+                            abs(1f - accumulatedZoom) * min(size.width, size.height)
+                        val panMotion = accumulatedPan.getDistance()
+
+                        if (!pastTouchSlop &&
+                            (zoomMotion > viewConfiguration.touchSlop || panMotion > viewConfiguration.touchSlop)
+                        ) {
+                            pastTouchSlop = true
+                            transformStarted = true
+                            onTransformStart()
+                        }
+
+                        if (pastTouchSlop) {
+                            onTransform(pan, zoom)
+
+                            event.changes.forEach { pointer ->
+                                if (pointer.positionChanged()) {
+                                    pointer.consume()
+                                }
+                            }
+                        }
+                    }
+                } while (event.changes.any { it.pressed })
+            } finally {
+                if (transformStarted) {
+                    onTransformEnd()
+                }
+            }
+        }
+    }
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
