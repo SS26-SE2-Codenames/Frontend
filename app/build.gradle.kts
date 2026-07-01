@@ -9,7 +9,13 @@ if (localPropertiesFile.exists()) {
 val serverUrl: String? =
     localProperties.getProperty(
         "SERVER_URL",
-        "se2-demo.aau.at:53213",
+        "wss://codenames.q1studios.at",
+    )
+
+val httpServerUrl: String? =
+    localProperties.getProperty(
+        "HTTP_SERVER_URL",
+        "https://codenames.q1studios.at",
     )
 
 plugins {
@@ -122,6 +128,11 @@ android {
             "String",
             "SERVER_URL",
             "\"$serverUrl\"",
+        )
+        buildConfigField(
+            "String",
+            "HTTP_SERVER_URL",
+            "\"$httpServerUrl\"",
         )
     }
 
