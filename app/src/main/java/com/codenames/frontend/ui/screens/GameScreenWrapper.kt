@@ -88,8 +88,14 @@ fun GameScreenWrapper(
             navController.navigate(Screen.Settings.route)
         },
         onReturnToHome = {
-            navController.navigate(Screen.Start.route)
+            navController.navigate(Screen.Start.route) {
+                popUpTo(navController.graph.startDestinationId) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
             lobbyViewModel.cleanup()
+            chatViewModel.cleanup()
             gameViewModel.resetGameState()
         },
     )

@@ -212,4 +212,15 @@ class ChatViewModel
         private fun setError(error: Throwable) {
             _errorMessage.value = ErrorMessageMapper.toUserMessage(error)
         }
+
+        fun cleanup() {
+            viewModelScope.launch {
+                _errorMessage.update {
+                    null
+                }
+                _chatState.update {
+                    ChatLists()
+                }
+            }
+        }
     }

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,6 +29,9 @@ import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
+import com.codenames.frontend.ui.inputs.AppTextField
+import com.codenames.frontend.ui.inputs.AppTextFieldState
+import com.codenames.frontend.ui.inputs.InputFilters
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
@@ -105,11 +107,12 @@ fun UserNameScreen(
                 modifier = Modifier.padding(bottom = dimensions.sectionSpacing * 3),
             )
 
-            TextField(
+            AppTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = { Text("enter username") },
+                state = AppTextFieldState(label = "Enter username", placeholder = "user"),
                 modifier = Modifier.fillMaxWidth(if (dimensions.isNarrowWidth) 0.7f else 0.5f),
+                inputFilter = InputFilters.ALPHANUMERIC,
             )
 
             Spacer(modifier = Modifier.height(dimensions.itemSpacing))
