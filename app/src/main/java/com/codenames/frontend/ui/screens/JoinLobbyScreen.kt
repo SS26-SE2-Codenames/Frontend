@@ -28,9 +28,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.navigation.NavHostController
+import com.codenames.frontend.R
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
+import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
@@ -39,7 +41,6 @@ import com.codenames.frontend.ui.inputs.AppTextFieldType
 import com.codenames.frontend.ui.inputs.InputFilters
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.theme.AppBackground
-import com.codenames.frontend.ui.theme.AppInk
 import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
@@ -102,6 +103,7 @@ fun JoinlobbyScreen(
                 .fillMaxSize()
                 .background(AppBackground),
     ) {
+        ScreenBackground(R.drawable.lobby_art)
         Column(
             modifier =
                 Modifier
@@ -168,7 +170,7 @@ fun JoinlobbyScreen(
             if (state.isLoading) {
                 Text(
                     text = "Joining...",
-                    color = AppInk,
+                    color = AppWhite,
                     fontSize = dimensions.bodyFontSize,
                     modifier = Modifier.padding(top = dimensions.itemSpacing),
                 )

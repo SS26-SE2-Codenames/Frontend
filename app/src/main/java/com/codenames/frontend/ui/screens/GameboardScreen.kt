@@ -5,7 +5,9 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,14 +43,23 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.codenames.frontend.R
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.GameCard
@@ -61,7 +72,10 @@ import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.AppButtonType
 import com.codenames.frontend.ui.buttons.AppSendButton
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
+import com.codenames.frontend.ui.composables.BOARD_COLUMNS
+import com.codenames.frontend.ui.composables.CARD_ASPECT_RATIO
 import com.codenames.frontend.ui.composables.GameBoardGrid
+import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
@@ -87,6 +101,9 @@ import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.ui.theme.greenGradient
 import com.codenames.frontend.ui.theme.redGradient
 import com.codenames.frontend.util.ShakeDetector
+import kotlinx.coroutines.delay
+import kotlin.math.abs
+import kotlin.math.min
 
 private data class BoardSectionState(
     val userRole: PlayerRoles,
@@ -102,9 +119,30 @@ private data class BoardSelectionState(
     val remainingGuesses: Int,
 )
 
+private const val CARD_CLICK_SUPPRESSION_DELAY_MS = 120L
+private const val MIN_BOARD_SCALE = 0.35f
+private const val MAX_BOARD_SCALE = 3f
+private val BOARD_CARD_SPACING = 8.dp
+
 private data class BoardTransformState(
     val scale: Float,
     val offset: Offset,
+    val suppressCardClicks: Boolean,
+)
+
+private data class BoardContentActions(
+    val onCardClick: (Int) -> Unit,
+    val onTransform: (Offset, Float) -> Unit,
+    val onTransformStart: () -> Unit,
+    val onTransformEnd: () -> Unit,
+    val onDefaultTransformReady: (Float) -> Unit,
+)
+
+private data class BoardGestureState(
+    val transformStarted: Boolean = false,
+    val pastTouchSlop: Boolean = false,
+    val accumulatedPan: Offset = Offset.Zero,
+    val accumulatedZoom: Float = 1f,
 )
 
 private data class ChatOverlayState(
@@ -176,6 +214,16 @@ fun GameboardScreen(
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
+    var isBoardTransforming by remember { mutableStateOf(false) }
+    var suppressCardClicks by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isBoardTransforming) {
+        if (!isBoardTransforming && suppressCardClicks) {
+            delay(CARD_CLICK_SUPPRESSION_DELAY_MS)
+            suppressCardClicks = false
+        }
+    }
+
     val onInputChange: (String) -> Unit = { hintInput = it }
 
     val currentCanSelectCards by rememberUpdatedState(canEndTurn)
@@ -218,26 +266,24 @@ fun GameboardScreen(
                 .fillMaxSize()
                 .background(getTeamBackgroundColor(backgroundTeam)),
     ) {
+        ScreenBackground(R.drawable.gameboard_art)
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(
-                        top = dimensions.gameTopPadding,
+                        top = dimensions.itemSpacing,
                         start = dimensions.screenPadding,
                         end = dimensions.screenPadding,
                         bottom = dimensions.screenPadding,
                     ),
         ) {
-            GameStatusBar(
-                currentTurn = currentTurn,
-                winner = winner,
-                remainingGuesses = remainingGuesses,
-                numGuesses = numGuesses,
-            )
-
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.2f)
+                        .padding(top = dimensions.itemSpacing),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -245,6 +291,15 @@ fun GameboardScreen(
                     isVisible = availableChatTabs.isNotEmpty(),
                     isChatOpen = isChatOpen,
                     onClick = { isChatOpen = !isChatOpen },
+                    modifier = Modifier.width(140.dp),
+                )
+
+                GameStatusBar(
+                    currentTurn = currentTurn,
+                    winner = winner,
+                    remainingGuesses = remainingGuesses,
+                    numGuesses = numGuesses,
+                    modifier = Modifier.weight(1f),
                 )
 
                 EndTurnButton(
@@ -275,10 +330,22 @@ fun GameboardScreen(
                     BoardTransformState(
                         scale = scale,
                         offset = offset,
+                        suppressCardClicks = suppressCardClicks,
                     ),
                 onTransform = { pan, zoom ->
-                    scale = (scale * zoom).coerceIn(0.5f, 3f)
+                    scale = (scale * zoom).coerceIn(MIN_BOARD_SCALE, MAX_BOARD_SCALE)
                     offset += pan
+                },
+                onTransformStart = {
+                    isBoardTransforming = true
+                    suppressCardClicks = true
+                },
+                onTransformEnd = {
+                    isBoardTransforming = false
+                },
+                onDefaultTransformReady = { defaultScale ->
+                    scale = defaultScale
+                    offset = Offset.Zero
                 },
                 onSelectionChange = { selectedCardPositions = it },
                 onReveal = onReveal,
@@ -385,6 +452,7 @@ private fun ChatToggle(
     isVisible: Boolean,
     isChatOpen: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
@@ -393,7 +461,7 @@ private fun ChatToggle(
             isChatOpen = isChatOpen,
             onClick = onClick,
             modifier =
-                Modifier
+                modifier
                     .padding(end = dimensions.itemSpacing, bottom = dimensions.itemSpacing),
         )
     }
@@ -406,6 +474,9 @@ private fun GameBoardSection(
     selectionState: BoardSelectionState,
     transformState: BoardTransformState,
     onTransform: (Offset, Float) -> Unit,
+    onTransformStart: () -> Unit,
+    onTransformEnd: () -> Unit,
+    onDefaultTransformReady: (Float) -> Unit,
     onSelectionChange: (List<Int>) -> Unit,
     onReveal: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
@@ -425,19 +496,25 @@ private fun GameBoardSection(
             state = state,
             selectionState = selectionState,
             transformState = transformState,
-            onCardClick = { position ->
-                if (selectionState.canSelectCards) {
-                    onSelectionChange(
-                        updateSelectedCardPositions(
-                            position = position,
-                            selectedCardPositions = selectionState.selectedCardPositions,
-                            remainingGuesses = selectionState.remainingGuesses,
-                            onReveal = onReveal,
-                        ),
-                    )
-                }
-            },
-            onTransform = onTransform,
+            actions =
+                BoardContentActions(
+                    onCardClick = { position ->
+                        if (selectionState.canSelectCards && !transformState.suppressCardClicks) {
+                            onSelectionChange(
+                                updateSelectedCardPositions(
+                                    position = position,
+                                    selectedCardPositions = selectionState.selectedCardPositions,
+                                    remainingGuesses = selectionState.remainingGuesses,
+                                    onReveal = onReveal,
+                                ),
+                            )
+                        }
+                    },
+                    onTransform = onTransform,
+                    onTransformStart = onTransformStart,
+                    onTransformEnd = onTransformEnd,
+                    onDefaultTransformReady = onDefaultTransformReady,
+                ),
             modifier =
                 Modifier
                     .weight(1f)
@@ -461,30 +538,177 @@ private fun BoardContent(
     state: BoardSectionState,
     selectionState: BoardSelectionState,
     transformState: BoardTransformState,
-    onCardClick: (Int) -> Unit,
-    onTransform: (Offset, Float) -> Unit,
+    actions: BoardContentActions,
     modifier: Modifier = Modifier,
 ) {
     if (state.cards.isEmpty()) {
         WaitingForGameState(modifier = modifier)
     } else {
-        GameBoardGrid(
-            cards = state.cards,
-            scale = transformState.scale,
-            offset = transformState.offset,
-            isSpymaster = state.isSpymaster,
-            selectedCardPositions = selectionState.selectedCardPositions.toSet(),
-            onCardClick = onCardClick,
+        val density = LocalDensity.current
+        var boardSize by remember { mutableStateOf(IntSize.Zero) }
+        var defaultTransformApplied by remember(state.cards.size) {
+            mutableStateOf(false)
+        }
+        val cardSpacingPx = with(density) { BOARD_CARD_SPACING.toPx() }
+
+        Box(
             modifier =
                 modifier
                     .clipToBounds()
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            onTransform(pan, zoom)
-                        }
-                    },
-        )
+                    .onSizeChanged { boardSize = it }
+                    .boardTransformInput(
+                        onTransform = actions.onTransform,
+                        onTransformStart = actions.onTransformStart,
+                        onTransformEnd = actions.onTransformEnd,
+                    ),
+        ) {
+            val defaultScale =
+                remember(state.cards.size, boardSize, cardSpacingPx) {
+                    calculateInitialBoardScale(
+                        cardCount = state.cards.size,
+                        availableWidth = boardSize.width.toFloat(),
+                        availableHeight = boardSize.height.toFloat(),
+                        cardSpacing = cardSpacingPx,
+                    )
+                }
+
+            LaunchedEffect(boardSize, defaultScale, defaultTransformApplied) {
+                if (!defaultTransformApplied && boardSize.width > 0 && boardSize.height > 0) {
+                    actions.onDefaultTransformReady(defaultScale)
+                    defaultTransformApplied = true
+                }
+            }
+
+            GameBoardGrid(
+                cards = state.cards,
+                scale = transformState.scale,
+                offset = transformState.offset,
+                isSpymaster = state.isSpymaster,
+                selectedCardPositions = selectionState.selectedCardPositions.toSet(),
+                onCardClick = actions.onCardClick,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
+}
+
+private fun calculateInitialBoardScale(
+    cardCount: Int,
+    availableWidth: Float,
+    availableHeight: Float,
+    cardSpacing: Float,
+): Float {
+    if (cardCount <= 0 || availableWidth <= 0f || availableHeight <= 0f) {
+        return 1f
+    }
+
+    val rowCount = ((cardCount + BOARD_COLUMNS - 1) / BOARD_COLUMNS).coerceAtLeast(1)
+    val horizontalSpacing = cardSpacing * (BOARD_COLUMNS - 1)
+    val verticalSpacing = cardSpacing * (rowCount - 1)
+    val cardWidth = ((availableWidth - horizontalSpacing) / BOARD_COLUMNS).coerceAtLeast(1f)
+    val cardHeight = cardWidth / CARD_ASPECT_RATIO
+    val boardHeight = (cardHeight * rowCount) + verticalSpacing
+
+    if (boardHeight <= 0f) {
+        return 1f
+    }
+
+    return (availableHeight / boardHeight).coerceIn(MIN_BOARD_SCALE, 1f)
+}
+
+private fun Modifier.boardTransformInput(
+    onTransform: (Offset, Float) -> Unit,
+    onTransformStart: () -> Unit,
+    onTransformEnd: () -> Unit,
+): Modifier =
+    pointerInput(onTransform, onTransformStart, onTransformEnd) {
+        awaitEachGesture {
+            var gestureState = BoardGestureState()
+
+            try {
+                do {
+                    val event = awaitPointerEvent(pass = PointerEventPass.Initial)
+                    gestureState =
+                        handleBoardTransformEvent(
+                            event = event,
+                            gestureState = gestureState,
+                            touchSlop = viewConfiguration.touchSlop,
+                            minDimension = min(size.width, size.height),
+                            onTransform = onTransform,
+                            onTransformStart = onTransformStart,
+                        )
+                } while (event.changes.any { it.pressed })
+            } finally {
+                if (gestureState.transformStarted) {
+                    onTransformEnd()
+                }
+            }
+        }
+    }
+
+private fun handleBoardTransformEvent(
+    event: PointerEvent,
+    gestureState: BoardGestureState,
+    touchSlop: Float,
+    minDimension: Int,
+    onTransform: (Offset, Float) -> Unit,
+    onTransformStart: () -> Unit,
+): BoardGestureState {
+    if (event.changes.count { it.pressed } < 2) {
+        return gestureState
+    }
+
+    val pan = event.calculatePan()
+    val zoom = event.calculateZoom()
+    val updatedState =
+        gestureState.copy(
+            accumulatedPan = gestureState.accumulatedPan + pan,
+            accumulatedZoom = gestureState.accumulatedZoom * zoom,
+        )
+
+    val pastTouchSlop =
+        updatedState.pastTouchSlop ||
+            isPastBoardTouchSlop(
+                accumulatedPan = updatedState.accumulatedPan,
+                accumulatedZoom = updatedState.accumulatedZoom,
+                touchSlop = touchSlop,
+                minDimension = minDimension,
+            )
+
+    val startedState =
+        updatedState.copy(
+            pastTouchSlop = pastTouchSlop,
+            transformStarted = updatedState.transformStarted || pastTouchSlop,
+        )
+
+    if (!updatedState.pastTouchSlop && pastTouchSlop) {
+        onTransformStart()
+    }
+
+    if (pastTouchSlop) {
+        onTransform(pan, zoom)
+        consumeMovedPointers(event)
+    }
+
+    return startedState
+}
+
+private fun isPastBoardTouchSlop(
+    accumulatedPan: Offset,
+    accumulatedZoom: Float,
+    touchSlop: Float,
+    minDimension: Int,
+): Boolean {
+    val zoomMotion = abs(1f - accumulatedZoom) * minDimension
+    val panMotion = accumulatedPan.getDistance()
+
+    return zoomMotion > touchSlop || panMotion > touchSlop
+}
+
+private fun consumeMovedPointers(event: PointerEvent) {
+    event.changes
+        .filter { it.positionChanged() }
+        .forEach { it.consume() }
 }
 
 @Suppress("ktlint:standard:function-naming")
@@ -557,6 +781,8 @@ private fun EndTurnButton(
                     fontSize = dimensions.bodyFontSize,
                 ),
         )
+    } else {
+        Spacer(modifier = modifier)
     }
 }
 
@@ -600,18 +826,17 @@ fun GameStatusBar(
     winner: Team?,
     remainingGuesses: Int,
     numGuesses: Int,
+    modifier: Modifier = Modifier,
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
     Log.d("GameboardScreen", "GameStatusBar: Updated guesses. Remaining guesses: $remainingGuesses")
 
-    Row(
+    Box(
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
-                .height(dimensions.gameStatusBarHeight),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
+                .fillMaxHeight(),
     ) {
         val statusText =
             when {
@@ -620,9 +845,26 @@ fun GameStatusBar(
                 else -> "Waiting for turn..."
             }
 
+        val statusBackground =
+            when {
+                winner != null -> AppGreen.copy(alpha = 0.85f)
+                currentTurn == PlayerRoles.BLUE_OPERATIVE || currentTurn == PlayerRoles.BLUE_SPYMASTER -> AppBlue.copy(alpha = 0.85f)
+                currentTurn == PlayerRoles.RED_OPERATIVE || currentTurn == PlayerRoles.RED_SPYMASTER -> AppRed.copy(alpha = 0.85f)
+                else -> AppInkOverlay
+            }
+
         Text(
             text = statusText,
-            color = AppInk,
+            modifier =
+                Modifier
+                    .background(statusBackground, RoundedCornerShape(12.dp))
+                    .padding(
+                        horizontal = dimensions.smallSpacing,
+                        vertical = dimensions.smallSpacing,
+                    ).align(Alignment.Center)
+                    .fillMaxWidth(0.75f),
+            textAlign = TextAlign.Center,
+            color = AppWhite,
             fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
         )
@@ -1002,7 +1244,7 @@ fun HintSection(
                 state = AppTextFieldState(label = "COUNT", placeholder = "0"),
                 style =
                     AppTextFieldStyle(
-                        fontSize = dimensions.bodyFontSize,
+                        fontSize = dimensions.smallFontSize,
                         lineHeight = dimensions.buttonLineHeight,
                     ),
                 keyboard =
@@ -1041,6 +1283,7 @@ fun HintSection(
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Text(
                 text = "Hint: $currentHint",
+                color = AppWhite,
                 fontSize = dimensions.bodyFontSize,
                 fontWeight = FontWeight.Bold,
             )
@@ -1063,15 +1306,23 @@ fun TeamRoleBox(
             modifier
                 .fillMaxWidth()
                 .background(gradient, RoundedCornerShape(8.dp))
-                .padding(dimensions.smallSpacing),
+                .padding(
+                    horizontal = dimensions.smallSpacing / 2,
+                    vertical = dimensions.smallSpacing,
+                ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = title,
+            modifier = Modifier.fillMaxWidth(),
             color = AppWhite,
             fontWeight = FontWeight.Bold,
-            fontSize = dimensions.smallFontSize,
+            fontSize = dimensions.smallFontSize * 0.82f,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
+            textAlign = TextAlign.Center,
         )
 
         if (isCurrentUser) {

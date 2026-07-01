@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.codenames.frontend.data.model.GameCard
@@ -28,6 +29,7 @@ import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 
 const val BOARD_COLUMNS = 5
+const val CARD_ASPECT_RATIO = 2.8f
 const val LINEBREAK_TRESHOLD = 8
 
 @Suppress("ktlint:standard:function-naming")
@@ -54,6 +56,7 @@ fun GameBoardGrid(
                         scaleY = scale,
                         translationX = offset.x,
                         translationY = offset.y,
+                        transformOrigin = TransformOrigin(0.5f, 0f),
                     ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -122,7 +125,7 @@ fun CodenamesCard(
         onClick = onClick,
         modifier =
             Modifier
-                .aspectRatio(2f)
+                .aspectRatio(CARD_ASPECT_RATIO)
                 .then(
                     if (isSelected) {
                         Modifier.border(3.dp, AppGreen, cardShape)
