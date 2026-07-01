@@ -17,9 +17,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import com.codenames.frontend.R
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
+import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppInk
@@ -54,6 +56,7 @@ fun StartScreen(
                 .fillMaxSize()
                 .background(AppBackground),
     ) {
+        ScreenBackground(R.drawable.main_menu_art)
         Column(
             modifier =
                 Modifier

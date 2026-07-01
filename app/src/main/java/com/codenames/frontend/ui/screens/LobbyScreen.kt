@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.codenames.frontend.R
 import com.codenames.frontend.data.model.LobbyUiState
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.data.model.enums.Team
@@ -35,6 +36,7 @@ import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.AppButtonType
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
+import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
@@ -130,6 +132,7 @@ fun LobbyScreen(
                 .fillMaxSize()
                 .background(AppBackground),
     ) {
+        ScreenBackground(R.drawable.lobby_art)
         Row(
             modifier =
                 Modifier

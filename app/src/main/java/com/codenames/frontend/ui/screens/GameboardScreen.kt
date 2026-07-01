@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.codenames.frontend.R
 import com.codenames.frontend.data.model.ChatDomainModel
 import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.GameCard
@@ -71,6 +72,7 @@ import com.codenames.frontend.ui.buttons.AppSendButton
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.composables.BOARD_COLUMNS
 import com.codenames.frontend.ui.composables.GameBoardGrid
+import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
@@ -261,6 +263,7 @@ fun GameboardScreen(
                 .fillMaxSize()
                 .background(getTeamBackgroundColor(backgroundTeam)),
     ) {
+        ScreenBackground(R.drawable.gameboard_art)
         Column(
             modifier =
                 Modifier

@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
+import com.codenames.frontend.R
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.ReturnCornerButton
+import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppInk
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
@@ -34,6 +36,7 @@ fun SettingsScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .background(AppBackground),
     ) {
+        ScreenBackground(R.drawable.main_menu_art)
         Text(
             text = "SETTINGS",
             color = AppInk,
