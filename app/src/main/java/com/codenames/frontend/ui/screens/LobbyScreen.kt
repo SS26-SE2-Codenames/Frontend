@@ -396,6 +396,8 @@ fun GameSettingsColumn(
                 ),
         )
 
+        Spacer(modifier = Modifier.height(dimensions.sectionSpacing))
+
         AppButton(
             text = "LEAVE LOBBY",
             onClick = {

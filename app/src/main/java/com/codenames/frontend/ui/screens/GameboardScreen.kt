@@ -1234,7 +1234,7 @@ fun HintSection(
                 state = AppTextFieldState(label = "COUNT", placeholder = "0"),
                 style =
                     AppTextFieldStyle(
-                        fontSize = dimensions.bodyFontSize,
+                        fontSize = dimensions.smallFontSize,
                         lineHeight = dimensions.buttonLineHeight,
                     ),
                 keyboard =
