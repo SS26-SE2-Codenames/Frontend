@@ -145,7 +145,7 @@ fun JoinlobbyScreen(
                                 onDone = { submitJoin() },
                             ),
                     ),
-                inputFilter = InputFilters.LOBBY_CODE
+                inputFilter = InputFilters.LOBBY_CODE,
             )
 
             AppButton(

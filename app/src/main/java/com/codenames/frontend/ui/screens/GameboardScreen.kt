@@ -989,7 +989,7 @@ fun HintSection(
                                 },
                             ),
                     ),
-                inputFilter = InputFilters.ALPHANUMERIC
+                inputFilter = InputFilters.ALPHANUMERIC,
             )
 
             AppTextField(
@@ -1012,7 +1012,7 @@ fun HintSection(
                                 keyboardType = KeyboardType.Number,
                             ),
                     ),
-                inputFilter = InputFilters.DIGIT
+                inputFilter = InputFilters.DIGIT,
             )
 
             AppSendButton(

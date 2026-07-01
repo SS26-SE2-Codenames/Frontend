@@ -56,7 +56,6 @@ data class AppTextFieldKeyboard(
 typealias InputFilter = (String) -> String
 
 object InputFilters {
-
     val NONE: InputFilter = { it }
 
     val ALPHANUMERIC: InputFilter = {
@@ -64,7 +63,8 @@ object InputFilters {
     }
 
     val LOBBY_CODE: InputFilter = {
-        it.filter { c -> c.isLetterOrDigit() }
+        it
+            .filter { c -> c.isLetterOrDigit() }
             .uppercase()
     }
 
@@ -82,7 +82,7 @@ fun AppTextField(
     state: AppTextFieldState = AppTextFieldState(),
     style: AppTextFieldStyle = AppTextFieldStyle(),
     keyboard: AppTextFieldKeyboard = AppTextFieldKeyboard(),
-    inputFilter: InputFilter = InputFilters.NONE
+    inputFilter: InputFilter = InputFilters.NONE,
 ) {
     val resolvedContainerColor = resolveContainerColor(style.containerColor)
     val resolvedContentColor = resolveContentColor(style.contentColor)
@@ -99,7 +99,8 @@ fun AppTextField(
                 value = value,
                 onValueChange = { newValue ->
                     val filtered = inputFilter.invoke(newValue)
-                    onValueChange(filtered) },
+                    onValueChange(filtered)
+                },
                 modifier = modifier,
                 state = state,
                 style = style,
@@ -115,7 +116,8 @@ fun AppTextField(
                 value = value,
                 onValueChange = { newValue ->
                     val filtered = inputFilter.invoke(newValue)
-                    onValueChange(filtered) },
+                    onValueChange(filtered)
+                },
                 modifier = modifier,
                 state = state,
                 style = style,
