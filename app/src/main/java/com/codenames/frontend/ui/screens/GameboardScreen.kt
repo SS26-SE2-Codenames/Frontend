@@ -272,21 +272,18 @@ fun GameboardScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(
-                        top = dimensions.gameTopPadding,
+                        top = dimensions.itemSpacing,
                         start = dimensions.screenPadding,
                         end = dimensions.screenPadding,
                         bottom = dimensions.screenPadding,
                     ),
         ) {
-            GameStatusBar(
-                currentTurn = currentTurn,
-                winner = winner,
-                remainingGuesses = remainingGuesses,
-                numGuesses = numGuesses,
-            )
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.2f)
+                    .padding(top = dimensions.itemSpacing),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -294,6 +291,15 @@ fun GameboardScreen(
                     isVisible = availableChatTabs.isNotEmpty(),
                     isChatOpen = isChatOpen,
                     onClick = { isChatOpen = !isChatOpen },
+                    modifier = Modifier.width(140.dp),
+                )
+
+                GameStatusBar(
+                    currentTurn = currentTurn,
+                    winner = winner,
+                    remainingGuesses = remainingGuesses,
+                    numGuesses = numGuesses,
+                    modifier = Modifier.weight(1f),
                 )
 
                 EndTurnButton(
@@ -446,6 +452,7 @@ private fun ChatToggle(
     isVisible: Boolean,
     isChatOpen: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
@@ -454,7 +461,7 @@ private fun ChatToggle(
             isChatOpen = isChatOpen,
             onClick = onClick,
             modifier =
-                Modifier
+                modifier
                     .padding(end = dimensions.itemSpacing, bottom = dimensions.itemSpacing),
         )
     }
@@ -817,18 +824,17 @@ fun GameStatusBar(
     winner: Team?,
     remainingGuesses: Int,
     numGuesses: Int,
+    modifier: Modifier = Modifier,
 ) {
     val dimensions = LocalResponsiveDimensions.current
 
     Log.d("GameboardScreen", "GameStatusBar: Updated guesses. Remaining guesses: $remainingGuesses")
 
-    Row(
+    Box(
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
-                .height(dimensions.gameStatusBarHeight),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
+                .fillMaxHeight(),
     ) {
         val statusText =
             when {
@@ -849,11 +855,13 @@ fun GameStatusBar(
             text = statusText,
             modifier =
                 Modifier
-                    .background(statusBackground, RoundedCornerShape(8.dp))
+                    .background(statusBackground, RoundedCornerShape(12.dp))
                     .padding(
-                        horizontal = dimensions.itemSpacing,
-                        vertical = dimensions.smallSpacing / 2,
-                    ),
+                        horizontal = dimensions.smallSpacing,
+                        vertical = dimensions.smallSpacing,
+                    )
+                    .align(Alignment.Center)
+                    .fillMaxWidth(0.6f),
             color = AppWhite,
             fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
