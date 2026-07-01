@@ -55,6 +55,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.codenames.frontend.R
@@ -71,6 +73,7 @@ import com.codenames.frontend.ui.buttons.AppButtonType
 import com.codenames.frontend.ui.buttons.AppSendButton
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
 import com.codenames.frontend.ui.composables.BOARD_COLUMNS
+import com.codenames.frontend.ui.composables.CARD_ASPECT_RATIO
 import com.codenames.frontend.ui.composables.GameBoardGrid
 import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.inputs.AppTextField
@@ -118,7 +121,6 @@ private data class BoardSelectionState(
 private const val CARD_CLICK_SUPPRESSION_DELAY_MS = 120L
 private const val MIN_BOARD_SCALE = 0.35f
 private const val MAX_BOARD_SCALE = 3f
-private const val BOARD_CARD_ASPECT_RATIO = 2f
 private val BOARD_CARD_SPACING = 8.dp
 
 private data class BoardTransformState(
@@ -536,6 +538,9 @@ private fun BoardContent(
     } else {
         val density = LocalDensity.current
         var boardSize by remember { mutableStateOf(IntSize.Zero) }
+        var defaultTransformApplied by remember(state.cards.size) {
+            mutableStateOf(false)
+        }
         val cardSpacingPx = with(density) { BOARD_CARD_SPACING.toPx() }
 
         Box(
@@ -559,9 +564,10 @@ private fun BoardContent(
                     )
                 }
 
-            LaunchedEffect(state.cards.size, boardSize, defaultScale) {
-                if (boardSize.width > 0 && boardSize.height > 0) {
+            LaunchedEffect(boardSize, defaultScale, defaultTransformApplied) {
+                if (!defaultTransformApplied && boardSize.width > 0 && boardSize.height > 0) {
                     actions.onDefaultTransformReady(defaultScale)
+                    defaultTransformApplied = true
                 }
             }
 
@@ -592,7 +598,7 @@ private fun calculateInitialBoardScale(
     val horizontalSpacing = cardSpacing * (BOARD_COLUMNS - 1)
     val verticalSpacing = cardSpacing * (rowCount - 1)
     val cardWidth = ((availableWidth - horizontalSpacing) / BOARD_COLUMNS).coerceAtLeast(1f)
-    val cardHeight = cardWidth / BOARD_CARD_ASPECT_RATIO
+    val cardHeight = cardWidth / CARD_ASPECT_RATIO
     val boardHeight = (cardHeight * rowCount) + verticalSpacing
 
     if (boardHeight <= 0f) {
@@ -830,9 +836,24 @@ fun GameStatusBar(
                 else -> "Waiting for turn..."
             }
 
+        val statusBackground =
+            when {
+                winner != null -> AppGreen.copy(alpha = 0.85f)
+                currentTurn == PlayerRoles.BLUE_OPERATIVE || currentTurn == PlayerRoles.BLUE_SPYMASTER -> AppBlue.copy(alpha = 0.85f)
+                currentTurn == PlayerRoles.RED_OPERATIVE || currentTurn == PlayerRoles.RED_SPYMASTER -> AppRed.copy(alpha = 0.85f)
+                else -> AppInkOverlay
+            }
+
         Text(
             text = statusText,
-            color = AppInk,
+            modifier =
+                Modifier
+                    .background(statusBackground, RoundedCornerShape(8.dp))
+                    .padding(
+                        horizontal = dimensions.itemSpacing,
+                        vertical = dimensions.smallSpacing / 2,
+                    ),
+            color = AppWhite,
             fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
         )
@@ -1249,6 +1270,7 @@ fun HintSection(
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Text(
                 text = "Hint: $currentHint",
+                color = AppWhite,
                 fontSize = dimensions.bodyFontSize,
                 fontWeight = FontWeight.Bold,
             )
@@ -1271,15 +1293,23 @@ fun TeamRoleBox(
             modifier
                 .fillMaxWidth()
                 .background(gradient, RoundedCornerShape(8.dp))
-                .padding(dimensions.smallSpacing),
+                .padding(
+                    horizontal = dimensions.smallSpacing / 2,
+                    vertical = dimensions.smallSpacing,
+                ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = title,
+            modifier = Modifier.fillMaxWidth(),
             color = AppWhite,
             fontWeight = FontWeight.Bold,
-            fontSize = dimensions.smallFontSize,
+            fontSize = dimensions.smallFontSize * 0.82f,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
+            textAlign = TextAlign.Center,
         )
 
         if (isCurrentUser) {

@@ -35,6 +35,7 @@ import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
+import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.viewmodel.ChatViewModel
@@ -104,6 +105,7 @@ fun UserNameScreen(
         ) {
             Text(
                 text = "Codenames",
+                color = AppWhite,
                 fontSize = dimensions.titleFontSize,
                 modifier = Modifier.padding(bottom = dimensions.sectionSpacing * 3),
             )

@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -40,7 +42,6 @@ import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
-import com.codenames.frontend.ui.theme.AppBlack
 import com.codenames.frontend.ui.theme.AppBlueLight
 import com.codenames.frontend.ui.theme.AppRedLight
 import com.codenames.frontend.ui.theme.AppWhite
@@ -264,9 +265,14 @@ fun RoleCard(
     ) {
         Text(
             text = title,
+            modifier = Modifier.fillMaxWidth(),
             color = AppWhite,
             fontWeight = FontWeight.Bold,
-            fontSize = dimensions.smallFontSize,
+            fontSize = dimensions.smallFontSize * 0.9f,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
+            textAlign = TextAlign.Center,
         )
 
         if (players.isEmpty()) {
@@ -329,6 +335,7 @@ fun GameSettingsColumn(
     ) {
         Text(
             text = "LOBBY CODE: $lobbyCode",
+            color = AppWhite,
             fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
             modifier =
@@ -413,8 +420,8 @@ fun GameSettingsColumn(
                     backgroundBrush = brownGradient,
                     fontSize = dimensions.bodyFontSize,
                     lineHeight = dimensions.buttonLineHeight,
-                    contentColor = AppBlack,
-                    type = AppButtonType.SECONDARY,
+                    contentColor = AppWhite,
+                    type = AppButtonType.PRIMARY,
                     contentPadding =
                         PaddingValues(
                             horizontal = dimensions.itemSpacing,

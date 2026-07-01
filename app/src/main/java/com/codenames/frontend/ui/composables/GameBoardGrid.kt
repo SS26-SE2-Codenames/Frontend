@@ -29,6 +29,7 @@ import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 
 const val BOARD_COLUMNS = 5
+const val CARD_ASPECT_RATIO = 2.35f
 const val LINEBREAK_TRESHOLD = 8
 
 @Suppress("ktlint:standard:function-naming")
@@ -124,7 +125,7 @@ fun CodenamesCard(
         onClick = onClick,
         modifier =
             Modifier
-                .aspectRatio(2f)
+                .aspectRatio(CARD_ASPECT_RATIO)
                 .then(
                     if (isSelected) {
                         Modifier.border(3.dp, AppGreen, cardShape)
