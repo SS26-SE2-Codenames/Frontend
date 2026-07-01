@@ -30,6 +30,9 @@ import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
+import com.codenames.frontend.ui.inputs.AppTextField
+import com.codenames.frontend.ui.inputs.AppTextFieldState
+import com.codenames.frontend.ui.inputs.InputFilters
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
@@ -105,11 +108,12 @@ fun UserNameScreen(
                 modifier = Modifier.padding(bottom = dimensions.sectionSpacing * 3),
             )
 
-            TextField(
+            AppTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = { Text("enter username") },
+                state = AppTextFieldState(label = "Enter username", placeholder = "user"),
                 modifier = Modifier.fillMaxWidth(if (dimensions.isNarrowWidth) 0.7f else 0.5f),
+                inputFilter = InputFilters.ALPHANUMERIC,
             )
 
             Spacer(modifier = Modifier.height(dimensions.itemSpacing))
