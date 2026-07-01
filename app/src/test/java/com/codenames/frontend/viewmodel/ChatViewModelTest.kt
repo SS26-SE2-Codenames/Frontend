@@ -1,6 +1,7 @@
 package com.codenames.frontend.viewmodel
 
 import com.codenames.frontend.data.model.ChatDomainModel
+import com.codenames.frontend.data.model.ChatLists
 import com.codenames.frontend.data.model.enums.ChatTab
 import com.codenames.frontend.data.model.enums.Role
 import com.codenames.frontend.data.model.enums.Team
@@ -24,6 +25,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import kotlin.collections.emptyList
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
@@ -338,4 +340,14 @@ class ChatViewModelTest {
 
             assertNull(viewModel.errorMessage.value)
         }
+    @Test
+    fun testClearChatState() =
+        runTest {
+
+            viewModel.cleanup()
+
+            assertEquals(emptyList<ChatDomainModel>(), viewModel.chatState.value.lobbyMessages)
+            assertEquals(emptyList<ChatDomainModel>(), viewModel.chatState.value.teamMessages)
+            assertEquals(emptyList<ChatDomainModel>(), viewModel.chatState.value.operativeMessages)
+    }
 }
