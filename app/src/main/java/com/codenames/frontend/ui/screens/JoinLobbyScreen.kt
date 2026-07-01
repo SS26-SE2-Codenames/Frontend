@@ -38,6 +38,7 @@ import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
 import com.codenames.frontend.ui.inputs.AppTextFieldType
+import com.codenames.frontend.ui.inputs.InputFilters
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppWhite
@@ -146,6 +147,7 @@ fun JoinlobbyScreen(
                                 onDone = { submitJoin() },
                             ),
                     ),
+                inputFilter = InputFilters.LOBBY_CODE,
             )
 
             AppButton(

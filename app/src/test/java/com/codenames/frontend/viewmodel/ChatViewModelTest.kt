@@ -24,6 +24,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import kotlin.collections.emptyList
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
@@ -337,5 +338,15 @@ class ChatViewModelTest {
             viewModel.clearError()
 
             assertNull(viewModel.errorMessage.value)
+        }
+
+    @Test
+    fun testClearChatState() =
+        runTest {
+            viewModel.cleanup()
+
+            assertEquals(emptyList<ChatDomainModel>(), viewModel.chatState.value.lobbyMessages)
+            assertEquals(emptyList<ChatDomainModel>(), viewModel.chatState.value.teamMessages)
+            assertEquals(emptyList<ChatDomainModel>(), viewModel.chatState.value.operativeMessages)
         }
 }

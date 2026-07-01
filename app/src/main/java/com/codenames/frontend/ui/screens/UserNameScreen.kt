@@ -24,18 +24,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavController
-import com.codenames.frontend.R
 import com.codenames.frontend.data.model.RejoinState
 import com.codenames.frontend.data.model.RejoinUiState
 import com.codenames.frontend.data.model.enums.ConnectionState
 import com.codenames.frontend.ui.buttons.AppButton
 import com.codenames.frontend.ui.buttons.AppButtonStyle
 import com.codenames.frontend.ui.buttons.SettingsCornerButton
-import com.codenames.frontend.ui.composables.ScreenBackground
 import com.codenames.frontend.ui.navigation.Screen
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
-import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 import com.codenames.frontend.ui.theme.blueGradient
 import com.codenames.frontend.viewmodel.ChatViewModel
@@ -94,7 +91,6 @@ fun UserNameScreen(
                 .fillMaxSize()
                 .background(AppBackground),
     ) {
-        ScreenBackground(R.drawable.main_menu_art)
         Column(
             modifier =
                 Modifier
@@ -105,7 +101,6 @@ fun UserNameScreen(
         ) {
             Text(
                 text = "Codenames",
-                color = AppWhite,
                 fontSize = dimensions.titleFontSize,
                 modifier = Modifier.padding(bottom = dimensions.sectionSpacing * 3),
             )

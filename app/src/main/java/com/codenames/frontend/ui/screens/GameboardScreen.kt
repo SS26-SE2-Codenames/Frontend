@@ -80,6 +80,7 @@ import com.codenames.frontend.ui.inputs.AppTextField
 import com.codenames.frontend.ui.inputs.AppTextFieldKeyboard
 import com.codenames.frontend.ui.inputs.AppTextFieldState
 import com.codenames.frontend.ui.inputs.AppTextFieldStyle
+import com.codenames.frontend.ui.inputs.InputFilters
 import com.codenames.frontend.ui.roles.PlayerRoles
 import com.codenames.frontend.ui.theme.AppBackground
 import com.codenames.frontend.ui.theme.AppBlack
@@ -1220,6 +1221,7 @@ fun HintSection(
                                 },
                             ),
                     ),
+                inputFilter = InputFilters.ALPHANUMERIC,
             )
 
             AppTextField(
@@ -1242,6 +1244,7 @@ fun HintSection(
                                 keyboardType = KeyboardType.Number,
                             ),
                     ),
+                inputFilter = InputFilters.DIGIT,
             )
 
             AppSendButton(

@@ -53,6 +53,26 @@ data class AppTextFieldKeyboard(
     val actions: KeyboardActions = KeyboardActions.Default,
 )
 
+typealias InputFilter = (String) -> String
+
+object InputFilters {
+    val NONE: InputFilter = { it }
+
+    val ALPHANUMERIC: InputFilter = {
+        it.filter { c -> c.isLetterOrDigit() || c.isWhitespace() }
+    }
+
+    val LOBBY_CODE: InputFilter = {
+        it
+            .filter { c -> c.isLetterOrDigit() }
+            .uppercase()
+    }
+
+    val DIGIT: InputFilter = {
+        it.filter { c -> c.isDigit() }
+    }
+}
+
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun AppTextField(
@@ -62,6 +82,7 @@ fun AppTextField(
     state: AppTextFieldState = AppTextFieldState(),
     style: AppTextFieldStyle = AppTextFieldStyle(),
     keyboard: AppTextFieldKeyboard = AppTextFieldKeyboard(),
+    inputFilter: InputFilter = InputFilters.NONE,
 ) {
     val resolvedContainerColor = resolveContainerColor(style.containerColor)
     val resolvedContentColor = resolveContentColor(style.contentColor)
@@ -76,7 +97,10 @@ fun AppTextField(
         AppTextFieldType.PRIMARY -> {
             PrimaryAppTextField(
                 value = value,
-                onValueChange = onValueChange,
+                onValueChange = { newValue ->
+                    val filtered = inputFilter.invoke(newValue)
+                    onValueChange(filtered)
+                },
                 modifier = modifier,
                 state = state,
                 style = style,
@@ -90,7 +114,10 @@ fun AppTextField(
         AppTextFieldType.SECONDARY -> {
             SecondaryAppTextField(
                 value = value,
-                onValueChange = onValueChange,
+                onValueChange = { newValue ->
+                    val filtered = inputFilter.invoke(newValue)
+                    onValueChange(filtered)
+                },
                 modifier = modifier,
                 state = state,
                 style = style,
