@@ -29,7 +29,7 @@ import com.codenames.frontend.ui.theme.AppWhite
 import com.codenames.frontend.ui.theme.LocalResponsiveDimensions
 
 const val BOARD_COLUMNS = 5
-const val CARD_ASPECT_RATIO = 2.35f
+const val CARD_ASPECT_RATIO = 2.8f
 const val LINEBREAK_TRESHOLD = 8
 
 @Suppress("ktlint:standard:function-naming")
