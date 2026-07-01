@@ -43,6 +43,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
@@ -122,6 +123,21 @@ private data class BoardTransformState(
     val scale: Float,
     val offset: Offset,
     val suppressCardClicks: Boolean,
+)
+
+private data class BoardContentActions(
+    val onCardClick: (Int) -> Unit,
+    val onTransform: (Offset, Float) -> Unit,
+    val onTransformStart: () -> Unit,
+    val onTransformEnd: () -> Unit,
+    val onDefaultTransformReady: (Float) -> Unit,
+)
+
+private data class BoardGestureState(
+    val transformStarted: Boolean = false,
+    val pastTouchSlop: Boolean = false,
+    val accumulatedPan: Offset = Offset.Zero,
+    val accumulatedZoom: Float = 1f,
 )
 
 private data class ChatOverlayState(
@@ -467,22 +483,25 @@ private fun GameBoardSection(
             state = state,
             selectionState = selectionState,
             transformState = transformState,
-            onDefaultTransformReady = onDefaultTransformReady,
-            onCardClick = { position ->
-                if (selectionState.canSelectCards && !transformState.suppressCardClicks) {
-                    onSelectionChange(
-                        updateSelectedCardPositions(
-                            position = position,
-                            selectedCardPositions = selectionState.selectedCardPositions,
-                            remainingGuesses = selectionState.remainingGuesses,
-                            onReveal = onReveal,
-                        ),
-                    )
-                }
-            },
-            onTransform = onTransform,
-            onTransformStart = onTransformStart,
-            onTransformEnd = onTransformEnd,
+            actions =
+                BoardContentActions(
+                    onCardClick = { position ->
+                        if (selectionState.canSelectCards && !transformState.suppressCardClicks) {
+                            onSelectionChange(
+                                updateSelectedCardPositions(
+                                    position = position,
+                                    selectedCardPositions = selectionState.selectedCardPositions,
+                                    remainingGuesses = selectionState.remainingGuesses,
+                                    onReveal = onReveal,
+                                ),
+                            )
+                        }
+                    },
+                    onTransform = onTransform,
+                    onTransformStart = onTransformStart,
+                    onTransformEnd = onTransformEnd,
+                    onDefaultTransformReady = onDefaultTransformReady,
+                ),
             modifier =
                 Modifier
                     .weight(1f)
@@ -506,11 +525,7 @@ private fun BoardContent(
     state: BoardSectionState,
     selectionState: BoardSelectionState,
     transformState: BoardTransformState,
-    onCardClick: (Int) -> Unit,
-    onTransform: (Offset, Float) -> Unit,
-    onTransformStart: () -> Unit,
-    onTransformEnd: () -> Unit,
-    onDefaultTransformReady: (Float) -> Unit,
+    actions: BoardContentActions,
     modifier: Modifier = Modifier,
 ) {
     if (state.cards.isEmpty()) {
@@ -526,9 +541,9 @@ private fun BoardContent(
                     .clipToBounds()
                     .onSizeChanged { boardSize = it }
                     .boardTransformInput(
-                        onTransform = onTransform,
-                        onTransformStart = onTransformStart,
-                        onTransformEnd = onTransformEnd,
+                        onTransform = actions.onTransform,
+                        onTransformStart = actions.onTransformStart,
+                        onTransformEnd = actions.onTransformEnd,
                     ),
         ) {
             val defaultScale =
@@ -543,7 +558,7 @@ private fun BoardContent(
 
             LaunchedEffect(state.cards.size, boardSize, defaultScale) {
                 if (boardSize.width > 0 && boardSize.height > 0) {
-                    onDefaultTransformReady(defaultScale)
+                    actions.onDefaultTransformReady(defaultScale)
                 }
             }
 
@@ -553,7 +568,7 @@ private fun BoardContent(
                 offset = transformState.offset,
                 isSpymaster = state.isSpymaster,
                 selectedCardPositions = selectionState.selectedCardPositions.toSet(),
-                onCardClick = onCardClick,
+                onCardClick = actions.onCardClick,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -591,53 +606,93 @@ private fun Modifier.boardTransformInput(
 ): Modifier =
     pointerInput(onTransform, onTransformStart, onTransformEnd) {
         awaitEachGesture {
-            var transformStarted = false
-            var pastTouchSlop = false
-            var accumulatedPan = Offset.Zero
-            var accumulatedZoom = 1f
+            var gestureState = BoardGestureState()
 
             try {
                 do {
                     val event = awaitPointerEvent(pass = PointerEventPass.Initial)
-                    val pressedPointers = event.changes.count { it.pressed }
-
-                    if (pressedPointers >= 2) {
-                        val pan = event.calculatePan()
-                        val zoom = event.calculateZoom()
-
-                        accumulatedPan += pan
-                        accumulatedZoom *= zoom
-
-                        val zoomMotion =
-                            abs(1f - accumulatedZoom) * min(size.width, size.height)
-                        val panMotion = accumulatedPan.getDistance()
-
-                        if (!pastTouchSlop &&
-                            (zoomMotion > viewConfiguration.touchSlop || panMotion > viewConfiguration.touchSlop)
-                        ) {
-                            pastTouchSlop = true
-                            transformStarted = true
-                            onTransformStart()
-                        }
-
-                        if (pastTouchSlop) {
-                            onTransform(pan, zoom)
-
-                            event.changes.forEach { pointer ->
-                                if (pointer.positionChanged()) {
-                                    pointer.consume()
-                                }
-                            }
-                        }
-                    }
+                    gestureState =
+                        handleBoardTransformEvent(
+                            event = event,
+                            gestureState = gestureState,
+                            touchSlop = viewConfiguration.touchSlop,
+                            minDimension = min(size.width, size.height),
+                            onTransform = onTransform,
+                            onTransformStart = onTransformStart,
+                        )
                 } while (event.changes.any { it.pressed })
             } finally {
-                if (transformStarted) {
+                if (gestureState.transformStarted) {
                     onTransformEnd()
                 }
             }
         }
     }
+
+private fun handleBoardTransformEvent(
+    event: PointerEvent,
+    gestureState: BoardGestureState,
+    touchSlop: Float,
+    minDimension: Int,
+    onTransform: (Offset, Float) -> Unit,
+    onTransformStart: () -> Unit,
+): BoardGestureState {
+    if (event.changes.count { it.pressed } < 2) {
+        return gestureState
+    }
+
+    val pan = event.calculatePan()
+    val zoom = event.calculateZoom()
+    val updatedState =
+        gestureState.copy(
+            accumulatedPan = gestureState.accumulatedPan + pan,
+            accumulatedZoom = gestureState.accumulatedZoom * zoom,
+        )
+
+    val pastTouchSlop =
+        updatedState.pastTouchSlop ||
+            isPastBoardTouchSlop(
+                accumulatedPan = updatedState.accumulatedPan,
+                accumulatedZoom = updatedState.accumulatedZoom,
+                touchSlop = touchSlop,
+                minDimension = minDimension,
+            )
+
+    val startedState =
+        updatedState.copy(
+            pastTouchSlop = pastTouchSlop,
+            transformStarted = updatedState.transformStarted || pastTouchSlop,
+        )
+
+    if (!updatedState.pastTouchSlop && pastTouchSlop) {
+        onTransformStart()
+    }
+
+    if (pastTouchSlop) {
+        onTransform(pan, zoom)
+        consumeMovedPointers(event)
+    }
+
+    return startedState
+}
+
+private fun isPastBoardTouchSlop(
+    accumulatedPan: Offset,
+    accumulatedZoom: Float,
+    touchSlop: Float,
+    minDimension: Int,
+): Boolean {
+    val zoomMotion = abs(1f - accumulatedZoom) * minDimension
+    val panMotion = accumulatedPan.getDistance()
+
+    return zoomMotion > touchSlop || panMotion > touchSlop
+}
+
+private fun consumeMovedPointers(event: PointerEvent) {
+    event.changes
+        .filter { it.positionChanged() }
+        .forEach { it.consume() }
+}
 
 @Suppress("ktlint:standard:function-naming")
 @Composable

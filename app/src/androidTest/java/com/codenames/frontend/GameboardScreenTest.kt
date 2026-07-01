@@ -379,4 +379,57 @@ class GameboardScreenTest {
             assertEquals(listOf(0), revealedPositions)
         }
     }
+
+    @Test
+    fun gameboardPreviewWithFullCardSet() {
+        composeRule.setContent {
+            GameboardScreen(
+                userRole = PlayerRoles.BLUE_OPERATIVE,
+                gameState =
+                    GameState(
+                        currentHint = "CITY",
+                        currentTurn = PlayerRoles.BLUE_OPERATIVE,
+                        remainingGuesses = 3,
+                        numGuesses = 3,
+                        currentBlueFound = 2,
+                        currentRedFound = 1,
+                        cards =
+                            listOf(
+                                GameCard("BERLIN", CardType.BLUE),
+                                GameCard("ROME", CardType.RED),
+                                GameCard("MOON", CardType.NEUTRAL),
+                                GameCard("VIPER", CardType.ASSASSIN),
+                                GameCard("CROWN", CardType.BLUE),
+                                GameCard("TRAIN", CardType.RED),
+                                GameCard("FOREST", CardType.NEUTRAL),
+                                GameCard("RIVER", CardType.BLUE),
+                                GameCard("PIANO", CardType.RED),
+                                GameCard("CASTLE", CardType.NEUTRAL),
+                                GameCard("EAGLE", CardType.BLUE),
+                                GameCard("BRIDGE", CardType.RED),
+                                GameCard("GLASS", CardType.NEUTRAL),
+                                GameCard("MARKET", CardType.BLUE),
+                                GameCard("STORM", CardType.RED),
+                                GameCard("GARDEN", CardType.NEUTRAL),
+                                GameCard("ROCKET", CardType.BLUE),
+                                GameCard("WINDOW", CardType.RED),
+                                GameCard("KING", CardType.NEUTRAL),
+                                GameCard("ISLAND", CardType.BLUE),
+                                GameCard("PAPER", CardType.RED),
+                                GameCard("BUTTON", CardType.NEUTRAL),
+                                GameCard("DRAGON", CardType.BLUE),
+                                GameCard("LIGHT", CardType.RED),
+                                GameCard("WATER", CardType.NEUTRAL),
+                            ),
+                        availableChatTabs = listOf(ChatTab.GLOBAL, ChatTab.TEAM),
+                    ),
+                onHintChange = { _, _ -> },
+                onReveal = {},
+                onCheatRequest = {},
+                onReturnToHome = {},
+            )
+        }
+
+        Thread.sleep(10_000)
+    }
 }
