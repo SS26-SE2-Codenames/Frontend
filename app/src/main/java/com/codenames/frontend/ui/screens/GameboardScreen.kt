@@ -278,12 +278,12 @@ fun GameboardScreen(
                         bottom = dimensions.screenPadding,
                     ),
         ) {
-
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.2f)
-                    .padding(top = dimensions.itemSpacing),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.2f)
+                        .padding(top = dimensions.itemSpacing),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -781,6 +781,8 @@ private fun EndTurnButton(
                     fontSize = dimensions.bodyFontSize,
                 ),
         )
+    } else {
+        Spacer(modifier = modifier)
     }
 }
 
@@ -859,9 +861,9 @@ fun GameStatusBar(
                     .padding(
                         horizontal = dimensions.smallSpacing,
                         vertical = dimensions.smallSpacing,
-                    )
-                    .align(Alignment.Center)
-                    .fillMaxWidth(0.6f),
+                    ).align(Alignment.Center)
+                    .fillMaxWidth(0.75f),
+            textAlign = TextAlign.Center,
             color = AppWhite,
             fontSize = dimensions.bodyFontSize,
             fontWeight = FontWeight.Bold,
